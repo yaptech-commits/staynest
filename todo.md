@@ -100,3 +100,8 @@
 - [x] Preserve the official StayNest logo across header, footer, favicon, metadata, and mobile navigation, with a repository safeguard and verification test.
 
 - [x] Use the user-provided IMG_3886.PNG as a responsive background overlay behind the “Arrive somewhere wonderful” hero section while preserving contrast and search readability.
+
+- [x] Fix deployed header logo rendering as a missing-image placeholder and verify the corrected asset path on mobile and desktop.
+
+- [x] Fix deployed header logo rendering as a missing-image placeholder and verify the corrected asset path on mobile and desktop.
+- [x] Remove the user-provided screenshot overlay from the “Arrive somewhere wonderful” hero section while preserving the intended hero background treatment.

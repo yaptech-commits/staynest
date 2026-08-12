@@ -8,9 +8,8 @@ const readProjectFile = (relativePath: string) => readFileSync(resolve(projectRo
 describe("StayNest logo preservation", () => {
   it("keeps the official asset paths centralized and stable", () => {
     const brand = readProjectFile("client/src/brand.ts");
-    expect(brand).toContain('STAYNEST_WORDMARK_SRC = "/manus-storage/staynest-wordmark_36cf8e19.png"');
-    expect(brand).toContain('STAYNEST_EMBLEM_SRC = "/manus-storage/staynest-square_4db1a99e.png"');
-    expect(brand).toContain('STAYNEST_HERO_OVERLAY_SRC = "/manus-storage/staynest-hero-overlay_0b3d8a6b.png"');
+    expect(brand).toContain('STAYNEST_WORDMARK_SRC = "/manus-storage/staynest-wordmark_ec469b8e.png"');
+    expect(brand).toContain('STAYNEST_EMBLEM_SRC = "/manus-storage/staynest-square_5393a5b0.png"');
   });
 
   it("keeps the wordmark in every shared guest and authenticated shell", () => {
@@ -24,14 +23,10 @@ describe("StayNest logo preservation", () => {
     }
   });
 
-  it("keeps the favicon, touch icon, and social metadata branded", () => {
+  it("keeps favicon, touch icon, and social metadata branded", () => {
     const index = readProjectFile("client/index.html");
     expect(index).toContain('rel="icon" type="image/png" href="/manus-storage/staynest-square_4db1a99e.png"');
     expect(index).toContain('rel="apple-touch-icon" href="/manus-storage/staynest-square_4db1a99e.png"');
     expect(index).toContain('property="og:image" content="/manus-storage/staynest-wordmark_36cf8e19.png"');
-  });
-
-  it("keeps the uploaded hero overlay wired to the homepage hero", () => {
-    expect(readProjectFile("client/src/pages/StayNest.tsx")).toContain("STAYNEST_HERO_OVERLAY_SRC");
   });
 });

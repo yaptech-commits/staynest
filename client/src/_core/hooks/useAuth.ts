@@ -2,7 +2,7 @@ import { startLogin } from "@/const";
 import { trpc } from "@/lib/trpc";
 import { TRPCClientError } from "@trpc/client";
 import { useCallback, useEffect, useMemo, useRef } from "react";
-import { completeOnboardingIntent } from "@shared/onboarding";
+import { completeOnboardingIntent, onboardingNavigationTarget } from "@shared/onboarding";
 
 type UseAuthOptions = {
   redirectOnUnauthenticated?: boolean;
@@ -87,7 +87,8 @@ export function useAuth(options?: UseAuthOptions) {
       save: (intent) => onboardingMutation.mutateAsync(intent),
       clear: () => window.localStorage.removeItem("staynest_onboarding_intent"),
       redirect: (destination) => {
-        if (window.location.pathname !== destination.split("?")[0]) window.location.assign(destination);
+        const next = onboardingNavigationTarget(destination, window.location.pathname, window.location.search);
+        if (next) window.location.assign(next);
       },
     }).catch(() => {
       onboardingHandledRef.current = false;

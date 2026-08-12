@@ -16,6 +16,17 @@ export function onboardingDestination(role: OnboardingRole) {
   return role === "partner" ? "/hotel-dashboard?onboarding=complete" : "/account?onboarding=complete";
 }
 
+export function onboardingNavigationTarget(destination: string, currentPath: string, currentSearch = "") {
+  const target = new URL(destination, "https://staynest.local");
+  const current = `${currentPath}${currentSearch}`;
+  const next = `${target.pathname}${target.search}`;
+  return current === next ? null : next;
+}
+
+export function verificationPromptEmail(status: string | null | undefined, email: string | null | undefined) {
+  return status === "verified" || !email ? undefined : email;
+}
+
 export function parseOnboardingIntent(rawIntent: string | null): OnboardingIntent | null {
   if (!rawIntent) return null;
   try {

@@ -310,6 +310,35 @@ export async function verifyPayment(input: { gateway: PaymentGateway; reference:
   return { configured: true, verified, verificationToken: verified ? await issuePaymentVerificationToken(input) : null };
 }
 
+function escapeHtml(value: string) {
+  return value.replace(/[&<>'\"]/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", "\"": "&quot;" })[character] ?? character);
+}
+
+export function buildWelcomeVerificationUrl(token: string, baseUrl = process.env.APP_URL ?? (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "")) {
+  const normalizedBaseUrl = baseUrl.trim().replace(/\/$/, "");
+  return normalizedBaseUrl ? `${normalizedBaseUrl}/verify-email?token=${encodeURIComponent(token)}` : null;
+}
+
+export async function sendWelcomeEmail(input: { to: string; fullName: string; role: "guest" | "partner"; verificationToken: string }) {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) return { configured: false, sent: false };
+  const verifyUrl = buildWelcomeVerificationUrl(input.verificationToken);
+  if (!verifyUrl) return { configured: false, sent: false };
+
+  const greeting = input.role === "partner" ? "Your partner workspace is ready to begin." : "Your next considered stay is closer than ever.";
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      from: "StayNest <hello@staynest.example>",
+      to: [input.to],
+      subject: "Welcome to StayNest · Verify your email",
+      html: `<div style="font-family:Arial,sans-serif;color:#183a31;line-height:1.6;max-width:560px"><p style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#b18143;font-weight:700">Welcome to StayNest</p><h1 style="font-family:Georgia,serif;font-size:34px;line-height:1.05">Make room for a better arrival.</h1><p>Hi ${escapeHtml(input.fullName)}, ${greeting}</p><p>Please verify your email to keep your account secure and receive important booking and partner updates.</p><p><a href="${verifyUrl}" style="display:inline-block;background:#183a31;color:#fff;text-decoration:none;padding:13px 20px;border-radius:10px;font-weight:700">Verify email</a></p><p style="font-size:12px;color:#718078">This link expires in 24 hours. If you did not create a StayNest account, you can ignore this message.</p></div>`,
+    }),
+  });
+  return { configured: true, sent: response.ok };
+}
+
 export async function sendBookingEmail(input: { to: string; guestName: string; bookingReference: string; hotelName: string; roomName: string; checkInDate: string; checkOutDate: string; total: number; currency: Currency }) {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) return { configured: false, sent: false };

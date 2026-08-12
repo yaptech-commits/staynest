@@ -30,7 +30,14 @@ import {
   recordBookingFinance,
   listPayouts,
   updateHotelApproval,
+  createHotelForOwner,
   saveOnboardingProfile,
+  notifyAdminsOfPartnerApplication,
+  listNotificationsForUser,
+  markNotificationRead,
+  verifyOnboardingEmail,
+  getOnboardingProfileForUser,
+  resendOnboardingVerification,
 } from "./db";
 import {
   calculateCommission,
@@ -44,6 +51,7 @@ import {
   sendBookingEmail,
   verifyPayment,
   verifyPaymentToken,
+  sendWelcomeEmail,
 } from "./staynest";
 
 const dateInput = z.string().min(10).max(32);
@@ -99,7 +107,31 @@ export const appRouter = router({
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
       return { success: true } as const;
     }),
-    saveOnboarding: protectedProcedure.input(onboardingProfileInput).mutation(({ ctx, input }) => saveOnboardingProfile({ userId: ctx.user.id, ...input })),
+    onboardingProfile: protectedProcedure.query(({ ctx }) => getOnboardingProfileForUser(ctx.user.id)),
+    resendVerification: protectedProcedure.mutation(async ({ ctx }) => {
+      const result = await resendOnboardingVerification(ctx.user.id);
+      if (!result) throw new TRPCError({ code: "NOT_FOUND", message: "No onboarding profile found." });
+      const profile = result.profile as { email?: string; fullName?: string; role?: "guest" | "partner" } | undefined;
+      const email = profile?.email ?? ctx.user.email ?? "";
+      const fullName = profile?.fullName ?? ctx.user.name ?? "Guest";
+      const role = profile?.role ?? "guest";
+      const welcomeEmail = email ? await sendWelcomeEmail({ to: email, fullName, role, verificationToken: result.verificationToken }) : { configured: false, sent: false };
+      return { success: true, welcomeEmail };
+    }),
+    saveOnboarding: protectedProcedure.input(onboardingProfileInput).mutation(async ({ ctx, input }) => {
+      const profile = await saveOnboardingProfile({ userId: ctx.user.id, ...input });
+      const profileRecord = profile as { emailVerificationToken?: unknown };
+      const verificationToken = typeof profileRecord.emailVerificationToken === "string" ? profileRecord.emailVerificationToken : "";
+      const welcomeEmail = verificationToken ? await sendWelcomeEmail({ to: input.email, fullName: input.fullName, role: input.role, verificationToken }) : { configured: false, sent: false };
+      const adminAlerts = input.role === "partner" ? await notifyAdminsOfPartnerApplication({ userId: ctx.user.id, applicantName: input.fullName, email: input.email, businessName: input.businessName }) : 0;
+      return { profile, welcomeEmail, adminAlerts };
+    }),
+    verifyEmail: publicProcedure.input(z.object({ token: z.string().min(20).max(128) })).mutation(({ input }) => verifyOnboardingEmail(input.token)),
+  }),
+
+  notifications: router({
+    mine: protectedProcedure.query(({ ctx }) => listNotificationsForUser(ctx.user.id)),
+    markRead: protectedProcedure.input(z.object({ id: z.number().int().positive() })).mutation(({ ctx, input }) => markNotificationRead(input.id, ctx.user.id)),
   }),
 
   catalog: router({
@@ -344,6 +376,7 @@ export const appRouter = router({
 
   hotel: router({
     mine: protectedProcedure.query(({ ctx }) => listHotelsForOwner(ctx.user.id)),
+    create: protectedProcedure.input(z.object({ name: z.string().trim().min(2).max(255), location: z.string().trim().min(2).max(255), address: z.string().trim().max(1000).optional(), description: z.string().trim().max(2000).optional() })).mutation(({ ctx, input }) => createHotelForOwner({ ownerId: ctx.user.id, ...input })),
     rooms: protectedProcedure.input(z.object({ hotelId: z.number().int().positive() })).query(async ({ ctx, input }) => {
       const hotel = await getHotelById(input.hotelId);
       if (!hotel || hotel.ownerId !== ctx.user.id) throw new TRPCError({ code: "FORBIDDEN", message: "You do not manage this property." });

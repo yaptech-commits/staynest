@@ -1,6 +1,7 @@
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, gt } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, hotels, rooms, bookings, reviews, blockedDates, onboardingProfiles } from "../drizzle/schema";
+import { nanoid } from "nanoid";
+import { InsertUser, users, hotels, rooms, bookings, reviews, blockedDates, onboardingProfiles, notifications } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -103,6 +104,27 @@ export async function listHotelsForOwner(ownerId: number) {
   const db = await getDb();
   if (!db) return [];
   return db.select().from(hotels).where(eq(hotels.ownerId, ownerId)).orderBy(desc(hotels.createdAt));
+}
+
+export async function createHotelForOwner(input: { ownerId: number; name: string; location: string; address?: string; description?: string }) {
+  const db = await getDb();
+  const slugBase = input.name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "staynest-property";
+  const slug = `${slugBase}-${nanoid(6).toLowerCase()}`;
+  if (!db) return { id: 0, ...input, slug, approvalStatus: "pending" as const };
+  const values = {
+    ownerId: input.ownerId,
+    name: input.name.trim(),
+    slug,
+    location: input.location.trim(),
+    address: input.address?.trim() || null,
+    description: input.description?.trim() || null,
+    images: [],
+    amenities: [],
+    isBillflowConnected: 0,
+    approvalStatus: "pending" as const,
+  };
+  const result = await db.insert(hotels).values(values);
+  return { id: Number(result[0].insertId), ...values };
 }
 
 export async function listAllHotels() {
@@ -245,15 +267,17 @@ export function buildOnboardingPersistencePayload(input: { userId: number; role:
 
 type OnboardingProfilePersistenceStore = {
   updateUser: (userId: number, values: { name: string; email: string; role: "user" | "hotel_owner" }) => Promise<void>;
-  upsertProfile: (profile: { userId: number; role: "guest" | "partner"; fullName: string; email: string; businessName: string | null }) => Promise<void>;
+  upsertProfile: (profile: { userId: number; role: "guest" | "partner"; fullName: string; email: string; businessName: string | null; emailVerificationStatus?: "pending" | "verified"; emailVerificationToken?: string | null; emailVerificationExpiresAt?: Date | null }) => Promise<void>;
   getProfile: (userId: number) => Promise<unknown | undefined>;
 };
 
 export async function saveOnboardingProfile(input: { userId: number; role: "guest" | "partner"; fullName: string; email: string; businessName?: string }, injectedStore?: OnboardingProfilePersistenceStore) {
+  const verificationToken = nanoid(40);
+  const verificationExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
   let store = injectedStore;
   if (!store) {
     const db = await getDb();
-    if (!db) return { id: 0, ...input };
+    if (!db) return { id: 0, ...input, emailVerificationStatus: "pending" as const, emailVerificationToken: verificationToken, emailVerificationExpiresAt: verificationExpiresAt };
     store = {
       updateUser: async (userId, values) => {
         await db.update(users).set(values).where(eq(users.id, userId));
@@ -269,7 +293,62 @@ export async function saveOnboardingProfile(input: { userId: number; role: "gues
   }
 
   const payload = buildOnboardingPersistencePayload(input);
+  const profilePayload = {
+    ...payload.profile,
+    emailVerificationStatus: "pending" as const,
+    emailVerificationToken: verificationToken,
+    emailVerificationExpiresAt: verificationExpiresAt,
+  };
   await store.updateUser(input.userId, payload.user);
-  await store.upsertProfile(payload.profile);
-  return await store.getProfile(input.userId) ?? { id: 0, ...input };
+  await store.upsertProfile(profilePayload);
+  return await store.getProfile(input.userId) ?? { id: 0, ...profilePayload };
+}
+
+export async function getOnboardingProfileForUser(userId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(onboardingProfiles).where(eq(onboardingProfiles.userId, userId)).limit(1);
+  return result[0];
+}
+
+export async function resendOnboardingVerification(userId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const token = nanoid(40);
+  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  const result = await db.update(onboardingProfiles).set({ emailVerificationStatus: "pending", emailVerificationToken: token, emailVerificationExpiresAt: expiresAt, emailVerifiedAt: null }).where(eq(onboardingProfiles.userId, userId));
+  if (!result[0].affectedRows) return undefined;
+  return { profile: await getOnboardingProfileForUser(userId), verificationToken: token };
+}
+
+export async function verifyOnboardingEmail(token: string) {
+  const db = await getDb();
+  if (!db) return false;
+  const result = await db.update(onboardingProfiles).set({ emailVerificationStatus: "verified", emailVerificationToken: null, emailVerificationExpiresAt: null, emailVerifiedAt: new Date() }).where(and(eq(onboardingProfiles.emailVerificationToken, token), gt(onboardingProfiles.emailVerificationExpiresAt, new Date())));
+  return result[0].affectedRows > 0;
+}
+
+export async function notifyAdminsOfPartnerApplication(input: { userId: number; applicantName: string; email: string; businessName?: string }) {
+  const db = await getDb();
+  if (!db) return 0;
+  const admins = await db.select({ id: users.id }).from(users).where(eq(users.role, "admin"));
+  const dedupeKey = `partner-application-${input.userId}`;
+  const message = `${input.applicantName} (${input.email}) submitted ${input.businessName ? `${input.businessName} for` : "a"} partner onboarding. Review the application before publishing a property.`;
+  for (const admin of admins) {
+    await db.insert(notifications).values({ userId: admin.id, type: "partner_application", title: "New hotel-partner application", message, dedupeKey: `${dedupeKey}-${admin.id}` }).onDuplicateKeyUpdate({ set: { title: "New hotel-partner application", message, readAt: null } });
+  }
+  return admins.length;
+}
+
+export async function listNotificationsForUser(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(notifications).where(eq(notifications.userId, userId)).orderBy(desc(notifications.createdAt));
+}
+
+export async function markNotificationRead(id: number, userId: number) {
+  const db = await getDb();
+  if (!db) return false;
+  const result = await db.update(notifications).set({ readAt: new Date() }).where(and(eq(notifications.id, id), eq(notifications.userId, userId)));
+  return result[0].affectedRows > 0;
 }

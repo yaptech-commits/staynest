@@ -50,3 +50,18 @@
 - [x] Add server-side coverage for onboarding profile upsert and hotel_owner role promotion without inserting test records into the production database.
 
 - [x] Add a mocked-database server test for `saveOnboardingProfile()` covering guest saves, partner promotion, and repeated-user upsert behavior without real database writes.
+
+- [x] Add hotel-partner completion banner and first-property setup wizard in the partner dashboard.
+- [x] Add email verification state and welcome-email notification support.
+- [x] Add admin notifications for new hotel-partner onboarding applications.
+
+- [x] Update onboarding persistence assertions to cover verification state without comparing generated token values exactly.
+
+- [x] Update partner post-onboarding routing to `/hotel-dashboard?onboarding=complete` and verify the banner through the real flow.
+- [x] Expose email-verification status in account/partner UI, add a resend-verification action, and require a configured production base URL for welcome links.
+- [x] Add tests for completion-banner routing and verification-link generation.
+
+- [x] Apply the onboarding completion query parameter even when post-auth navigation is already on `/hotel-dashboard` or `/account`, and test the same-path redirect behavior.
+- [x] Show verification status and resend controls in the partner no-property wizard state.
+- [x] Surface email configuration or delivery failures instead of reporting verification email success when delivery is unavailable.
+- [x] Add automated coverage for same-path completion-banner routing and the no-property verification state contract.

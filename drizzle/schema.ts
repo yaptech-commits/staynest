@@ -216,6 +216,10 @@ export const onboardingProfiles = mysqlTable("staynest_onboarding_profiles", {
   fullName: varchar("fullName", { length: 255 }).notNull(),
   email: varchar("email", { length: 320 }).notNull(),
   businessName: varchar("businessName", { length: 255 }),
+  emailVerificationStatus: mysqlEnum("emailVerificationStatus", ["pending", "verified"]).default("pending").notNull(),
+  emailVerificationToken: varchar("emailVerificationToken", { length: 128 }),
+  emailVerificationExpiresAt: timestamp("emailVerificationExpiresAt"),
+  emailVerifiedAt: timestamp("emailVerifiedAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

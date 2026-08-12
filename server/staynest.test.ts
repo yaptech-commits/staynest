@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calculateCommission, createBillFlowReservation, getLiveAvailability, initializePayment, makeBookingReference } from "./staynest";
+import { buildWelcomeVerificationUrl, calculateCommission, createBillFlowReservation, getLiveAvailability, initializePayment, makeBookingReference } from "./staynest";
 
 describe("StayNest commercial rules", () => {
   it("calculates the fixed 15% platform commission", () => {
@@ -10,6 +10,11 @@ describe("StayNest commercial rules", () => {
   it("creates a recognizable unique booking reference", () => {
     const reference = makeBookingReference();
     expect(reference).toMatch(/^SN-\d{4}-[A-Z0-9]{8}$/);
+  });
+
+  it("builds verification links from a configured production base URL and rejects missing bases", () => {
+    expect(buildWelcomeVerificationUrl("token/with spaces", "https://staynest-yaptech.vercel.app/")).toBe("https://staynest-yaptech.vercel.app/verify-email?token=token%2Fwith%20spaces");
+    expect(buildWelcomeVerificationUrl("token", "")).toBeNull();
   });
 
   it("returns an explicit availability fallback when BillFlow credentials are absent", async () => {

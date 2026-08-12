@@ -6,6 +6,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { Home, PropertyPage, BookingPage, AccountPage, HotelDashboard, AdminDashboard, PaymentCompletePage, ConfirmationPage } from "./pages/StayNest";
 import Onboarding from "./pages/Onboarding";
+import EmailVerification from "./pages/EmailVerification";
 
 function Router() {
   return (
@@ -17,6 +18,7 @@ function Router() {
       <Route path="/confirmation" component={ConfirmationPage} />
       <Route path="/account" component={AccountPage} />
       <Route path="/onboarding" component={Onboarding} />
+      <Route path="/verify-email" component={EmailVerification} />
       <Route path="/hotel-dashboard" component={HotelDashboard} />
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/404" component={NotFound} />

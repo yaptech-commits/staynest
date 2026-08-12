@@ -94,5 +94,7 @@
 
 - [x] Add a guest-facing router test where a room-specific blocked period drives `availableRooms: 0` through the catalog/property/live-availability mapping.
 
-- [ ] Refactor StayNest frontend to adopt Booking.com's high-density search bar, property result list layout, sticky filter sidebar, badge highlights, and structured guest review display.
 - [x] Refactor StayNest frontend to adopt Booking.com's high-density search bar, property result list layout, sticky filter sidebar, badge highlights, and structured guest review display.
+- [x] Refactor StayNest frontend to adopt Booking.com's high-density search bar, property result list layout, sticky filter sidebar, badge highlights, and structured guest review display.
+
+- [x] Preserve the official StayNest logo across header, footer, favicon, metadata, and mobile navigation, with a repository safeguard and verification test.

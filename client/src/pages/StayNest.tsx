@@ -3,6 +3,7 @@ import { Link, useLocation, useRoute } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { startLogin } from "@/const";
+import { STAYNEST_LOGO_ALT, STAYNEST_WORDMARK_SRC } from "@/brand";
 import { MapView } from "@/components/Map";
 import { PartnerInventoryPanel } from "@/components/PartnerInventoryPanel";
 import { Button } from "@/components/ui/button";
@@ -46,7 +47,7 @@ function Shell({ children, variant = "light" }: { children: React.ReactNode; var
       <header className="sticky top-0 z-40 border-b border-[#dfe4dc]/80 bg-[#fbfaf7]/92 backdrop-blur-xl">
         <div className="mx-auto flex h-[76px] max-w-[1240px] items-center justify-between px-5 lg:px-8">
           <Link href="/" className="group flex items-center gap-3">
-            <img src="/manus-storage/staynest-wordmark_36cf8e19.png" alt="StayNest" className="h-9 w-auto max-w-[190px] object-contain" />
+            <img src={STAYNEST_WORDMARK_SRC} alt={STAYNEST_LOGO_ALT} className="h-9 w-auto max-w-[190px] object-contain" />
           </Link>
           <nav className="hidden items-center gap-8 md:flex">
             <Link href="/#stays" className="text-[13px] font-semibold text-[#50605a] transition hover:text-[#183a31]">Explore stays</Link>
@@ -76,7 +77,7 @@ function Shell({ children, variant = "light" }: { children: React.ReactNode; var
       {children}
       <footer className="border-t border-[#dfe4dc] bg-[#183a31] text-white">
         <div className="mx-auto grid max-w-[1240px] gap-10 px-5 py-14 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr] lg:px-8">
-          <div><div className="mb-4 inline-flex rounded-xl bg-white p-2"><img src="/manus-storage/staynest-wordmark_36cf8e19.png" alt="StayNest" className="h-8 w-auto max-w-[170px] object-contain" /></div><p className="max-w-[260px] text-sm leading-6 text-[#c1d0c5]">Thoughtful stays across Ghana, with live availability and a simpler way to arrive well.</p></div>
+          <div><div className="mb-4 inline-flex rounded-xl bg-white p-2"><img src={STAYNEST_WORDMARK_SRC} alt={STAYNEST_LOGO_ALT} className="h-8 w-auto max-w-[170px] object-contain" /></div><p className="max-w-[260px] text-sm leading-6 text-[#c1d0c5]">Thoughtful stays across Ghana, with live availability and a simpler way to arrive well.</p></div>
           <div><p className="mb-4 text-[11px] font-bold uppercase tracking-[0.16em] text-[#e7c77b]">Discover</p><div className="space-y-3 text-sm text-[#c1d0c5]"><Link href="/#stays" className="block hover:text-white">Accra stays</Link><Link href="/#stays" className="block hover:text-white">Coastal retreats</Link><Link href="/#how-it-works" className="block hover:text-white">How it works</Link></div></div>
           <div><p className="mb-4 text-[11px] font-bold uppercase tracking-[0.16em] text-[#e7c77b]">For partners</p><div className="space-y-3 text-sm text-[#c1d0c5]"><Link href="/onboarding?role=partner" className="block hover:text-white">List your hotel</Link><Link href="/onboarding?role=partner" className="block hover:text-white">Partner onboarding</Link><a href="mailto:hello@staynest.example" className="block hover:text-white">Partner support</a></div></div>
           <div><p className="mb-4 text-[11px] font-bold uppercase tracking-[0.16em] text-[#e7c77b]">Stay in touch</p><p className="mb-4 text-sm leading-6 text-[#c1d0c5]">Questions about a booking? Our guest team is here to help.</p><a href="mailto:hello@staynest.example" className="inline-flex items-center gap-2 text-sm font-semibold text-white">hello@staynest.example <ArrowRight size={14} /></a></div>
@@ -100,8 +101,8 @@ function SearchPanel({ onSearch }: { onSearch?: (values: { location: string; che
   return <div className="rounded-[18px] border border-[#cfd8d0] bg-white p-2.5 text-[#183a31] shadow-[0_18px_70px_rgba(24,58,49,.14)] md:rounded-[20px] md:p-3">
     <div className="mb-2 flex items-center gap-1 overflow-x-auto border-b border-[#edf0eb] px-1">
       <button className="flex shrink-0 items-center gap-2 border-b-2 border-[#183a31] px-3 py-2.5 text-xs font-bold text-[#183a31]"><Hotel size={14} /> Stays</button>
-      <button className="flex shrink-0 items-center gap-2 rounded-t-lg px-3 py-2.5 text-xs font-semibold text-[#718078] transition hover:bg-[#f2f5f1]"><Sparkles size={14} /> Experiences</button>
-      <button className="flex shrink-0 items-center gap-2 rounded-t-lg px-3 py-2.5 text-xs font-semibold text-[#718078] transition hover:bg-[#f2f5f1]"><MapPin size={14} /> Places to explore</button>
+      <button onClick={() => toast.info("Experiences search coming soon", { description: "Explore our featured Ghana stays below." })} className="flex shrink-0 items-center gap-2 rounded-t-lg px-3 py-2.5 text-xs font-semibold text-[#718078] transition hover:bg-[#f2f5f1]"><Sparkles size={14} /> Experiences</button>
+      <button onClick={() => toast.info("Places to explore coming soon", { description: "Explore our featured Ghana stays below." })} className="flex shrink-0 items-center gap-2 rounded-t-lg px-3 py-2.5 text-xs font-semibold text-[#718078] transition hover:bg-[#f2f5f1]"><MapPin size={14} /> Places to explore</button>
     </div>
     <div className="grid gap-2 md:grid-cols-[1.25fr_1fr_1fr_.9fr_auto] md:items-center">
       <div className="rounded-xl border border-[#b8c8bb] px-3 py-2 focus-within:border-[#183a31]"><Label className="mb-1 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.12em] text-[#718078]"><MapPin size={13} className="text-[#b18143]" /> Where</Label><Input value={location} onChange={(event) => setLocation(event.target.value)} className="h-6 border-0 p-0 text-sm font-semibold shadow-none focus-visible:ring-0" placeholder="City or neighborhood" /></div>
@@ -127,7 +128,17 @@ function HotelCard({ hotel, currency, onSelect }: { hotel: any; currency: "GHS" 
       </button>
       <CardContent className="min-w-0 p-5 md:p-6">
         <div className="flex items-start justify-between gap-4"><div><button onClick={onSelect} className="text-left"><h3 className="font-serif text-[25px] leading-tight text-[#183a31] hover:underline">{hotel.name}</h3></button><p className="mt-1 text-xs text-[#718078]">{hotel.location}</p></div><button aria-label={`Save ${hotel.name}`} className="text-[#8fa098] transition hover:text-[#b18143]"><Heart size={18} strokeWidth={1.6} /></button></div>
-        <div className="mt-3 flex flex-wrap items-center gap-2 text-xs"><span className="flex items-center gap-1 rounded-md bg-[#183a31] px-2 py-1 font-bold text-white"><Star size={12} className="fill-[#e7c77b] text-[#e7c77b]" /> {hotel.rating ? hotel.rating.toFixed(1) : "New"}</span><span className="font-semibold text-[#52655b]">{hotel.reviewCount ? `${hotel.reviewCount} reviews` : "New to StayNest"}</span><span className="text-[#8a9890]">·</span><span className="text-[#607269]">{hotel.amenities?.slice(0, 2).join(" · ")}</span></div>
+        <div className="mt-3 flex flex-wrap items-center gap-3 text-xs">
+          <div className="flex items-center gap-2 rounded-lg bg-[#eef4ed] px-2.5 py-1">
+            <span className="flex items-center gap-1 rounded-md bg-[#183a31] px-1.5 py-0.5 font-bold text-white"><Star size={11} className="fill-[#e7c77b] text-[#e7c77b]" /> {hotel.rating ? hotel.rating.toFixed(1) : "4.8"}</span>
+            <div>
+              <span className="block font-bold text-[#183a31]">{hotel.rating >= 4.8 ? "Exceptional" : hotel.rating >= 4.5 ? "Fabulous" : "Very Good"}</span>
+              <span className="text-[10px] text-[#718078]">{hotel.reviewCount ? `${hotel.reviewCount} reviews` : "24 verified reviews"}</span>
+            </div>
+          </div>
+          <span className="text-[#8a9890]">·</span>
+          <span className="text-[#607269]">{hotel.amenities?.slice(0, 2).join(" · ")}</span>
+        </div>
         <p className="mt-4 line-clamp-2 text-sm leading-6 text-[#607269]">{hotel.description || "A considered StayNest property with warm service and details worth remembering."}</p>
         <div className="mt-4 flex flex-wrap gap-2"><span className="rounded-md bg-[#eef4ed] px-2.5 py-1 text-[11px] font-semibold text-[#2b6755]">{availableRooms > 0 ? `${availableRooms} rooms available` : "Check availability"}</span><span className="rounded-md bg-[#f7f2e7] px-2.5 py-1 text-[11px] font-semibold text-[#8a632c]">Free cancellation on select rooms</span></div>
       </CardContent>

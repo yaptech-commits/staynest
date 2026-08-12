@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "wouter";
+import { STAYNEST_LOGO_ALT, STAYNEST_WORDMARK_SRC } from "@/brand";
 import { ArrowRight, CheckCircle2, Clock3, LockKeyhole, MailCheck, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
@@ -37,7 +38,7 @@ export default function EmailVerification() {
     <div className="min-h-screen bg-[#f7f5f0] text-[#18231f]">
       <header className="border-b border-[#dfe4dc] bg-[#fbfaf7]">
         <div className="mx-auto flex h-[76px] max-w-[1240px] items-center justify-between px-5 lg:px-8">
-          <Link href="/" className="flex items-center"><img src="/manus-storage/staynest-wordmark_36cf8e19.png" alt="StayNest" className="h-8 w-auto max-w-[170px] object-contain sm:h-9 sm:max-w-[190px]" /></Link>
+          <Link href="/" className="flex items-center"><img src={STAYNEST_WORDMARK_SRC} alt={STAYNEST_LOGO_ALT} className="h-8 w-auto max-w-[170px] object-contain sm:h-9 sm:max-w-[190px]" /></Link>
           <span className="flex items-center gap-2 text-xs font-semibold text-[#718078]"><LockKeyhole size={14} className="text-[#2b6755]" /> Secure account access</span>
         </div>
       </header>

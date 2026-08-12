@@ -108,5 +108,5 @@
 
 - [x] Implement interactive guest reviews and rating submissions with eligibility validation, persistence, and live property rating aggregation.
 
-- [ ] Replace the failing deployed logo storage references with a deployment-safe in-repository logo asset and verify actual rendered delivery.
-- [ ] Permanently remove the unwanted screenshot overlay from the hero section and guard against reintroducing it.
+- [x] Replace the failing deployed logo storage references with a deployment-safe in-repository logo asset and verify actual rendered delivery.
+- [x] Permanently remove the unwanted screenshot overlay from the hero section and guard against reintroducing it.

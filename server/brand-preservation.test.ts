@@ -6,10 +6,10 @@ const projectRoot = resolve(process.cwd());
 const readProjectFile = (relativePath: string) => readFileSync(resolve(projectRoot, relativePath), "utf8");
 
 describe("StayNest logo preservation", () => {
-  it("keeps fresh managed asset paths and embedded fallbacks centralized", () => {
+  it("keeps repository-served brand asset paths centralized", () => {
     const brand = readProjectFile("client/src/brand.ts");
-    expect(brand).toContain('STAYNEST_WORDMARK_SRC = "/manus-storage/staynest-wordmark_f8455850.png"');
-    expect(brand).toContain('STAYNEST_EMBLEM_SRC = "/manus-storage/staynest-square_3ac24101.png"');
+    expect(brand).toContain('STAYNEST_WORDMARK_SRC = "/brand/wordmark.png"');
+    expect(brand).toContain('STAYNEST_EMBLEM_SRC = "/brand/emblem.png"');
     expect(brand).toContain("STAYNEST_WORDMARK_FALLBACK_SRC");
     expect(brand).toContain("STAYNEST_EMBLEM_FALLBACK_SRC");
   });
@@ -26,11 +26,11 @@ describe("StayNest logo preservation", () => {
     expect(readProjectFile("client/src/components/BrandImage.tsx")).toContain("onError");
   });
 
-  it("keeps favicon and social metadata aligned to the current official assets", () => {
+  it("keeps favicon and social metadata aligned to repository-served assets", () => {
     const index = readProjectFile("client/index.html");
-    expect(index).toContain('rel="icon" type="image/png" href="/manus-storage/staynest-square_3ac24101.png"');
-    expect(index).toContain('rel="apple-touch-icon" href="/manus-storage/staynest-square_3ac24101.png"');
-    expect(index).toContain('property="og:image" content="/manus-storage/staynest-wordmark_f8455850.png"');
+    expect(index).toContain('rel="icon" type="image/png" href="/brand/emblem.png"');
+    expect(index).toContain('rel="apple-touch-icon" href="/brand/emblem.png"');
+    expect(index).toContain('property="og:image" content="/brand/wordmark.png"');
   });
 
   it("does not reintroduce the screenshot hero overlay", () => {

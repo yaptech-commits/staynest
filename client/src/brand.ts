@@ -1,12 +1,11 @@
 /**
  * StayNest brand assets.
  *
- * The primary files are served from managed webdev storage. The inline SVG
- * fallbacks guarantee that a transient storage or CDN failure never renders a
- * broken-image placeholder in the application shell.
+ * Uses repository-served public paths so the logo renders reliably on every
+ * deployment without relying on remote storage URLs.
  */
-export const STAYNEST_WORDMARK_SRC = "/manus-storage/staynest-wordmark_f8455850.png";
-export const STAYNEST_EMBLEM_SRC = "/manus-storage/staynest-square_3ac24101.png";
+export const STAYNEST_WORDMARK_SRC = "/brand/wordmark.png";
+export const STAYNEST_EMBLEM_SRC = "/brand/emblem.png";
 export const STAYNEST_LOGO_ALT = "StayNest";
 
 const svgDataUri = (svg: string) => `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;

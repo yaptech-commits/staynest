@@ -34,3 +34,5 @@
 - [x] Decide and configure a Firebase backend deployment path for Express/tRPC, BillFlow, payments, auth, and booking APIs; static Firebase Hosting alone is not sufficient.
 
 - [x] Configure Vercel to host the full StayNest application (frontend + Express/tRPC backend) and connect Firebase database services as the persistent datastore.
+
+- [x] Assign and verify the Vercel hostname `staynest.vercel.app` for the StayNest project.

@@ -30,7 +30,7 @@
 - [x] Prepare Firebase hosting configuration and deploy StayNest to Firebase.
 
 - [x] Verify that `yaptech-commits/staynest` is private and record the repository visibility.
-- [ ] Verify the full-stack Express/tRPC API, authentication, and booking flows on the Vercel deployment; add runtime configuration if needed.
-- [ ] Decide and configure a Firebase backend deployment path for Express/tRPC, BillFlow, payments, auth, and booking APIs; static Firebase Hosting alone is not sufficient.
+- [x] Verify the full-stack Express/tRPC API, authentication, and booking flows on the Vercel deployment; add runtime configuration if needed.
+- [x] Decide and configure a Firebase backend deployment path for Express/tRPC, BillFlow, payments, auth, and booking APIs; static Firebase Hosting alone is not sufficient.
 
 - [x] Configure Vercel to host the full StayNest application (frontend + Express/tRPC backend) and connect Firebase database services as the persistent datastore.

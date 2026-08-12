@@ -1,0 +1,1 @@
+ALTER TABLE `staynest_bookings` ADD `billflowReservationId` varchar(128);

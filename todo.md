@@ -24,3 +24,7 @@
 - [x] Expand automated tests for live availability and verified booking creation.
 
 - [x] Replace StayNest's temporary branding with the user-provided square emblem and horizontal wordmark across header, footer, favicon, and app metadata.
+
+- [ ] Create a new private GitHub repository for StayNest and push the repository code.
+- [ ] Prepare Vercel deployment configuration and deploy StayNest.
+- [ ] Prepare Firebase hosting configuration and deploy StayNest to Firebase.

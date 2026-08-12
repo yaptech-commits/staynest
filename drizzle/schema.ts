@@ -255,3 +255,5 @@ export const userPreferences = mysqlTable("staynest_user_preferences", {
 
 export type UserPreferences = typeof userPreferences.$inferSelect;
 export type InsertUserPreferences = typeof userPreferences.$inferInsert;
+
+

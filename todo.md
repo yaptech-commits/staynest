@@ -105,3 +105,5 @@
 
 - [x] Fix deployed header logo rendering as a missing-image placeholder and verify the corrected asset path on mobile and desktop.
 - [x] Remove the user-provided screenshot overlay from the “Arrive somewhere wonderful” hero section while preserving the intended hero background treatment.
+
+- [x] Implement interactive guest reviews and rating submissions with eligibility validation, persistence, and live property rating aggregation.

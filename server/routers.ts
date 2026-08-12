@@ -5,7 +5,10 @@ import { adminProcedure, protectedProcedure, publicProcedure, router } from "./_
 import { z } from "zod";
 import type { InsertRoom } from "../drizzle/schema";
 import { TRPCError } from "@trpc/server";
+import { hotels } from "../drizzle/schema";
+import { eq } from "drizzle-orm";
 import {
+  getDb,
   addReview,
   blockDates,
   cancelBookingForUser,
@@ -397,7 +400,25 @@ export const appRouter = router({
       bookingId: z.number().int().positive(),
       rating: z.number().int().min(1).max(5),
       comment: z.string().max(1000).optional(),
-    })).mutation(({ ctx, input }) => addReview({ ...input, userId: ctx.user.id, guestName: ctx.user.name ?? "Guest" })),
+    })).mutation(async ({ ctx, input }) => {
+      const booking = await getBookingForUser(input.bookingId, ctx.user.id);
+      if (!booking || booking.hotelId !== input.hotelId || booking.paymentStatus !== "success") {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Reviews are only available for confirmed and completed stays." });
+      }
+      const existingReviews = await listReviewsForHotel(input.hotelId);
+      const alreadyReviewed = existingReviews.some((r) => r.userId === ctx.user.id && r.bookingId === input.bookingId);
+      if (alreadyReviewed) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "You have already reviewed this stay." });
+      }
+      const review = await addReview({ ...input, userId: ctx.user.id, guestName: ctx.user.name ?? "Guest" });
+      const updatedReviews = [review, ...existingReviews];
+      const avgRating = updatedReviews.reduce((sum, r) => sum + r.rating, 0) / updatedReviews.length;
+      const db = await getDb();
+      if (db) {
+        await db.update(hotels).set({ rating: avgRating.toFixed(2), reviewCount: updatedReviews.length }).where(eq(hotels.id, input.hotelId));
+      }
+      return { success: true, review, newRating: Number(avgRating.toFixed(2)), reviewCount: updatedReviews.length };
+    }),
   }),
 
   hotel: router({

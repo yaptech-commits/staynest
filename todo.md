@@ -98,3 +98,5 @@
 - [x] Refactor StayNest frontend to adopt Booking.com's high-density search bar, property result list layout, sticky filter sidebar, badge highlights, and structured guest review display.
 
 - [x] Preserve the official StayNest logo across header, footer, favicon, metadata, and mobile navigation, with a repository safeguard and verification test.
+
+- [x] Use the user-provided IMG_3886.PNG as a responsive background overlay behind the “Arrive somewhere wonderful” hero section while preserving contrast and search readability.

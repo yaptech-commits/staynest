@@ -3,7 +3,7 @@ import { Link, useLocation, useRoute } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { startLogin } from "@/const";
-import { STAYNEST_LOGO_ALT, STAYNEST_WORDMARK_SRC } from "@/brand";
+import { STAYNEST_HERO_OVERLAY_SRC, STAYNEST_LOGO_ALT, STAYNEST_WORDMARK_SRC } from "@/brand";
 import { MapView } from "@/components/Map";
 import { PartnerInventoryPanel } from "@/components/PartnerInventoryPanel";
 import { Button } from "@/components/ui/button";
@@ -165,7 +165,9 @@ export function Home() {
   return <Shell>
     <main>
       <section className="relative overflow-hidden bg-[#183a31] text-white">
-        <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "radial-gradient(circle at 70% 10%, #e8c980 0, transparent 28%), radial-gradient(circle at 15% 85%, #78a68f 0, transparent 27%)" }} />
+        <div aria-hidden="true" className="pointer-events-none absolute -inset-2 scale-[1.02] opacity-[.18] blur-[5px]" style={{ backgroundImage: `url(${STAYNEST_HERO_OVERLAY_SRC})`, backgroundPosition: "center 36%", backgroundSize: "cover" }} />
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[#183a31]/80" />
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 opacity-20" style={{ backgroundImage: "radial-gradient(circle at 70% 10%, #e8c980 0, transparent 28%), radial-gradient(circle at 15% 85%, #78a68f 0, transparent 27%)" }} />
         <div className="relative mx-auto grid max-w-[1240px] items-center gap-12 px-5 pb-24 pt-16 md:grid-cols-[1.05fr_.95fr] md:pb-28 md:pt-24 lg:px-8">
           <div className="max-w-[570px]"><div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#6c8c77]/55 bg-white/5 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.15em] text-[#e7c77b]"><Sparkles size={13} /> Stays with a sense of place</div><h1 className="max-w-[630px] font-serif text-[clamp(3.5rem,8vw,6.5rem)] leading-[.88] tracking-[-0.045em]">Arrive somewhere <span className="text-[#e7c77b]">wonderful.</span></h1><p className="mt-7 max-w-[470px] text-[16px] leading-7 text-[#c9d8cc]">Find considered hotels, warm service, and the little details that make a stay worth remembering.</p></div>
           <div className="relative hidden min-h-[390px] md:block"><div className="absolute right-6 top-0 h-[350px] w-[82%] overflow-hidden rounded-[130px_24px_24px_24px] shadow-[0_32px_80px_rgba(0,0,0,.25)]"><img src={image.coast} alt="Coastal stay in Ghana" className="h-full w-full object-cover" /><div className="absolute inset-0 bg-gradient-to-t from-[#0b2c24]/50 to-transparent" /></div><div className="absolute bottom-3 left-0 w-[220px] rounded-[18px] border border-white/20 bg-[#22493d]/90 p-4 backdrop-blur-lg"><div className="mb-2 flex items-center gap-2 text-[#e7c77b]"><ShieldCheck size={16} /><span className="text-[10px] font-bold uppercase tracking-[0.16em]">Book with confidence</span></div><p className="text-sm leading-5 text-[#d7e1d8]">Live availability from connected hotels, so you can book what is genuinely available.</p></div></div>

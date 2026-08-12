@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { startLogin } from "@/const";
-import { STAYNEST_LOGO_ALT, STAYNEST_WORDMARK_SRC } from "@/brand";
+import { STAYNEST_LOGO_ALT } from "@/brand";
+import { BrandImage } from "@/components/BrandImage";
 import { toast } from "sonner";
 import { createOnboardingIntent, type OnboardingRole } from "@shared/onboarding";
 
@@ -67,7 +68,7 @@ export default function Onboarding() {
       <header className="border-b border-[#dfe4dc] bg-[#fbfaf7]">
         <div className="mx-auto flex h-[76px] max-w-[1240px] items-center justify-between gap-4 px-5 lg:px-8">
           <Link href="/" className="min-w-0 flex-1 items-center gap-3">
-            <img src={STAYNEST_WORDMARK_SRC} alt={STAYNEST_LOGO_ALT} className="h-8 w-auto max-w-[150px] object-contain sm:h-9 sm:max-w-[190px]" />
+            <BrandImage alt={STAYNEST_LOGO_ALT} className="h-8 w-auto max-w-[150px] object-contain sm:h-9 sm:max-w-[190px]" />
           </Link>
           <Link href="/account" className="shrink-0 text-right text-[11px] font-semibold leading-4 text-[#50605a] transition hover:text-[#183a31] sm:text-sm"><span className="hidden sm:inline">Already have an account? </span><span className="text-[#183a31]">Sign in</span></Link>
         </div>

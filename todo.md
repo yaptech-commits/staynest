@@ -107,3 +107,6 @@
 - [x] Remove the user-provided screenshot overlay from the “Arrive somewhere wonderful” hero section while preserving the intended hero background treatment.
 
 - [x] Implement interactive guest reviews and rating submissions with eligibility validation, persistence, and live property rating aggregation.
+
+- [ ] Replace the failing deployed logo storage references with a deployment-safe in-repository logo asset and verify actual rendered delivery.
+- [ ] Permanently remove the unwanted screenshot overlay from the hero section and guard against reintroducing it.

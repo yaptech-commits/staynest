@@ -20,7 +20,8 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { startLogin } from "@/const";
-import { STAYNEST_EMBLEM_SRC, STAYNEST_LOGO_ALT, STAYNEST_WORDMARK_SRC } from "@/brand";
+import { STAYNEST_LOGO_ALT } from "@/brand";
+import { BrandImage } from "@/components/BrandImage";
 import { useIsMobile } from "@/hooks/useMobile";
 import { LayoutDashboard, LogOut, PanelLeft, Users } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
@@ -169,10 +170,10 @@ function DashboardLayoutContent({
               </button>
               {!isCollapsed ? (
                 <div className="flex min-w-0 items-center gap-2">
-                  <img src={STAYNEST_WORDMARK_SRC} alt={STAYNEST_LOGO_ALT} className="h-7 w-auto max-w-[150px] object-contain" />
+                  <BrandImage alt={STAYNEST_LOGO_ALT} className="h-7 w-auto max-w-[150px] object-contain" />
                 </div>
               ) : (
-                <img src={STAYNEST_EMBLEM_SRC} alt={STAYNEST_LOGO_ALT} className="h-7 w-7 object-contain" />
+                <BrandImage kind="emblem" alt={STAYNEST_LOGO_ALT} className="h-7 w-7 object-contain" />
               )}
             </div>
           </SidebarHeader>
@@ -246,7 +247,7 @@ function DashboardLayoutContent({
           <div className="flex border-b h-14 items-center justify-between bg-background/95 px-2 backdrop-blur supports-[backdrop-filter]:backdrop-blur sticky top-0 z-40">
               <div className="flex items-center gap-2">
               <SidebarTrigger className="h-9 w-9 rounded-lg bg-background" />
-              <img src={STAYNEST_WORDMARK_SRC} alt={STAYNEST_LOGO_ALT} className="h-6 w-auto max-w-[135px] object-contain" />
+              <BrandImage alt={STAYNEST_LOGO_ALT} className="h-6 w-auto max-w-[135px] object-contain" />
               <div className="flex items-center gap-3">
                 <div className="flex flex-col gap-1">
                   <span className="tracking-tight text-foreground">

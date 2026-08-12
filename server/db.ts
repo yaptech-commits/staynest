@@ -1,7 +1,7 @@
 import { eq, desc, and, gt } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { nanoid } from "nanoid";
-import { InsertUser, users, hotels, rooms, bookings, reviews, blockedDates, onboardingProfiles, notifications, partnerPayoutAccounts, userPreferences } from "../drizzle/schema";
+import { InsertHotel, InsertRoom, InsertUser, users, hotels, rooms, bookings, reviews, blockedDates, onboardingProfiles, notifications, partnerPayoutAccounts, userPreferences } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -71,7 +71,30 @@ export async function getHotelById(id: number) {
 export async function listRoomsForHotel(hotelId: number) {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(rooms).where(eq(rooms.hotelId, hotelId)).orderBy(rooms.priceGhs);
+  return db.select().from(rooms).where(eq(rooms.hotelId, hotelId)).orderBy(desc(rooms.createdAt));
+}
+
+function rangesOverlap(start: string, end: string, windowStart: string, windowEnd: string) {
+  return start < windowEnd && end > windowStart;
+}
+
+export function calculateRoomAvailability(room: { id: number; totalRooms: number }, bookingRows: Array<{ roomId: number; checkInDate: string; checkOutDate: string; bookingStatus: string }>, blockedRows: Array<{ roomId: number | null; startDate: string; endDate: string }>, checkInDate: string, checkOutDate: string) {
+  const bookedRooms = bookingRows.filter((booking) => booking.roomId === room.id && ["booked", "checked_in"].includes(booking.bookingStatus) && rangesOverlap(booking.checkInDate, booking.checkOutDate, checkInDate, checkOutDate)).length;
+  const blocked = blockedRows.some((block) => (block.roomId === null || block.roomId === room.id) && rangesOverlap(block.startDate, block.endDate, checkInDate, checkOutDate));
+  const blockedRooms = blocked ? room.totalRooms : 0;
+  return { bookedRooms, blockedRooms, availableRooms: Math.max(0, room.totalRooms - bookedRooms - blockedRooms) };
+}
+
+export async function listRoomAvailabilityForHotel(input: { hotelId: number; checkInDate: string; checkOutDate: string }) {
+  const [roomRows, bookingRows, blockedRows] = await Promise.all([
+    listRoomsForHotel(input.hotelId),
+    listBookingsForHotel(input.hotelId),
+    listBlockedDates(input.hotelId),
+  ]);
+  return roomRows.map((room) => ({
+    ...room,
+    ...calculateRoomAvailability(room, bookingRows, blockedRows, input.checkInDate, input.checkOutDate),
+  }));
 }
 
 export async function createBooking(input: typeof bookings.$inferInsert) {
@@ -106,25 +129,41 @@ export async function listHotelsForOwner(ownerId: number) {
   return db.select().from(hotels).where(eq(hotels.ownerId, ownerId)).orderBy(desc(hotels.createdAt));
 }
 
-export async function createHotelForOwner(input: { ownerId: number; name: string; location: string; address?: string; description?: string }) {
-  const db = await getDb();
+export function buildManualHotelValues(input: { ownerId: number; name: string; location: string; address?: string; description?: string; images?: string[]; amenities?: string[]; lat?: number; lng?: number }): InsertHotel {
   const slugBase = input.name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "staynest-property";
-  const slug = `${slugBase}-${nanoid(6).toLowerCase()}`;
-  if (!db) return { id: 0, ...input, slug, approvalStatus: "pending" as const };
-  const values = {
+  return {
     ownerId: input.ownerId,
     name: input.name.trim(),
-    slug,
+    slug: `${slugBase}-${nanoid(6).toLowerCase()}`,
     location: input.location.trim(),
     address: input.address?.trim() || null,
     description: input.description?.trim() || null,
-    images: [],
-    amenities: [],
+    images: input.images ?? [],
+    amenities: input.amenities ?? [],
+    lat: input.lat === undefined ? null : input.lat.toFixed(6),
+    lng: input.lng === undefined ? null : input.lng.toFixed(6),
     isBillflowConnected: 0,
-    approvalStatus: "pending" as const,
+    approvalStatus: "pending",
   };
+}
+
+export function isHotelOwner(hotel: { ownerId: number } | undefined, ownerId: number) {
+  return Boolean(hotel && hotel.ownerId === ownerId);
+}
+
+export async function createHotelForOwner(input: Parameters<typeof buildManualHotelValues>[0]) {
+  const db = await getDb();
+  const values = buildManualHotelValues(input);
+  if (!db) return { id: 0, ...values };
   const result = await db.insert(hotels).values(values);
   return { id: Number(result[0].insertId), ...values };
+}
+
+export async function updateHotelForOwner(input: { id: number; ownerId: number; values: Partial<typeof hotels.$inferInsert> }) {
+  const db = await getDb();
+  if (!db) return false;
+  const result = await db.update(hotels).set(input.values).where(and(eq(hotels.id, input.id), eq(hotels.ownerId, input.ownerId)));
+  return result[0].affectedRows > 0;
 }
 
 export async function listAllHotels() {
@@ -183,6 +222,21 @@ export async function updateBookingStatusForHotel(input: { id: number; hotelId: 
   if (!db) return false;
   const result = await db.update(bookings).set({ bookingStatus: input.bookingStatus, conflictDetails: input.conflictDetails ?? null }).where(and(eq(bookings.id, input.id), eq(bookings.hotelId, input.hotelId)));
   return result[0].affectedRows > 0;
+}
+
+export function buildManualRoomValues(input: { hotelId: number; name: string; roomType: string; description?: string | null; capacity: number; priceGhs: number; priceUsd: number; totalRooms: number; amenities?: string[]; images?: string[] }): InsertRoom {
+  return {
+    hotelId: input.hotelId,
+    name: input.name.trim(),
+    roomType: input.roomType.trim(),
+    description: input.description ?? null,
+    capacity: input.capacity,
+    priceGhs: input.priceGhs.toFixed(2),
+    priceUsd: input.priceUsd.toFixed(2),
+    totalRooms: input.totalRooms,
+    amenities: input.amenities ?? [],
+    images: input.images ?? [],
+  };
 }
 
 export async function createRoomForHotel(input: typeof rooms.$inferInsert) {

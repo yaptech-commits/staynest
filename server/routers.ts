@@ -20,6 +20,7 @@ import {
   listHotelsForOwner,
   listReviewsForHotel,
   listRoomsForHotel,
+  listRoomAvailabilityForHotel,
   listBookingsForHotel,
   listConflictBookingsForHotel,
   updateBookingStatusForHotel,
@@ -31,6 +32,7 @@ import {
   listPayouts,
   updateHotelApproval,
   createHotelForOwner,
+  updateHotelForOwner,
   saveOnboardingProfile,
   notifyAdminsOfPartnerApplication,
   listNotificationsForUser,
@@ -40,6 +42,7 @@ import {
   resendOnboardingVerification,
   savePayoutAccount,
   getPayoutAccountForHotel,
+  isHotelOwner,
   getUserPreferences,
   saveUserPreferences,
 } from "./db";
@@ -86,6 +89,14 @@ const catalogInput = z.object({
 function normalizeJson(value: unknown): string[] {
   if (Array.isArray(value)) return value.map(String);
   return [];
+}
+
+function defaultStayDates() {
+  const checkIn = new Date();
+  checkIn.setDate(checkIn.getDate() + 14);
+  const checkOut = new Date(checkIn);
+  checkOut.setDate(checkOut.getDate() + 3);
+  return { checkInDate: checkIn.toISOString().slice(0, 10), checkOutDate: checkOut.toISOString().slice(0, 10) };
 }
 
 function demoSearch(input: z.infer<typeof catalogInput>) {
@@ -151,6 +162,8 @@ export const appRouter = router({
       const result = [];
       for (const hotel of dbHotels) {
         const hotelRooms = await listRoomsForHotel(hotel.id);
+        const stayDates = { ...defaultStayDates(), checkInDate: input.checkInDate ?? defaultStayDates().checkInDate, checkOutDate: input.checkOutDate ?? defaultStayDates().checkOutDate };
+        const manualAvailability = hotel.isBillflowConnected ? new Map<number, { availableRooms: number }>() : new Map((await listRoomAvailabilityForHotel({ hotelId: hotel.id, ...stayDates })).map((room) => [room.id, room]));
         const roomsForGuests = hotelRooms.filter((room) => {
           const amount = input.currency === "GHS" ? Number(room.priceGhs) : Number(room.priceUsd);
           return Number(room.capacity) >= input.guestsCount && (input.minPrice === undefined || amount >= input.minPrice) && (input.maxPrice === undefined || amount <= input.maxPrice);
@@ -164,7 +177,7 @@ export const appRouter = router({
           priceGhs: Number(room.priceGhs),
           priceUsd: Number(room.priceUsd),
           totalRooms: room.totalRooms,
-          availableRooms: room.totalRooms,
+          availableRooms: manualAvailability.get(room.id)?.availableRooms ?? room.totalRooms,
           amenities: normalizeJson(room.amenities),
           images: normalizeJson(room.images),
           liveSource: hotel.isBillflowConnected ? "billflow" as const : "staynest" as const,
@@ -199,6 +212,8 @@ export const appRouter = router({
       if (!hotel && demo) return demo;
       if (!hotel) throw new TRPCError({ code: "NOT_FOUND", message: "Hotel not found" });
       const hotelRooms = await listRoomsForHotel(hotel.id);
+      const stayDates = defaultStayDates();
+      const manualAvailability = hotel.isBillflowConnected ? new Map<number, { availableRooms: number }>() : new Map((await listRoomAvailabilityForHotel({ hotelId: hotel.id, ...stayDates })).map((room) => [room.id, room]));
       return {
         id: hotel.id,
         name: hotel.name,
@@ -224,7 +239,7 @@ export const appRouter = router({
           priceGhs: Number(room.priceGhs),
           priceUsd: Number(room.priceUsd),
           totalRooms: room.totalRooms,
-          availableRooms: room.totalRooms,
+          availableRooms: manualAvailability.get(room.id)?.availableRooms ?? room.totalRooms,
           amenities: normalizeJson(room.amenities),
           images: normalizeJson(room.images),
           liveSource: Boolean(hotel.isBillflowConnected) ? "billflow" as const : "staynest" as const,
@@ -245,6 +260,7 @@ export const appRouter = router({
       const dbRoom = dbHotel ? (await listRoomsForHotel(dbHotel.id)).find((item) => item.id === input.roomTypeId) : undefined;
       const room = demoRoom ?? dbRoom;
       const connected = Boolean(hotel && ("isBillflowConnected" in hotel ? hotel.isBillflowConnected : false));
+      const manualAvailability = !connected && dbHotel ? (await listRoomAvailabilityForHotel({ hotelId: dbHotel.id, checkInDate: input.checkInDate, checkOutDate: input.checkOutDate })).find((item) => item.id === input.roomTypeId) : undefined;
       const live = await getLiveAvailability({
         businessId: dbHotel?.isBillflowConnected ? dbHotel.billflowBusinessId ?? `demo-business-${input.hotelId}` : demoHotel?.isBillflowConnected ? `demo-business-${input.hotelId}` : undefined,
         propertyId: dbHotel?.isBillflowConnected ? dbHotel.billflowPropertyId ?? `demo-property-${input.hotelId}` : demoHotel?.isBillflowConnected ? `demo-property-${input.hotelId}` : undefined,
@@ -253,7 +269,7 @@ export const appRouter = router({
         checkOutDate: input.checkOutDate,
       });
       return {
-        availableRooms: live.availableRooms ?? (demoRoom?.availableRooms ?? dbRoom?.totalRooms ?? 0),
+        availableRooms: live.availableRooms ?? (demoRoom?.availableRooms ?? manualAvailability?.availableRooms ?? dbRoom?.totalRooms ?? 0),
         livePricing: live.livePricing ?? (demoRoom ? { ghs: demoRoom.priceGhs, usd: demoRoom.priceUsd } : dbRoom ? { ghs: Number(dbRoom.priceGhs), usd: Number(dbRoom.priceUsd) } : null),
         source: live.source === "billflow" ? "billflow" as const : demoRoom?.liveSource ?? (connected ? "billflow" as const : "staynest" as const),
         checkedAt: new Date().toISOString(),
@@ -386,7 +402,18 @@ export const appRouter = router({
 
   hotel: router({
     mine: protectedProcedure.query(({ ctx }) => listHotelsForOwner(ctx.user.id)),
-    create: protectedProcedure.input(z.object({ name: z.string().trim().min(2).max(255), location: z.string().trim().min(2).max(255), address: z.string().trim().max(1000).optional(), description: z.string().trim().max(2000).optional() })).mutation(({ ctx, input }) => createHotelForOwner({ ownerId: ctx.user.id, ...input })),
+    create: protectedProcedure.input(z.object({ name: z.string().trim().min(2).max(255), location: z.string().trim().min(2).max(255), address: z.string().trim().max(1000).optional(), description: z.string().trim().max(2000).optional(), images: z.array(z.string().url()).max(20).default([]), amenities: z.array(z.string().trim().max(80)).max(30).default([]), lat: z.number().min(-90).max(90).optional(), lng: z.number().min(-180).max(180).optional() })).mutation(({ ctx, input }) => createHotelForOwner({ ownerId: ctx.user.id, ...input })),
+    update: protectedProcedure.input(z.object({ id: z.number().int().positive(), name: z.string().trim().min(2).max(255).optional(), location: z.string().trim().min(2).max(255).optional(), address: z.string().trim().max(1000).nullable().optional(), description: z.string().trim().max(2000).nullable().optional(), images: z.array(z.string().url()).max(20).optional(), amenities: z.array(z.string().trim().max(80)).max(30).optional(), lat: z.number().min(-90).max(90).nullable().optional(), lng: z.number().min(-180).max(180).nullable().optional() })).mutation(async ({ ctx, input }) => {
+      const { id, lat, lng, ...rest } = input;
+      const hotel = await getHotelById(id);
+      if (!isHotelOwner(hotel, ctx.user.id)) throw new TRPCError({ code: "FORBIDDEN", message: "You do not manage this property." });
+      return updateHotelForOwner({ id, ownerId: ctx.user.id, values: { ...rest, lat: lat === undefined || lat === null ? lat : lat.toFixed(6), lng: lng === undefined || lng === null ? lng : lng.toFixed(6) } });
+    }),
+    availability: protectedProcedure.input(z.object({ hotelId: z.number().int().positive(), checkInDate: dateInput, checkOutDate: dateInput })).query(async ({ ctx, input }) => {
+      const hotel = await getHotelById(input.hotelId);
+      if (!hotel || hotel.ownerId !== ctx.user.id) throw new TRPCError({ code: "FORBIDDEN", message: "You do not manage this property." });
+      return listRoomAvailabilityForHotel(input);
+    }),
     rooms: protectedProcedure.input(z.object({ hotelId: z.number().int().positive() })).query(async ({ ctx, input }) => {
       const hotel = await getHotelById(input.hotelId);
       if (!hotel || hotel.ownerId !== ctx.user.id) throw new TRPCError({ code: "FORBIDDEN", message: "You do not manage this property." });
@@ -406,14 +433,14 @@ export const appRouter = router({
       hotelId: z.number().int().positive(), name: z.string().min(2).max(255), roomType: z.string().min(2).max(128), description: z.string().max(2000).optional(), capacity: z.number().int().min(1).max(20), priceGhs: z.number().nonnegative(), priceUsd: z.number().nonnegative(), totalRooms: z.number().int().min(0).max(1000), amenities: z.array(z.string().max(80)).max(30).default([]), images: z.array(z.string().url()).max(20).default([]),
     })).mutation(async ({ ctx, input }) => {
       const hotel = await getHotelById(input.hotelId);
-      if (!hotel || hotel.ownerId !== ctx.user.id) throw new TRPCError({ code: "FORBIDDEN", message: "You do not manage this property." });
+      if (!isHotelOwner(hotel, ctx.user.id)) throw new TRPCError({ code: "FORBIDDEN", message: "You do not manage this property." });
       return createRoomForHotel({ ...input, priceGhs: input.priceGhs.toFixed(2), priceUsd: input.priceUsd.toFixed(2), description: input.description ?? null });
     }),
-    updateRoom: protectedProcedure.input(z.object({ id: z.number().int().positive(), hotelId: z.number().int().positive(), name: z.string().min(2).max(255).optional(), priceGhs: z.number().nonnegative().optional(), priceUsd: z.number().nonnegative().optional(), totalRooms: z.number().int().min(0).max(1000).optional(), capacity: z.number().int().min(1).max(20).optional() })).mutation(async ({ ctx, input }) => {
+    updateRoom: protectedProcedure.input(z.object({ id: z.number().int().positive(), hotelId: z.number().int().positive(), name: z.string().min(2).max(255).optional(), roomType: z.string().min(2).max(128).optional(), description: z.string().max(2000).nullable().optional(), priceGhs: z.number().nonnegative().optional(), priceUsd: z.number().nonnegative().optional(), totalRooms: z.number().int().min(0).max(1000).optional(), capacity: z.number().int().min(1).max(20).optional(), amenities: z.array(z.string().trim().max(80)).max(30).optional(), images: z.array(z.string().url()).max(20).optional() })).mutation(async ({ ctx, input }) => {
       const hotel = await getHotelById(input.hotelId);
-      if (!hotel || hotel.ownerId !== ctx.user.id) throw new TRPCError({ code: "FORBIDDEN", message: "You do not manage this property." });
-      const { id, hotelId, name, priceGhs, priceUsd, totalRooms, capacity } = input;
-      const values: Partial<InsertRoom> = { name, totalRooms, capacity };
+      if (!isHotelOwner(hotel, ctx.user.id)) throw new TRPCError({ code: "FORBIDDEN", message: "You do not manage this property." });
+      const { id, hotelId, priceGhs, priceUsd, ...rest } = input;
+      const values: Partial<InsertRoom> = { ...rest };
       if (priceGhs !== undefined) values.priceGhs = priceGhs.toFixed(2);
       if (priceUsd !== undefined) values.priceUsd = priceUsd.toFixed(2);
       return updateRoomForHotel({ id, hotelId, values });

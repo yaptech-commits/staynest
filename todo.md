@@ -71,3 +71,25 @@
 - [x] Add SMS notification provider contracts and check-in reminder preferences for guests and hotel partners.
 
 - [x] Commit all current StayNest implementations and push the complete repository to GitHub (`yaptech-commits/staynest`).
+
+- [x] Add explicit non-BillFlow property and room-type management (create/edit property, add/edit rooms, set nightly rates and capacity).
+- [x] Build a comprehensive non-BillFlow owner dashboard showing all rooms, current rates, available inventory, upcoming bookings, conflict alerts, and property details.
+- [x] Add automated Vitest coverage for non-BillFlow property creation, room inventory management, and dashboard availability checks.
+
+- [x] Add automated coverage for non-BillFlow availability math, owner-scoped property updates, and manual inventory responses.
+
+- [x] Add Vitest tests for non-BillFlow property creation and room create/update helpers or router procedures, including ownership enforcement.
+- [x] Add tests for manual inventory responses and dashboard availability queries covering overlapping bookings and blocked dates.
+- [x] Add tests for owner-scoped property updates and rejection of unauthorized hotel mutations.
+
+- [x] Add mocked-db tests for `createHotelForOwner`, `createRoomForHotel`, `updateRoomForHotel`, and `updateHotelForOwner` success paths.
+- [x] Add router-path tests proving unauthorized `hotel.update`, room mutations, and availability queries are rejected.
+- [x] Add mocked query tests for `listRoomAvailabilityForHotel` and the manual catalog/live-availability mapping.
+
+- [x] Add Vitest coverage for non-BillFlow catalog, property, and live-availability router mapping, including manual available-room propagation and `source: "staynest"` fallback behavior.
+- [x] Add router-level guest-facing tests verifying overlapping bookings and blocked dates through catalog/property/live-availability outputs.
+
+- [x] Add router-level catalog/property/live-availability cases that derive reduced availability from overlapping active bookings and room/property blocks.
+- [x] Verify that guest-facing manual inventory mappings expose zero available rooms when a room or property is blocked.
+
+- [x] Add a guest-facing router test where a room-specific blocked period drives `availableRooms: 0` through the catalog/property/live-availability mapping.

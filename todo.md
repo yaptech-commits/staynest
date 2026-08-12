@@ -70,4 +70,4 @@
 - [x] Build partner payout-account capture (bank transfer and mobile money) in the hotel dashboard with admin visibility.
 - [x] Add SMS notification provider contracts and check-in reminder preferences for guests and hotel partners.
 
-- [ ] Commit all current StayNest implementations and push the complete repository to GitHub (`yaptech-commits/staynest`).
+- [x] Commit all current StayNest implementations and push the complete repository to GitHub (`yaptech-commits/staynest`).

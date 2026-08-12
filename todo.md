@@ -25,6 +25,12 @@
 
 - [x] Replace StayNest's temporary branding with the user-provided square emblem and horizontal wordmark across header, footer, favicon, and app metadata.
 
-- [ ] Create a new private GitHub repository for StayNest and push the repository code.
-- [ ] Prepare Vercel deployment configuration and deploy StayNest.
-- [ ] Prepare Firebase hosting configuration and deploy StayNest to Firebase.
+- [x] Create a new private GitHub repository for StayNest and push the repository code.
+- [x] Prepare Vercel deployment configuration and deploy StayNest.
+- [x] Prepare Firebase hosting configuration and deploy StayNest to Firebase.
+
+- [x] Verify that `yaptech-commits/staynest` is private and record the repository visibility.
+- [ ] Verify the full-stack Express/tRPC API, authentication, and booking flows on the Vercel deployment; add runtime configuration if needed.
+- [ ] Decide and configure a Firebase backend deployment path for Express/tRPC, BillFlow, payments, auth, and booking APIs; static Firebase Hosting alone is not sufficient.
+
+- [x] Configure Vercel to host the full StayNest application (frontend + Express/tRPC backend) and connect Firebase database services as the persistent datastore.

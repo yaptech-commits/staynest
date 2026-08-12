@@ -44,8 +44,7 @@ function Shell({ children, variant = "light" }: { children: React.ReactNode; var
       <header className="sticky top-0 z-40 border-b border-[#dfe4dc]/80 bg-[#fbfaf7]/92 backdrop-blur-xl">
         <div className="mx-auto flex h-[76px] max-w-[1240px] items-center justify-between px-5 lg:px-8">
           <Link href="/" className="group flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-[14px] bg-[#183a31] text-[#f5e6bf] shadow-[0_12px_30px_rgba(24,58,49,.18)]"><Sparkles size={17} strokeWidth={1.6} /></span>
-            <span className="font-serif text-[25px] tracking-[-0.03em] text-[#183a31]">StayNest</span>
+            <img src="/manus-storage/staynest-wordmark_36cf8e19.png" alt="StayNest" className="h-9 w-auto max-w-[190px] object-contain" />
           </Link>
           <nav className="hidden items-center gap-8 md:flex">
             <Link href="/#stays" className="text-[13px] font-semibold text-[#50605a] transition hover:text-[#183a31]">Explore stays</Link>
@@ -75,7 +74,7 @@ function Shell({ children, variant = "light" }: { children: React.ReactNode; var
       {children}
       <footer className="border-t border-[#dfe4dc] bg-[#183a31] text-white">
         <div className="mx-auto grid max-w-[1240px] gap-10 px-5 py-14 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr] lg:px-8">
-          <div><div className="mb-4 flex items-center gap-3"><span className="grid h-9 w-9 place-items-center rounded-xl bg-[#e7c77b] text-[#183a31]"><Sparkles size={16} /></span><span className="font-serif text-2xl">StayNest</span></div><p className="max-w-[260px] text-sm leading-6 text-[#c1d0c5]">Thoughtful stays across Ghana, with live availability and a simpler way to arrive well.</p></div>
+          <div><div className="mb-4 inline-flex rounded-xl bg-white p-2"><img src="/manus-storage/staynest-wordmark_36cf8e19.png" alt="StayNest" className="h-8 w-auto max-w-[170px] object-contain" /></div><p className="max-w-[260px] text-sm leading-6 text-[#c1d0c5]">Thoughtful stays across Ghana, with live availability and a simpler way to arrive well.</p></div>
           <div><p className="mb-4 text-[11px] font-bold uppercase tracking-[0.16em] text-[#e7c77b]">Discover</p><div className="space-y-3 text-sm text-[#c1d0c5]"><Link href="/#stays" className="block hover:text-white">Accra stays</Link><Link href="/#stays" className="block hover:text-white">Coastal retreats</Link><Link href="/#how-it-works" className="block hover:text-white">How it works</Link></div></div>
           <div><p className="mb-4 text-[11px] font-bold uppercase tracking-[0.16em] text-[#e7c77b]">For partners</p><div className="space-y-3 text-sm text-[#c1d0c5]"><Link href="/hotel-dashboard" className="block hover:text-white">List your hotel</Link><Link href="/hotel-dashboard" className="block hover:text-white">Partner dashboard</Link><a href="mailto:hello@staynest.example" className="block hover:text-white">Partner support</a></div></div>
           <div><p className="mb-4 text-[11px] font-bold uppercase tracking-[0.16em] text-[#e7c77b]">Stay in touch</p><p className="mb-4 text-sm leading-6 text-[#c1d0c5]">Questions about a booking? Our guest team is here to help.</p><a href="mailto:hello@staynest.example" className="inline-flex items-center gap-2 text-sm font-semibold text-white">hello@staynest.example <ArrowRight size={14} /></a></div>

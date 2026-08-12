@@ -22,3 +22,5 @@
 - [x] Add admin booking oversight and payout/refund management views.
 - [x] Add hotel-facing conflict inbox and explicit resolution workflow.
 - [x] Expand automated tests for live availability and verified booking creation.
+
+- [x] Replace StayNest's temporary branding with the user-provided square emblem and horizontal wordmark across header, footer, favicon, and app metadata.

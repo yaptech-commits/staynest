@@ -38,6 +38,10 @@ import {
   verifyOnboardingEmail,
   getOnboardingProfileForUser,
   resendOnboardingVerification,
+  savePayoutAccount,
+  getPayoutAccountForHotel,
+  getUserPreferences,
+  saveUserPreferences,
 } from "./db";
 import {
   calculateCommission,
@@ -127,6 +131,12 @@ export const appRouter = router({
       return { profile, welcomeEmail, adminAlerts };
     }),
     verifyEmail: publicProcedure.input(z.object({ token: z.string().min(20).max(128) })).mutation(({ input }) => verifyOnboardingEmail(input.token)),
+    getPreferences: protectedProcedure.query(({ ctx }) => getUserPreferences(ctx.user.id)),
+    savePreferences: protectedProcedure.input(z.object({
+      phone: z.string().max(32).optional(),
+      smsRemindersEnabled: z.number().int().min(0).max(1).optional(),
+      emailRemindersEnabled: z.number().int().min(0).max(1).optional(),
+    })).mutation(({ ctx, input }) => saveUserPreferences({ userId: ctx.user.id, ...input })),
   }),
 
   notifications: router({
@@ -438,6 +448,23 @@ export const appRouter = router({
       const hotel = await getHotelById(input.hotelId);
       if (!hotel) throw new TRPCError({ code: "NOT_FOUND", message: "Hotel not found" });
       return { success: true, message: "Publish contract queued; add BillFlow credentials to complete the live sync.", hotelId: hotel.id };
+    }),
+    getPayoutAccount: protectedProcedure.input(z.object({ hotelId: z.number().int().positive() })).query(async ({ ctx, input }) => {
+      const hotel = await getHotelById(input.hotelId);
+      if (!hotel || hotel.ownerId !== ctx.user.id) throw new TRPCError({ code: "FORBIDDEN", message: "You do not manage this property." });
+      return getPayoutAccountForHotel(input.hotelId);
+    }),
+    savePayoutAccount: protectedProcedure.input(z.object({
+      hotelId: z.number().int().positive(),
+      payoutMethod: z.string().min(2).max(32),
+      accountName: z.string().min(2).max(255),
+      accountNumber: z.string().min(3).max(128),
+      bankName: z.string().max(128).optional(),
+      networkProvider: z.string().max(64).optional(),
+    })).mutation(async ({ ctx, input }) => {
+      const hotel = await getHotelById(input.hotelId);
+      if (!hotel || hotel.ownerId !== ctx.user.id) throw new TRPCError({ code: "FORBIDDEN", message: "You do not manage this property." });
+      return savePayoutAccount({ ownerId: ctx.user.id, ...input });
     }),
   }),
 

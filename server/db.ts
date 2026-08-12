@@ -1,7 +1,7 @@
 import { eq, desc, and, gt } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { nanoid } from "nanoid";
-import { InsertUser, users, hotels, rooms, bookings, reviews, blockedDates, onboardingProfiles, notifications } from "../drizzle/schema";
+import { InsertUser, users, hotels, rooms, bookings, reviews, blockedDates, onboardingProfiles, notifications, partnerPayoutAccounts, userPreferences } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -351,4 +351,54 @@ export async function markNotificationRead(id: number, userId: number) {
   if (!db) return false;
   const result = await db.update(notifications).set({ readAt: new Date() }).where(and(eq(notifications.id, id), eq(notifications.userId, userId)));
   return result[0].affectedRows > 0;
+}
+
+export async function savePayoutAccount(input: { hotelId: number; ownerId: number; payoutMethod: string; accountName: string; accountNumber: string; bankName?: string; networkProvider?: string }) {
+  const db = await getDb();
+  if (!db) return null;
+  const existing = await getPayoutAccountForHotel(input.hotelId);
+  if (existing) {
+    await db.update(partnerPayoutAccounts).set({
+      payoutMethod: input.payoutMethod,
+      accountName: input.accountName,
+      accountNumber: input.accountNumber,
+      bankName: input.bankName ?? null,
+      networkProvider: input.networkProvider ?? null,
+    }).where(eq(partnerPayoutAccounts.id, existing.id));
+  } else {
+    await db.insert(partnerPayoutAccounts).values(input);
+  }
+  return getPayoutAccountForHotel(input.hotelId);
+}
+
+export async function getPayoutAccountForHotel(hotelId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const res = await db.select().from(partnerPayoutAccounts).where(eq(partnerPayoutAccounts.hotelId, hotelId)).limit(1);
+  return res[0] ?? null;
+}
+
+export async function getUserPreferences(userId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const res = await db.select().from(userPreferences).where(eq(userPreferences.userId, userId)).limit(1);
+  return res[0] ?? null;
+}
+
+export async function saveUserPreferences(input: { userId: number; phone?: string; smsRemindersEnabled?: number; emailRemindersEnabled?: number }) {
+  const db = await getDb();
+  if (!db) return null;
+  await db.insert(userPreferences).values({
+    userId: input.userId,
+    phone: input.phone ?? null,
+    smsRemindersEnabled: input.smsRemindersEnabled ?? 1,
+    emailRemindersEnabled: input.emailRemindersEnabled ?? 1,
+  }).onDuplicateKeyUpdate({
+    set: {
+      phone: input.phone ?? null,
+      smsRemindersEnabled: input.smsRemindersEnabled ?? 1,
+      emailRemindersEnabled: input.emailRemindersEnabled ?? 1,
+    },
+  });
+  return getUserPreferences(input.userId);
 }

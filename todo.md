@@ -65,3 +65,7 @@
 - [x] Show verification status and resend controls in the partner no-property wizard state.
 - [x] Surface email configuration or delivery failures instead of reporting verification email success when delivery is unavailable.
 - [x] Add automated coverage for same-path completion-banner routing and the no-property verification state contract.
+
+- [x] Add production email provider configuration support and delivery diagnostics.
+- [x] Build partner payout-account capture (bank transfer and mobile money) in the hotel dashboard with admin visibility.
+- [x] Add SMS notification provider contracts and check-in reminder preferences for guests and hotel partners.

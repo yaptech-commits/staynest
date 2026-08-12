@@ -226,3 +226,32 @@ export const onboardingProfiles = mysqlTable("staynest_onboarding_profiles", {
 
 export type OnboardingProfile = typeof onboardingProfiles.$inferSelect;
 export type InsertOnboardingProfile = typeof onboardingProfiles.$inferInsert;
+
+export const partnerPayoutAccounts = mysqlTable("staynest_payout_accounts", {
+  id: int("id").autoincrement().primaryKey(),
+  hotelId: int("hotelId").notNull(),
+  ownerId: int("ownerId").notNull(),
+  payoutMethod: varchar("payoutMethod", { length: 32 }).notNull(), // "bank" | "mobile_money" | "cash"
+  accountName: varchar("accountName", { length: 255 }).notNull(),
+  accountNumber: varchar("accountNumber", { length: 128 }).notNull(),
+  bankName: varchar("bankName", { length: 128 }),
+  networkProvider: varchar("networkProvider", { length: 64 }), // e.g. "MTN Mobile Money"
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type PartnerPayoutAccount = typeof partnerPayoutAccounts.$inferSelect;
+export type InsertPartnerPayoutAccount = typeof partnerPayoutAccounts.$inferInsert;
+
+export const userPreferences = mysqlTable("staynest_user_preferences", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(),
+  phone: varchar("phone", { length: 64 }),
+  smsRemindersEnabled: int("smsRemindersEnabled").default(1).notNull(),
+  emailRemindersEnabled: int("emailRemindersEnabled").default(1).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type UserPreferences = typeof userPreferences.$inferSelect;
+export type InsertUserPreferences = typeof userPreferences.$inferInsert;

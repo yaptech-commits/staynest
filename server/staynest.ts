@@ -359,3 +359,32 @@ export async function cancelBillFlowReservation(payload: { businessId?: string; 
   if (!billflowConfigured()) return { source: "demo" as const, cancelled: true };
   return billflowRequest<{ source: "billflow"; cancelled: boolean }>("/api/staynest/reservations/cancel", { method: "POST", body: JSON.stringify(payload) });
 }
+
+export async function sendSmsReminder(input: { phone: string; message: string }) {
+  const accountSid = process.env.TWILIO_ACCOUNT_SID;
+  const authToken = process.env.TWILIO_AUTH_TOKEN;
+  const fromNumber = process.env.TWILIO_PHONE_NUMBER;
+
+  if (!accountSid || !authToken || !fromNumber) {
+    return { configured: false, sent: false };
+  }
+
+  try {
+    const credentials = Buffer.from(`${accountSid}:${authToken}`).toString("base64");
+    const res = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`, {
+      method: "POST",
+      headers: {
+        Authorization: `Basic ${credentials}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({
+        To: input.phone,
+        From: fromNumber,
+        Body: input.message,
+      }),
+    });
+    return { configured: true, sent: res.ok };
+  } catch {
+    return { configured: true, sent: false };
+  }
+}

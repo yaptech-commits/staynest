@@ -1,7 +1,8 @@
 import { startLogin } from "@/const";
 import { trpc } from "@/lib/trpc";
 import { TRPCClientError } from "@trpc/client";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
+import { completeOnboardingIntent } from "@shared/onboarding";
 
 type UseAuthOptions = {
   redirectOnUnauthenticated?: boolean;
@@ -20,6 +21,8 @@ export function useAuth(options?: UseAuthOptions) {
     retry: false,
     refetchOnWindowFocus: false,
   });
+
+  const onboardingMutation = trpc.auth.saveOnboarding.useMutation();
 
   const logoutMutation = trpc.auth.logout.useMutation({
     onSuccess: () => {
@@ -50,6 +53,8 @@ export function useAuth(options?: UseAuthOptions) {
     }
   }, [logoutMutation, utils]);
 
+  const onboardingHandledRef = useRef(false);
+
   const state = useMemo(() => {
     localStorage.setItem(
       "manus-runtime-user-info",
@@ -68,6 +73,26 @@ export function useAuth(options?: UseAuthOptions) {
     logoutMutation.error,
     logoutMutation.isPending,
   ]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (onboardingHandledRef.current || meQuery.isLoading || !state.user || onboardingMutation.isPending) return;
+
+    const rawIntent = window.localStorage.getItem("staynest_onboarding_intent");
+    if (!rawIntent) return;
+
+    onboardingHandledRef.current = true;
+    void completeOnboardingIntent({
+      rawIntent,
+      save: (intent) => onboardingMutation.mutateAsync(intent),
+      clear: () => window.localStorage.removeItem("staynest_onboarding_intent"),
+      redirect: (destination) => {
+        if (window.location.pathname !== destination.split("?")[0]) window.location.assign(destination);
+      },
+    }).catch(() => {
+      onboardingHandledRef.current = false;
+    });
+  }, [meQuery.isLoading, onboardingMutation, onboardingMutation.isPending, state.user]);
 
   useEffect(() => {
     if (!redirectOnUnauthenticated) return;

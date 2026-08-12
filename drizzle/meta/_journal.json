@@ -29,6 +29,13 @@
       "when": 1786526829330,
       "tag": "0003_talented_lady_mastermind",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1786545902156,
+      "tag": "0004_mean_harrier",
+      "breakpoints": true
     }
   ]
 }

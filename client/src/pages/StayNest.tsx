@@ -52,7 +52,7 @@ function Shell({ children, variant = "light" }: { children: React.ReactNode; var
             <Link href="/hotel-dashboard" className="text-[13px] font-semibold text-[#50605a] transition hover:text-[#183a31]">For hotels</Link>
           </nav>
           <div className="hidden items-center gap-3 md:flex">
-            <Link href="/account" className="flex items-center gap-2 rounded-full px-3 py-2 text-[13px] font-semibold text-[#50605a] transition hover:bg-[#eef2eb] hover:text-[#183a31]">
+            <Link href="/onboarding" className="flex items-center gap-2 rounded-full px-3 py-2 text-[13px] font-semibold text-[#50605a] transition hover:bg-[#eef2eb] hover:text-[#183a31]">
               <span className="grid h-7 w-7 place-items-center rounded-full bg-[#e7eee5] text-[#183a31]">{isAuthenticated ? (user?.name?.[0] ?? "G") : <LogIn size={14} />}</span>
               {isAuthenticated ? "Account" : "Sign in"}
             </Link>
@@ -67,7 +67,7 @@ function Shell({ children, variant = "light" }: { children: React.ReactNode; var
             <Link href="/#stays" onClick={() => setMenuOpen(false)}>Explore stays</Link>
             <Link href="/#how-it-works" onClick={() => setMenuOpen(false)}>How it works</Link>
             <Link href="/hotel-dashboard" onClick={() => setMenuOpen(false)}>For hotels</Link>
-            <Link href="/account" onClick={() => setMenuOpen(false)}>{isAuthenticated ? "My account" : "Sign in"}</Link>
+            <Link href={isAuthenticated ? "/account" : "/onboarding"} onClick={() => setMenuOpen(false)}>{isAuthenticated ? "My account" : "Join StayNest"}</Link>
           </div>
         </div>}
       </header>
@@ -76,7 +76,7 @@ function Shell({ children, variant = "light" }: { children: React.ReactNode; var
         <div className="mx-auto grid max-w-[1240px] gap-10 px-5 py-14 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr] lg:px-8">
           <div><div className="mb-4 inline-flex rounded-xl bg-white p-2"><img src="/manus-storage/staynest-wordmark_36cf8e19.png" alt="StayNest" className="h-8 w-auto max-w-[170px] object-contain" /></div><p className="max-w-[260px] text-sm leading-6 text-[#c1d0c5]">Thoughtful stays across Ghana, with live availability and a simpler way to arrive well.</p></div>
           <div><p className="mb-4 text-[11px] font-bold uppercase tracking-[0.16em] text-[#e7c77b]">Discover</p><div className="space-y-3 text-sm text-[#c1d0c5]"><Link href="/#stays" className="block hover:text-white">Accra stays</Link><Link href="/#stays" className="block hover:text-white">Coastal retreats</Link><Link href="/#how-it-works" className="block hover:text-white">How it works</Link></div></div>
-          <div><p className="mb-4 text-[11px] font-bold uppercase tracking-[0.16em] text-[#e7c77b]">For partners</p><div className="space-y-3 text-sm text-[#c1d0c5]"><Link href="/hotel-dashboard" className="block hover:text-white">List your hotel</Link><Link href="/hotel-dashboard" className="block hover:text-white">Partner dashboard</Link><a href="mailto:hello@staynest.example" className="block hover:text-white">Partner support</a></div></div>
+          <div><p className="mb-4 text-[11px] font-bold uppercase tracking-[0.16em] text-[#e7c77b]">For partners</p><div className="space-y-3 text-sm text-[#c1d0c5]"><Link href="/onboarding?role=partner" className="block hover:text-white">List your hotel</Link><Link href="/onboarding?role=partner" className="block hover:text-white">Partner onboarding</Link><a href="mailto:hello@staynest.example" className="block hover:text-white">Partner support</a></div></div>
           <div><p className="mb-4 text-[11px] font-bold uppercase tracking-[0.16em] text-[#e7c77b]">Stay in touch</p><p className="mb-4 text-sm leading-6 text-[#c1d0c5]">Questions about a booking? Our guest team is here to help.</p><a href="mailto:hello@staynest.example" className="inline-flex items-center gap-2 text-sm font-semibold text-white">hello@staynest.example <ArrowRight size={14} /></a></div>
         </div>
         <div className="border-t border-[#3b5a50] px-5 py-5 text-center text-xs text-[#9cb3a5]">© 2026 StayNest · Ghana Cedis and USD · English</div>

@@ -1,6 +1,6 @@
 import { eq, desc, and } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, hotels, rooms, bookings, reviews, blockedDates } from "../drizzle/schema";
+import { InsertUser, users, hotels, rooms, bookings, reviews, blockedDates, onboardingProfiles } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -224,4 +224,52 @@ export async function listPayouts() {
   const db = await getDb();
   if (!db) return [];
   return db.select().from((await import("../drizzle/schema")).payouts).orderBy(desc((await import("../drizzle/schema")).payouts.createdAt));
+}
+
+export function buildOnboardingPersistencePayload(input: { userId: number; role: "guest" | "partner"; fullName: string; email: string; businessName?: string }) {
+  return {
+    user: {
+      name: input.fullName,
+      email: input.email,
+      role: input.role === "partner" ? "hotel_owner" as const : "user" as const,
+    },
+    profile: {
+      userId: input.userId,
+      role: input.role,
+      fullName: input.fullName,
+      email: input.email,
+      businessName: input.businessName ?? null,
+    },
+  };
+}
+
+type OnboardingProfilePersistenceStore = {
+  updateUser: (userId: number, values: { name: string; email: string; role: "user" | "hotel_owner" }) => Promise<void>;
+  upsertProfile: (profile: { userId: number; role: "guest" | "partner"; fullName: string; email: string; businessName: string | null }) => Promise<void>;
+  getProfile: (userId: number) => Promise<unknown | undefined>;
+};
+
+export async function saveOnboardingProfile(input: { userId: number; role: "guest" | "partner"; fullName: string; email: string; businessName?: string }, injectedStore?: OnboardingProfilePersistenceStore) {
+  let store = injectedStore;
+  if (!store) {
+    const db = await getDb();
+    if (!db) return { id: 0, ...input };
+    store = {
+      updateUser: async (userId, values) => {
+        await db.update(users).set(values).where(eq(users.id, userId));
+      },
+      upsertProfile: async (profile) => {
+        await db.insert(onboardingProfiles).values(profile).onDuplicateKeyUpdate({ set: profile });
+      },
+      getProfile: async (userId) => {
+        const result = await db.select().from(onboardingProfiles).where(eq(onboardingProfiles.userId, userId)).limit(1);
+        return result[0];
+      },
+    };
+  }
+
+  const payload = buildOnboardingPersistencePayload(input);
+  await store.updateUser(input.userId, payload.user);
+  await store.upsertProfile(payload.profile);
+  return await store.getProfile(input.userId) ?? { id: 0, ...input };
 }

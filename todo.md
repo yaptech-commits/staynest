@@ -36,3 +36,17 @@
 - [x] Configure Vercel to host the full StayNest application (frontend + Express/tRPC backend) and connect Firebase database services as the persistent datastore.
 
 - [x] Assign and verify the Vercel hostname `staynest.vercel.app` for the StayNest project.
+
+- [x] Add a dedicated StayNest onboarding page with guest and hotel-partner registration, validation, terms acceptance, and role-based post-sign-up routing.
+
+- [x] Fix mobile onboarding header spacing so the wordmark and sign-in link remain clearly separated at narrow widths.
+
+- [x] Fix the existing booking-reference generator so it matches the documented alphanumeric format and restores the full test suite.
+
+- [x] Consume the stored onboarding intent after OAuth and route guests to `/account` and hotel partners to `/hotel-dashboard`.
+- [x] Apply onboarding profile details after authentication and cover post-sign-up routing with an automated test.
+
+- [x] Add automated coverage for OAuth onboarding-intent consumption, mutation invocation, and role-based redirect behavior.
+- [x] Add server-side coverage for onboarding profile upsert and hotel_owner role promotion without inserting test records into the production database.
+
+- [x] Add a mocked-database server test for `saveOnboardingProfile()` covering guest saves, partner promotion, and repeated-user upsert behavior without real database writes.

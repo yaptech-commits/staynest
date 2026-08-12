@@ -30,6 +30,7 @@ import {
   recordBookingFinance,
   listPayouts,
   updateHotelApproval,
+  saveOnboardingProfile,
 } from "./db";
 import {
   calculateCommission,
@@ -48,6 +49,16 @@ import {
 const dateInput = z.string().min(10).max(32);
 const currencyInput = z.enum(["GHS", "USD"]);
 const gatewayInput = z.enum(["paystack", "flutterwave"]);
+const onboardingProfileInput = z.object({
+  role: z.enum(["guest", "partner"]),
+  fullName: z.string().trim().min(2).max(255),
+  email: z.string().trim().email().max(320),
+  businessName: z.string().trim().max(255).optional(),
+}).superRefine((value, ctx) => {
+  if (value.role === "partner" && !value.businessName) {
+    ctx.addIssue({ code: "custom", path: ["businessName"], message: "Hotel or business name is required for partners." });
+  }
+});
 
 const catalogInput = z.object({
   location: z.string().optional(),
@@ -88,6 +99,7 @@ export const appRouter = router({
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
       return { success: true } as const;
     }),
+    saveOnboarding: protectedProcedure.input(onboardingProfileInput).mutation(({ ctx, input }) => saveOnboardingProfile({ userId: ctx.user.id, ...input })),
   }),
 
   catalog: router({

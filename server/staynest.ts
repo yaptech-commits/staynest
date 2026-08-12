@@ -1,4 +1,4 @@
-import { nanoid } from "nanoid";
+import { customAlphabet, nanoid } from "nanoid";
 import { SignJWT, jwtVerify } from "jose";
 
 export const STAYNEST_COMMISSION_RATE = 0.15;
@@ -197,8 +197,10 @@ export function calculateCommission(total: number) {
   return { commission, hotelPayout: Number((total - commission).toFixed(2)) };
 }
 
+const bookingReferenceToken = customAlphabet("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ", 8);
+
 export function makeBookingReference() {
-  return `SN-${new Date().getFullYear()}-${nanoid(8).toUpperCase()}`;
+  return `SN-${new Date().getFullYear()}-${bookingReferenceToken()}`;
 }
 
 function billflowConfigured() {

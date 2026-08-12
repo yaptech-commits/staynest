@@ -5,6 +5,7 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { Home, PropertyPage, BookingPage, AccountPage, HotelDashboard, AdminDashboard, PaymentCompletePage, ConfirmationPage } from "./pages/StayNest";
+import Onboarding from "./pages/Onboarding";
 
 function Router() {
   return (
@@ -15,6 +16,7 @@ function Router() {
       <Route path="/booking/complete" component={PaymentCompletePage} />
       <Route path="/confirmation" component={ConfirmationPage} />
       <Route path="/account" component={AccountPage} />
+      <Route path="/onboarding" component={Onboarding} />
       <Route path="/hotel-dashboard" component={HotelDashboard} />
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/404" component={NotFound} />

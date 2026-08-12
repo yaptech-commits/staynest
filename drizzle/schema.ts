@@ -207,3 +207,18 @@ export const notifications = mysqlTable("staynest_notifications", {
 
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = typeof notifications.$inferInsert;
+
+
+export const onboardingProfiles = mysqlTable("staynest_onboarding_profiles", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(),
+  role: mysqlEnum("role", ["guest", "partner"]).notNull(),
+  fullName: varchar("fullName", { length: 255 }).notNull(),
+  email: varchar("email", { length: 320 }).notNull(),
+  businessName: varchar("businessName", { length: 255 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type OnboardingProfile = typeof onboardingProfiles.$inferSelect;
+export type InsertOnboardingProfile = typeof onboardingProfiles.$inferInsert;

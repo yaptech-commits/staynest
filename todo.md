@@ -93,3 +93,6 @@
 - [x] Verify that guest-facing manual inventory mappings expose zero available rooms when a room or property is blocked.
 
 - [x] Add a guest-facing router test where a room-specific blocked period drives `availableRooms: 0` through the catalog/property/live-availability mapping.
+
+- [ ] Refactor StayNest frontend to adopt Booking.com's high-density search bar, property result list layout, sticky filter sidebar, badge highlights, and structured guest review display.
+- [x] Refactor StayNest frontend to adopt Booking.com's high-density search bar, property result list layout, sticky filter sidebar, badge highlights, and structured guest review display.

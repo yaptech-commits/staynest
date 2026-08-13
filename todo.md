@@ -130,3 +130,5 @@
 
 - [x] Integrate repository-served custom-hero.jpg hero asset with verified local tests and checkpoint.
 - [x] Verify local responsive rendering across mobile and desktop breakpoints.
+
+- [x] Integrate IMG_3911.JPG without stretching or distortion, preserving its original 800×598 aspect ratio in the responsive hero.

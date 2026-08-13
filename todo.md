@@ -110,3 +110,5 @@
 
 - [x] Replace the failing deployed logo storage references with a deployment-safe in-repository logo asset and verify actual rendered delivery.
 - [x] Permanently remove the unwanted screenshot overlay from the hero section and guard against reintroducing it.
+
+- [x] Allow verified guests to attach photos of their property experience when submitting a review, using S3 storage and responsive gallery rendering.

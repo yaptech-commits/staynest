@@ -1,0 +1,1 @@
+ALTER TABLE `staynest_reviews` ADD `photoUrls` json;

@@ -50,6 +50,13 @@
       "when": 1786551248357,
       "tag": "0006_sweet_tombstone",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1786611511207,
+      "tag": "0007_careful_pixie",
+      "breakpoints": true
     }
   ]
 }

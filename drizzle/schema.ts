@@ -97,6 +97,7 @@ export const reviews = mysqlTable("staynest_reviews", {
   bookingId: int("bookingId").notNull(),
   rating: int("rating").notNull(), // 1 to 5
   comment: text("comment"),
+  photoUrls: json("photoUrls"), // array of S3 / storage image URLs attached by guest
   guestName: varchar("guestName", { length: 255 }).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });

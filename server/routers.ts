@@ -1,5 +1,6 @@
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
+import { storagePut } from "./storage";
 import { systemRouter } from "./_core/systemRouter";
 import { adminProcedure, protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import { z } from "zod";
@@ -395,11 +396,37 @@ export const appRouter = router({
       const success = await cancelBookingForUser(input.id, ctx.user.id);
       return { success, source: external.source };
     }),
+    uploadReviewPhoto: protectedProcedure.input(z.object({
+      base64Data: z.string().min(10),
+      fileName: z.string().min(1).max(255),
+    })).mutation(async ({ ctx, input }) => {
+      try {
+        const matches = input.base64Data.match(/^data:(image\/(jpeg|png|webp|heic|jpg));base64,(.+)$/i);
+        if (!matches) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Only JPEG, PNG, and WebP image formats are supported." });
+        }
+        const mimeType = matches[1].toLowerCase();
+        const rawBase64 = matches[3];
+        const buffer = Buffer.from(rawBase64, "base64");
+        if (buffer.length > 5 * 1024 * 1024) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Photo exceeds 5MB limit." });
+        }
+        const ext = mimeType.split("/")[1] || "jpg";
+        const key = `reviews/${ctx.user.id}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+        const stored = await storagePut(key, buffer, mimeType);
+        return { success: true, url: stored.url };
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Could not upload review photo." });
+      }
+    }),
+
     addReview: protectedProcedure.input(z.object({
       hotelId: z.number().int().positive(),
       bookingId: z.number().int().positive(),
       rating: z.number().int().min(1).max(5),
       comment: z.string().max(1000).optional(),
+      photoUrls: z.array(z.string().url()).max(5).optional(),
     })).mutation(async ({ ctx, input }) => {
       const booking = await getBookingForUser(input.bookingId, ctx.user.id);
       if (!booking || booking.hotelId !== input.hotelId || booking.paymentStatus !== "success") {
@@ -410,7 +437,15 @@ export const appRouter = router({
       if (alreadyReviewed) {
         throw new TRPCError({ code: "BAD_REQUEST", message: "You have already reviewed this stay." });
       }
-      const review = await addReview({ ...input, userId: ctx.user.id, guestName: ctx.user.name ?? "Guest" });
+      const review = await addReview({
+        hotelId: input.hotelId,
+        bookingId: input.bookingId,
+        rating: input.rating,
+        comment: input.comment,
+        photoUrls: input.photoUrls ?? [],
+        userId: ctx.user.id,
+        guestName: ctx.user.name ?? "Guest",
+      });
       const updatedReviews = [review, ...existingReviews];
       const avgRating = updatedReviews.reduce((sum, r) => sum + r.rating, 0) / updatedReviews.length;
       const db = await getDb();

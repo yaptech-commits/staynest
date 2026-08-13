@@ -439,6 +439,15 @@ export function PropertyReviewsSection({ hotelId }: { hotelId: number }) {
                 <span className="flex items-center gap-1 text-xs font-bold text-[#b18143]"><Star size={12} className="fill-[#e7c77b] text-[#e7c77b]" /> {review.rating}.0</span>
               </div>
               {review.comment && <p className="mt-3 text-sm leading-6 text-[#607269]">{review.comment}</p>}
+              {review.photoUrls && Array.isArray(review.photoUrls) && review.photoUrls.length > 0 && (
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {review.photoUrls.map((url: string, idx: number) => (
+                    <a key={idx} href={url} target="_blank" rel="noreferrer" className="block h-16 w-16 overflow-hidden rounded-xl border border-[#dfe4dc]">
+                      <img src={url} alt="Guest experience photo" className="h-full w-full object-cover transition hover:scale-105" />
+                    </a>
+                  ))}
+                </div>
+              )}
               <p className="mt-4 text-[10px] text-[#8a9890]">{new Date(review.createdAt).toLocaleDateString()}</p>
             </div>
           ))
@@ -452,15 +461,55 @@ export function ReviewModal({ booking }: { booking: any }) {
   const [isOpen, setIsOpen] = useState(false);
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
+  const [photoUrls, setPhotoUrls] = useState<string[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
   const utils = trpc.useUtils();
+  const uploadPhoto = trpc.bookings.uploadReviewPhoto.useMutation();
   const addReview = trpc.bookings.addReview.useMutation({
-    onSuccess: () => {
-      toast.success("Review submitted", { description: "Thank you for sharing your experience!" });
-      setIsOpen(false);
-      void utils.bookings.mine.invalidate();
-    },
+      onSuccess: () => {
+        toast.success("Review submitted", { description: "Thank you for sharing your experience!" });
+        setIsOpen(false);
+        setComment("");
+        setPhotoUrls([]);
+        void utils.bookings.mine.invalidate();
+        void utils.catalog.reviews.invalidate();
+      },
     onError: (error) => toast.error(error.message || "Could not submit review"),
   });
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    if (photoUrls.length + files.length > 5) {
+      toast.error("You can attach at most 5 photos.");
+      return;
+    }
+    setIsUploading(true);
+    try {
+      for (const file of Array.from(files)) {
+        if (file.size > 5 * 1024 * 1024) {
+          toast.error(`File ${file.name} exceeds 5MB limit.`);
+          continue;
+        }
+        const base64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+        const res = await uploadPhoto.mutateAsync({ base64Data: base64, fileName: file.name });
+        if (res.url) {
+          setPhotoUrls((prev) => [...prev, res.url]);
+        }
+      }
+      toast.success("Photos attached");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to upload photo");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   return (
     <>
       <Button size="sm" onClick={() => setIsOpen(true)} className="rounded-xl bg-[#2b6755] text-xs font-bold text-white hover:bg-[#1f4e40]">Leave review</Button>
@@ -482,12 +531,30 @@ export function ReviewModal({ booking }: { booking: any }) {
               </div>
               <div>
                 <label className="text-xs font-bold text-[#50605a]">Review comment</label>
-                <Textarea value={comment} onChange={(e) => setComment(e.target.value)} placeholder="How was your room, service, and overall arrival experience?" className="mt-2 min-h-[100px] rounded-xl border-[#dfe4dc]" />
+                <Textarea value={comment} onChange={(e) => setComment(e.target.value)} placeholder="How was your room, service, and overall arrival experience?" className="mt-2 min-h-[90px] rounded-xl border-[#dfe4dc]" />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-[#50605a]">Attach experience photos (up to 5)</label>
+                <div className="mt-2 flex flex-wrap items-center gap-3">
+                  {photoUrls.map((url, idx) => (
+                    <div key={idx} className="relative h-16 w-16 overflow-hidden rounded-xl border border-[#dfe4dc]">
+                      <img src={url} alt="Attachment preview" className="h-full w-full object-cover" />
+                      <button type="button" onClick={() => setPhotoUrls(photoUrls.filter((_, i) => i !== idx))} className="absolute right-1 top-1 grid h-5 w-5 place-items-center rounded-full bg-black/60 text-white text-[10px]">×</button>
+                    </div>
+                  ))}
+                  {photoUrls.length < 5 && (
+                    <label className="flex h-16 w-16 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-[#8a9890] bg-[#f9faf8] text-[#718078] hover:bg-[#f3f5f0]">
+                      <UploadCloud size={18} />
+                      <span className="mt-1 text-[10px]">Add photo</span>
+                      <input type="file" accept="image/*" multiple onChange={handleFileChange} className="hidden" />
+                    </label>
+                  )}
+                </div>
               </div>
               <div className="flex gap-3 pt-2">
                 <Button variant="outline" onClick={() => setIsOpen(false)} className="h-11 flex-1 rounded-xl border-[#dfe4dc]">Cancel</Button>
-                <Button onClick={() => addReview.mutate({ hotelId: booking.hotelId, bookingId: booking.id, rating, comment })} disabled={addReview.isPending} className="h-11 flex-[2] rounded-xl bg-[#183a31] font-bold text-white">
-                  {addReview.isPending ? "Submitting…" : "Submit review"}
+                <Button onClick={() => addReview.mutate({ hotelId: booking.hotelId, bookingId: booking.id, rating, comment, photoUrls })} disabled={addReview.isPending || isUploading} className="h-11 flex-[2] rounded-xl bg-[#183a31] font-bold text-white">
+                  {addReview.isPending || isUploading ? "Submitting…" : "Submit review"}
                 </Button>
               </div>
             </div>

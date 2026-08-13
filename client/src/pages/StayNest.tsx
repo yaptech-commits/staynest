@@ -3,7 +3,7 @@ import { Link, useLocation, useRoute } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { startLogin } from "@/const";
-import { STAYNEST_LOGO_ALT } from "@/brand";
+import { STAYNEST_HERO_BACKGROUND_SRC, STAYNEST_LOGO_ALT } from "@/brand";
 import { BrandImage } from "@/components/BrandImage";
 import { MapView } from "@/components/Map";
 import { PartnerInventoryPanel } from "@/components/PartnerInventoryPanel";
@@ -165,10 +165,12 @@ export function Home() {
   const selectHotel = (id: number) => navigate(`/hotel/${id}`);
   return <Shell>
     <main>
-      <section className="relative overflow-hidden bg-[#183a31] text-white">
-        <div className="relative mx-auto grid max-w-[1240px] items-center gap-12 px-5 pb-24 pt-16 md:grid-cols-[1.05fr_.95fr] md:pb-28 md:pt-24 lg:px-8">
-          <div className="max-w-[570px]"><div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#6c8c77]/55 bg-white/5 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.15em] text-[#e7c77b]"><Sparkles size={13} /> Stays with a sense of place</div><h1 className="max-w-[630px] font-serif text-[clamp(3.5rem,8vw,6.5rem)] leading-[.88] tracking-[-0.045em]">Arrive somewhere <span className="text-[#e7c77b]">wonderful.</span></h1><p className="mt-7 max-w-[470px] text-[16px] leading-7 text-[#c9d8cc]">Find considered hotels, warm service, and the little details that make a stay worth remembering.</p></div>
-          <div className="relative hidden min-h-[390px] md:block"><div className="absolute right-6 top-0 h-[350px] w-[82%] overflow-hidden rounded-[130px_24px_24px_24px] shadow-[0_32px_80px_rgba(0,0,0,.25)]"><img src={image.coast} alt="Coastal stay in Ghana" className="h-full w-full object-cover" /></div><div className="absolute bottom-3 left-0 w-[220px] rounded-[18px] border border-white/20 bg-[#22493d]/90 p-4 backdrop-blur-lg"><div className="mb-2 flex items-center gap-2 text-[#e7c77b]"><ShieldCheck size={16} /><span className="text-[10px] font-bold uppercase tracking-[0.16em]">Book with confidence</span></div><p className="text-sm leading-5 text-[#d7e1d8]">Live availability from connected hotels, so you can book what is genuinely available.</p></div></div>
+      <section className="relative min-h-[720px] overflow-hidden bg-[#183a31] text-white md:min-h-[760px]">
+        <img src={STAYNEST_HERO_BACKGROUND_SRC} alt="Ghanaian landscape with a child walking toward the horizon" className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#071c17]/90 via-[#071c17]/58 to-[#071c17]/18" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#071c17]/88 via-transparent to-[#071c17]/22" />
+        <div className="relative z-10 mx-auto flex min-h-[720px] max-w-[1240px] flex-col justify-between px-5 pb-28 pt-16 md:min-h-[760px] md:pb-28 md:pt-24 lg:px-8">
+          <div className="max-w-[760px] pt-6 md:pt-10"><div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/35 bg-[#071c17]/30 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.15em] text-[#f3d98d] backdrop-blur-sm"><Sparkles size={13} /> Stays with a sense of place</div><h1 className="max-w-[760px] font-serif text-[clamp(3.5rem,8vw,7rem)] leading-[.88] tracking-[-0.045em]">Arrive somewhere <span className="text-[#f3d98d]">wonderful.</span></h1><p className="mt-7 max-w-[520px] text-[16px] leading-7 text-[#f0f4ef]">Find considered hotels, warm service, and the little details that make a stay worth remembering.</p><div className="mt-7 flex max-w-[300px] items-start gap-3 rounded-[18px] border border-white/25 bg-[#071c17]/48 p-4 backdrop-blur-md"><ShieldCheck size={17} className="mt-0.5 shrink-0 text-[#f3d98d]" /><p className="text-sm leading-5 text-[#f0f4ef]">Live availability from connected hotels, so you can book what is genuinely available.</p></div></div>
           <div className="md:absolute md:bottom-[-43px] md:left-5 md:right-5 lg:left-8 lg:right-8"><SearchPanel onSearch={setQuery} /></div>
         </div>
       </section>

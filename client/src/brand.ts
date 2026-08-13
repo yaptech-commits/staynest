@@ -6,6 +6,7 @@
  */
 export const STAYNEST_WORDMARK_SRC = "/brand/wordmark.png";
 export const STAYNEST_EMBLEM_SRC = "/brand/emblem.png";
+export const STAYNEST_HERO_BACKGROUND_SRC = "/hero/custom-hero.jpg";
 export const STAYNEST_LOGO_ALT = "StayNest";
 
 const svgDataUri = (svg: string) => `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;

@@ -116,3 +116,17 @@
 - [x] Implement multi-currency rate switching (GHS/USD) across search results, property pages, and partner rate management.
 - [x] Implement automated check-in reminder scheduling and notification workflows.
 - [x] Build an interactive photo lightbox viewer for guest review photos on property detail pages.
+
+- [x] Restore IMG_3886.PNG as the approved responsive hero overlay behind “Arrive somewhere wonderful,” preserving text and search contrast.
+
+- [x] Replace the current hero overlay with IMG_3909.JPG as a full-bleed image-first background treatment with readable StayNest content.
+
+- [x] Fix IMG_3909 production delivery by replacing the failing managed-storage hero URL with a repository-served asset path and verify the live image renders.
+
+- [x] Push the repository-served /hero/hero-background.jpg change to GitHub and verify Vercel production loads it.
+- [x] Capture production response evidence showing /hero/hero-background.jpg is served as an image before closing the hero delivery fix.
+
+- [x] Generate a clear, attractive wide hero image asset and integrate it as the full-view StayNest hero background.
+
+- [ ] Push the final repository-served /hero/custom-hero.jpg hero asset change to GitHub using author ayindenabawisdom@gmail.com.
+- [ ] Verify that Vercel production serves /hero/custom-hero.jpg successfully as an image on the live StayNest URL.

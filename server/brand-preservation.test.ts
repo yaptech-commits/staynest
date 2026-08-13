@@ -10,6 +10,7 @@ describe("StayNest logo preservation", () => {
     const brand = readProjectFile("client/src/brand.ts");
     expect(brand).toContain('STAYNEST_WORDMARK_SRC = "/brand/wordmark.png"');
     expect(brand).toContain('STAYNEST_EMBLEM_SRC = "/brand/emblem.png"');
+    expect(brand).toContain('STAYNEST_HERO_BACKGROUND_SRC = "/hero/custom-hero.jpg"');
     expect(brand).toContain("STAYNEST_WORDMARK_FALLBACK_SRC");
     expect(brand).toContain("STAYNEST_EMBLEM_FALLBACK_SRC");
   });
@@ -33,9 +34,11 @@ describe("StayNest logo preservation", () => {
     expect(index).toContain('property="og:image" content="/brand/wordmark.png"');
   });
 
-  it("does not reintroduce the screenshot hero overlay", () => {
+  it("keeps the approved image-first hero background wired to the homepage", () => {
+    const brand = readProjectFile("client/src/brand.ts");
     const home = readProjectFile("client/src/pages/StayNest.tsx");
-    expect(home).not.toContain("staynest-hero-overlay");
-    expect(home).not.toContain("IMG_3886");
+    expect(brand).toContain("STAYNEST_HERO_BACKGROUND_SRC");
+    expect(home).toContain("STAYNEST_HERO_BACKGROUND_SRC");
+    expect(home).toContain("bg-gradient-to-r");
   });
 });

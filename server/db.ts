@@ -55,6 +55,48 @@ export async function getUserByOpenId(openId: string) {
   return result[0];
 }
 
+export async function getUserByEmail(email: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
+  return result[0];
+}
+
+export async function createOrUpdateLocalUser(params: {
+  email: string;
+  name: string;
+  passwordHash?: string;
+  role?: "user" | "hotel_owner" | "admin";
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const existing = await getUserByEmail(params.email);
+  const openId = existing?.openId ?? `local_${Math.random().toString(36).substring(2, 12)}_${Date.now()}`;
+  const role = params.role ?? (params.email === "wisdomasaare41@gmail.com" ? "admin" : existing?.role ?? "user");
+  
+  const values: any = {
+    openId,
+    name: params.name,
+    email: params.email,
+    loginMethod: "password",
+    role,
+    lastSignedIn: new Date(),
+  };
+  if (params.passwordHash) {
+    values.passwordHash = params.passwordHash;
+  }
+
+  await db.insert(users).values(values).onDuplicateKeyUpdate({
+    set: {
+      name: params.name,
+      ...(params.passwordHash ? { passwordHash: params.passwordHash } : {}),
+      role,
+      lastSignedIn: new Date(),
+    },
+  });
+  return getUserByEmail(params.email);
+}
+
 export async function listApprovedHotels() {
   const db = await getDb();
   if (!db) return [];

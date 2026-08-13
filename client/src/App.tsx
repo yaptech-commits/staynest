@@ -7,6 +7,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import { Home, PropertyPage, BookingPage, AccountPage, HotelDashboard, AdminDashboard, PaymentCompletePage, ConfirmationPage } from "./pages/StayNest";
 import Onboarding from "./pages/Onboarding";
 import EmailVerification from "./pages/EmailVerification";
+import { AuthModal } from "@/components/AuthModal";
 
 function Router() {
   return (
@@ -34,6 +35,7 @@ export default function App() {
         <TooltipProvider>
           <Toaster />
           <Router />
+          <AuthModal />
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>

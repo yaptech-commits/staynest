@@ -146,3 +146,8 @@
 - [x] Fix mobile sign-in button not responding on StayNest production.
 
 - [x] Fix OAuth portal URL destination returning 404 Route Not Found in production.
+
+- [x] Replace Manus OAuth with StayNest-native email/password authentication and branded sign-in modal/page.
+
+- [x] Upgrade password hashing to secure bcrypt and add automated tests for local registration, login, logout, and role-based permissions.
+- [x] Clean up remaining legacy Manus session references across client auth hooks and bootstrap handlers.

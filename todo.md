@@ -144,3 +144,5 @@
 - [x] Ensure seamless GitHub and Vercel synchronization for StayNest without requiring repeated terminal device authentication.
 
 - [x] Fix mobile sign-in button not responding on StayNest production.
+
+- [x] Fix OAuth portal URL destination returning 404 Route Not Found in production.

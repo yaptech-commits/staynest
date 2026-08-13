@@ -412,48 +412,62 @@ export function AdminDashboard() {
 
 export function PropertyReviewsSection({ hotelId }: { hotelId: number }) {
   const { data: reviews = [] } = trpc.catalog.reviews.useQuery({ hotelId });
+  const [activeLightboxUrl, setActiveLightboxUrl] = useState<string | null>(null);
   const avgRating = reviews.length > 0 ? (reviews.reduce((acc: number, r: any) => acc + r.rating, 0) / reviews.length).toFixed(1) : null;
   return (
-    <div className="rounded-[28px] border border-[#e2e7df] bg-white p-8">
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#b18143]">Verified guest reviews</p>
-          <h2 className="mt-1 font-serif text-[32px] text-[#183a31]">What travelers are saying</h2>
-        </div>
-        <div className="flex items-center gap-3 rounded-2xl bg-[#eef4ed] px-4 py-3">
-          <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#183a31] text-base font-bold text-white"><Star size={16} className="fill-[#e7c77b] text-[#e7c77b] inline mr-0.5" />{avgRating ?? "—"}</span>
+    <>
+      <div className="rounded-[28px] border border-[#e2e7df] bg-white p-8">
+        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div>
-            <span className="block font-bold text-[#183a31]">{reviews.length > 0 ? "Verified guest feedback" : "New property"}</span>
-            <span className="text-xs text-[#718078]">{reviews.length} verified reviews</span>
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#b18143]">Verified guest reviews</p>
+            <h2 className="mt-1 font-serif text-[32px] text-[#183a31]">What travelers are saying</h2>
+          </div>
+          <div className="flex items-center gap-3 rounded-2xl bg-[#eef4ed] px-4 py-3">
+            <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#183a31] text-base font-bold text-white"><Star size={16} className="fill-[#e7c77b] text-[#e7c77b] inline mr-0.5" />{avgRating ?? "—"}</span>
+            <div>
+              <span className="block font-bold text-[#183a31]">{reviews.length > 0 ? "Verified guest feedback" : "New property"}</span>
+              <span className="text-xs text-[#718078]">{reviews.length} verified reviews</span>
+            </div>
           </div>
         </div>
-      </div>
-      <div className="mt-8 grid gap-4 sm:grid-cols-2">
-        {reviews.length === 0 ? (
-          <p className="text-sm text-[#718078]">No reviews submitted for this property yet. Complete a verified stay to leave the first review.</p>
-        ) : (
-          reviews.map((review: any) => (
-            <div key={review.id} className="rounded-2xl border border-[#edf0eb] bg-[#f9faf8] p-5">
-              <div className="flex items-center justify-between">
-                <span className="font-bold text-[#183a31]">{review.guestName}</span>
-                <span className="flex items-center gap-1 text-xs font-bold text-[#b18143]"><Star size={12} className="fill-[#e7c77b] text-[#e7c77b]" /> {review.rating}.0</span>
-              </div>
-              {review.comment && <p className="mt-3 text-sm leading-6 text-[#607269]">{review.comment}</p>}
-              {review.photoUrls && Array.isArray(review.photoUrls) && review.photoUrls.length > 0 && (
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {review.photoUrls.map((url: string, idx: number) => (
-                    <a key={idx} href={url} target="_blank" rel="noreferrer" className="block h-16 w-16 overflow-hidden rounded-xl border border-[#dfe4dc]">
-                      <img src={url} alt="Guest experience photo" className="h-full w-full object-cover transition hover:scale-105" />
-                    </a>
-                  ))}
+        <div className="mt-8 grid gap-4 sm:grid-cols-2">
+          {reviews.length === 0 ? (
+            <p className="text-sm text-[#718078]">No reviews submitted for this property yet. Complete a verified stay to leave the first review.</p>
+          ) : (
+            reviews.map((review: any) => (
+              <div key={review.id} className="rounded-2xl border border-[#edf0eb] bg-[#f9faf8] p-5">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-[#183a31]">{review.guestName}</span>
+                  <span className="flex items-center gap-1 text-xs font-bold text-[#b18143]"><Star size={12} className="fill-[#e7c77b] text-[#e7c77b]" /> {review.rating}.0</span>
                 </div>
-              )}
-              <p className="mt-4 text-[10px] text-[#8a9890]">{new Date(review.createdAt).toLocaleDateString()}</p>
-            </div>
-          ))
-        )}
+                {review.comment && <p className="mt-3 text-sm leading-6 text-[#607269]">{review.comment}</p>}
+                {review.photoUrls && Array.isArray(review.photoUrls) && review.photoUrls.length > 0 && (
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {review.photoUrls.map((url: string, idx: number) => (
+                      <button key={idx} type="button" onClick={() => setActiveLightboxUrl(url)} className="block h-16 w-16 overflow-hidden rounded-xl border border-[#dfe4dc] text-left transition hover:scale-105">
+                        <img src={url} alt="Guest experience photo" className="h-full w-full object-cover" />
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <p className="mt-4 text-[10px] text-[#8a9890]">{new Date(review.createdAt).toLocaleDateString()}</p>
+              </div>
+            ))
+          )}
+        </div>
       </div>
-    </div>
+      {activeLightboxUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md" onClick={() => setActiveLightboxUrl(null)}>
+          <div className="relative max-h-[90vh] max-w-4xl overflow-hidden rounded-2xl bg-black p-2" onClick={(e) => e.stopPropagation()}>
+            <img src={activeLightboxUrl} alt="Enlarged review photo" className="max-h-[80vh] w-auto max-w-full rounded-xl object-contain" />
+            <div className="mt-3 flex items-center justify-between px-3 pb-2 text-white">
+              <span className="text-xs text-white/70">Verified guest photo</span>
+              <Button size="sm" variant="ghost" onClick={() => setActiveLightboxUrl(null)} className="text-xs text-white hover:bg-white/10">Close</Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 

@@ -112,3 +112,7 @@
 - [x] Permanently remove the unwanted screenshot overlay from the hero section and guard against reintroducing it.
 
 - [x] Allow verified guests to attach photos of their property experience when submitting a review, using S3 storage and responsive gallery rendering.
+
+- [x] Implement multi-currency rate switching (GHS/USD) across search results, property pages, and partner rate management.
+- [x] Implement automated check-in reminder scheduling and notification workflows.
+- [x] Build an interactive photo lightbox viewer for guest review photos on property detail pages.

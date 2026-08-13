@@ -38,6 +38,46 @@ async function startServer() {
   registerStorageProxy(app);
   registerOAuthRoutes(app);
   registerBillFlowRoutes(app);
+
+  // Scheduled check-in reminder cron callback
+  app.post("/api/scheduled/checkInReminders", async (req, res) => {
+    try {
+      const { sdk } = await import("./sdk");
+      const user = await sdk.authenticateRequest(req);
+      if (!user.isCron) {
+        return res.status(403).json({ error: "Cron only" });
+      }
+      const { getAllBookings } = await import("../db");
+      const { sendCheckInReminderEmail, sendSmsReminder } = await import("../staynest");
+      const allBookings = await getAllBookings();
+      const today = new Date().toISOString().slice(0, 10);
+      const upcoming = allBookings.filter((b) => b.paymentStatus === "success" && b.checkInDate === today && b.bookingStatus === "booked");
+      let sentCount = 0;
+      for (const booking of upcoming) {
+        if (booking.guestEmail) {
+          await sendCheckInReminderEmail({
+            to: booking.guestEmail,
+            guestName: booking.guestName,
+            bookingReference: booking.bookingReference,
+            hotelName: booking.hotelId === 1 ? "The Gold Coast House" : booking.hotelId === 3 ? "Ada Palm Retreat" : "Cantonments House",
+            checkInDate: booking.checkInDate,
+            checkOutDate: booking.checkOutDate,
+          });
+          sentCount++;
+        }
+        if (booking.guestPhone) {
+          await sendSmsReminder({
+            phone: booking.guestPhone,
+            message: `StayNest Reminder: Your stay at ${booking.hotelId === 1 ? "The Gold Coast House" : "Cantonments House"} begins today (${booking.checkInDate}). Ref: ${booking.bookingReference}`,
+          });
+        }
+      }
+      return res.json({ ok: true, processed: upcoming.length, sentCount });
+    } catch (error: any) {
+      return res.status(500).json({ error: error?.message || "Internal error", stack: error?.stack });
+    }
+  });
+
   // tRPC API
   app.use(
     "/api/trpc",

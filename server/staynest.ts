@@ -360,6 +360,22 @@ export async function cancelBillFlowReservation(payload: { businessId?: string; 
   return billflowRequest<{ source: "billflow"; cancelled: boolean }>("/api/staynest/reservations/cancel", { method: "POST", body: JSON.stringify(payload) });
 }
 
+export async function sendCheckInReminderEmail(input: { to: string; guestName: string; bookingReference: string; hotelName: string; checkInDate: string; checkOutDate: string }) {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) return { configured: false, sent: false };
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      from: "StayNest <reminders@staynest.example>",
+      to: [input.to],
+      subject: `Upcoming check-in reminder · ${input.hotelName}`,
+      html: `<div style="font-family:Arial,sans-serif;color:#183a31;line-height:1.6"><h1 style="font-family:Georgia,serif">Your stay is coming up soon.</h1><p>Hi ${input.guestName}, we're looking forward to welcoming you at <strong>${input.hotelName}</strong> on <strong>${input.checkInDate}</strong>.</p><p>Booking Reference: <strong>${input.bookingReference}</strong><br>Check-out: ${input.checkOutDate}</p><p>Have a wonderful journey!</p></div>`,
+    }),
+  });
+  return { configured: true, sent: response.ok };
+}
+
 export async function sendSmsReminder(input: { phone: string; message: string }) {
   const accountSid = process.env.TWILIO_ACCOUNT_SID;
   const authToken = process.env.TWILIO_AUTH_TOKEN;

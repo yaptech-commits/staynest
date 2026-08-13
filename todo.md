@@ -132,3 +132,5 @@
 - [x] Verify local responsive rendering across mobile and desktop breakpoints.
 
 - [x] Integrate IMG_3911.JPG without stretching or distortion, preserving its original 800×598 aspect ratio in the responsive hero.
+
+- [x] Soften IMG_3911 photo edges with a subtle blur/fade treatment while preserving the full image and original aspect ratio.

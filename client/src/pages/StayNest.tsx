@@ -166,8 +166,9 @@ export function Home() {
   return <Shell>
     <main>
       <section className="relative min-h-[720px] overflow-hidden bg-[#183a31] text-white md:min-h-[760px]">
-        <img src={STAYNEST_HERO_BACKGROUND_SRC} alt="Ghanaian landscape with a child walking toward the horizon" className="pointer-events-none absolute inset-0 h-full w-full object-contain object-center" />
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#071c17]/90 via-[#071c17]/58 to-[#071c17]/18" />
+        <img src={STAYNEST_HERO_BACKGROUND_SRC} alt="" aria-hidden="true" className="pointer-events-none absolute inset-[-5%] h-[110%] w-[110%] scale-110 object-cover object-center opacity-65 blur-2xl" />
+        <img src={STAYNEST_HERO_BACKGROUND_SRC} alt="Ghanaian seaside suite with ocean views" className="pointer-events-none absolute inset-0 z-[1] h-full w-full object-contain object-center" />
+        <div className="pointer-events-none absolute inset-0 z-[2] bg-gradient-to-r from-[#071c17]/90 via-[#071c17]/58 to-[#071c17]/18" />
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#071c17]/88 via-transparent to-[#071c17]/22" />
         <div className="relative z-10 mx-auto flex min-h-[720px] max-w-[1240px] flex-col justify-between px-5 pb-28 pt-16 md:min-h-[760px] md:pb-28 md:pt-24 lg:px-8">
           <div className="max-w-[760px] pt-6 md:pt-10"><div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/35 bg-[#071c17]/30 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.15em] text-[#f3d98d] backdrop-blur-sm"><Sparkles size={13} /> Stays with a sense of place</div><h1 className="max-w-[760px] font-serif text-[clamp(3.5rem,8vw,7rem)] leading-[.88] tracking-[-0.045em]">Arrive somewhere <span className="text-[#f3d98d]">wonderful.</span></h1><p className="mt-7 max-w-[520px] text-[16px] leading-7 text-[#f0f4ef]">Find considered hotels, warm service, and the little details that make a stay worth remembering.</p><div className="mt-7 flex max-w-[300px] items-start gap-3 rounded-[18px] border border-white/25 bg-[#071c17]/48 p-4 backdrop-blur-md"><ShieldCheck size={17} className="mt-0.5 shrink-0 text-[#f3d98d]" /><p className="text-sm leading-5 text-[#f0f4ef]">Live availability from connected hotels, so you can book what is genuinely available.</p></div></div>

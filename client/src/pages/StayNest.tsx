@@ -166,7 +166,7 @@ export function Home() {
   return <Shell>
     <main>
       <section className="relative min-h-[720px] overflow-hidden bg-[#183a31] text-white md:min-h-[760px]">
-        <div className="pointer-events-none absolute inset-0 z-[1] flex items-center justify-center">
+        <div className="pointer-events-none absolute inset-0 z-[1] flex items-start justify-center">
           <div className="relative aspect-[800/598] w-full max-w-[1017px] overflow-hidden" style={{ WebkitMaskImage: "radial-gradient(ellipse 84% 84% at center, black 57%, rgba(0,0,0,.96) 73%, transparent 100%)", maskImage: "radial-gradient(ellipse 84% 84% at center, black 57%, rgba(0,0,0,.96) 73%, transparent 100%)" }}>
             <img src={STAYNEST_HERO_BACKGROUND_SRC} alt="Ghanaian seaside suite with ocean views" className="h-full w-full object-contain" />
           </div>

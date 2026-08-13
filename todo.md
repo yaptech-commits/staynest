@@ -136,3 +136,5 @@
 - [x] Soften IMG_3911 photo edges with a subtle blur/fade treatment while preserving the full image and original aspect ratio.
 
 - [x] Feather the actual IMG_3911 photo edges while keeping its interior sharp and leaving the background layer unchanged.
+
+- [x] Move IMG_3911 upward behind “Arrive somewhere wonderful” and feather the photo edges into the background without stretching.

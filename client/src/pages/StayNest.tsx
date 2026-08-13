@@ -56,10 +56,17 @@ function Shell({ children, variant = "light" }: { children: React.ReactNode; var
             <Link href="/hotel-dashboard" className="text-[13px] font-semibold text-[#50605a] transition hover:text-[#183a31]">For hotels</Link>
           </nav>
           <div className="hidden items-center gap-3 md:flex">
-            <Link href="/onboarding" className="flex items-center gap-2 rounded-full px-3 py-2 text-[13px] font-semibold text-[#50605a] transition hover:bg-[#eef2eb] hover:text-[#183a31]">
-              <span className="grid h-7 w-7 place-items-center rounded-full bg-[#e7eee5] text-[#183a31]">{isAuthenticated ? (user?.name?.[0] ?? "G") : <LogIn size={14} />}</span>
-              {isAuthenticated ? "Account" : "Sign in"}
-            </Link>
+            {isAuthenticated ? (
+              <Link href="/account" className="flex items-center gap-2 rounded-full px-3 py-2 text-[13px] font-semibold text-[#50605a] transition hover:bg-[#eef2eb] hover:text-[#183a31]">
+                <span className="grid h-7 w-7 place-items-center rounded-full bg-[#e7eee5] text-[#183a31]">{user?.name?.[0] ?? "G"}</span>
+                Account
+              </Link>
+            ) : (
+              <button type="button" onClick={() => startLogin()} className="flex items-center gap-2 rounded-full px-3 py-2 text-[13px] font-semibold text-[#50605a] transition hover:bg-[#eef2eb] hover:text-[#183a31]">
+                <span className="grid h-7 w-7 place-items-center rounded-full bg-[#e7eee5] text-[#183a31]"><LogIn size={14} /></span>
+                Sign in
+              </button>
+            )}
             {isAuthenticated && <Button variant="ghost" className="text-[12px] text-[#718078]" onClick={() => logout()}>Log out</Button>}
           </div>
           <button aria-label="Open menu" className="grid h-10 w-10 place-items-center rounded-xl border border-[#dfe4dc] md:hidden" onClick={() => setMenuOpen(!menuOpen)}>
@@ -71,7 +78,12 @@ function Shell({ children, variant = "light" }: { children: React.ReactNode; var
             <Link href="/#stays" onClick={() => setMenuOpen(false)}>Explore stays</Link>
             <Link href="/#how-it-works" onClick={() => setMenuOpen(false)}>How it works</Link>
             <Link href="/hotel-dashboard" onClick={() => setMenuOpen(false)}>For hotels</Link>
-            <Link href={isAuthenticated ? "/account" : "/onboarding"} onClick={() => setMenuOpen(false)}>{isAuthenticated ? "My account" : "Join StayNest"}</Link>
+            {isAuthenticated ? (
+              <Link href="/account" onClick={() => setMenuOpen(false)}>My account</Link>
+            ) : (
+              <button type="button" onClick={() => { setMenuOpen(false); startLogin(); }} className="text-left font-semibold text-[#50605a]">Sign in</button>
+            )}
+            <Link href="/onboarding" onClick={() => setMenuOpen(false)}>Join StayNest</Link>
           </div>
         </div>}
       </header>

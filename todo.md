@@ -142,3 +142,5 @@
 - [x] Create and verify StayNest administrator account for wisdomasaare41@gmail.com with full platform oversight over all hotels, guest houses, guests, and bookings.
 
 - [x] Ensure seamless GitHub and Vercel synchronization for StayNest without requiring repeated terminal device authentication.
+
+- [x] Fix mobile sign-in button not responding on StayNest production.

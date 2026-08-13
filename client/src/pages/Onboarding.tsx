@@ -70,7 +70,7 @@ export default function Onboarding() {
           <Link href="/" className="min-w-0 flex-1 items-center gap-3">
             <BrandImage alt={STAYNEST_LOGO_ALT} className="h-8 w-auto max-w-[150px] object-contain sm:h-9 sm:max-w-[190px]" />
           </Link>
-          <Link href="/account" className="shrink-0 text-right text-[11px] font-semibold leading-4 text-[#50605a] transition hover:text-[#183a31] sm:text-sm"><span className="hidden sm:inline">Already have an account? </span><span className="text-[#183a31]">Sign in</span></Link>
+          <button type="button" onClick={() => startLogin()} className="shrink-0 text-right text-[11px] font-semibold leading-4 text-[#50605a] transition hover:text-[#183a31] sm:text-sm"><span className="hidden sm:inline">Already have an account? </span><span className="text-[#183a31]">Sign in</span></button>
         </div>
       </header>
 
@@ -112,7 +112,7 @@ export default function Onboarding() {
             <p className="flex items-center justify-center gap-2 text-center text-[11px] text-[#8a9890]"><LockKeyhole size={13} /> StayNest uses secure sign-in. We never store your password.</p>
           </form>
 
-          <div className="mt-8 flex items-center justify-between border-t border-[#edf0eb] pt-6 text-xs"><Link href="/" className="flex items-center gap-2 font-semibold text-[#718078] hover:text-[#183a31]"><ArrowLeft size={14} /> Back to stays</Link><span className="text-[#a5b1a8]">Already registered? <Link href="/account" className="font-semibold text-[#183a31]">Sign in</Link></span></div>
+          <div className="mt-8 flex items-center justify-between border-t border-[#edf0eb] pt-6 text-xs"><Link href="/" className="flex items-center gap-2 font-semibold text-[#718078] hover:text-[#183a31]"><ArrowLeft size={14} /> Back to stays</Link><span className="text-[#a5b1a8]">Already registered? <button type="button" onClick={() => startLogin()} className="font-semibold text-[#183a31]">Sign in</button></span></div>
         </section>
       </main>
     </div>

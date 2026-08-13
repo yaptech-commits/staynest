@@ -140,3 +140,5 @@
 - [x] Move IMG_3911 upward behind “Arrive somewhere wonderful” and feather the photo edges into the background without stretching.
 
 - [x] Create and verify StayNest administrator account for wisdomasaare41@gmail.com with full platform oversight over all hotels, guest houses, guests, and bookings.
+
+- [x] Ensure seamless GitHub and Vercel synchronization for StayNest without requiring repeated terminal device authentication.

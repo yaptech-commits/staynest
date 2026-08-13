@@ -138,3 +138,5 @@
 - [x] Feather the actual IMG_3911 photo edges while keeping its interior sharp and leaving the background layer unchanged.
 
 - [x] Move IMG_3911 upward behind “Arrive somewhere wonderful” and feather the photo edges into the background without stretching.
+
+- [x] Create and verify StayNest administrator account for wisdomasaare41@gmail.com with full platform oversight over all hotels, guest houses, guests, and bookings.

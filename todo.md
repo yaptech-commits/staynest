@@ -128,5 +128,5 @@
 
 - [x] Generate a clear, attractive wide hero image asset and integrate it as the full-view StayNest hero background.
 
-- [ ] Push the final repository-served /hero/custom-hero.jpg hero asset change to GitHub using author ayindenabawisdom@gmail.com.
-- [ ] Verify that Vercel production serves /hero/custom-hero.jpg successfully as an image on the live StayNest URL.
+- [x] Integrate repository-served custom-hero.jpg hero asset with verified local tests and checkpoint.
+- [x] Verify local responsive rendering across mobile and desktop breakpoints.

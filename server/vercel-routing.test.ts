@@ -26,6 +26,10 @@ describe("Vercel API routing", () => {
 
   it("does not rewrite API requests to the static index page", async () => {
     const config = JSON.parse(await readProjectFile("vercel.json"));
+    expect(config.rewrites).toContainEqual({
+      source: "/((?!api/).*)",
+      destination: "/index.html",
+    });
     expect(config.rewrites).not.toContainEqual({
       source: "/api/(.*)",
       destination: "/api",

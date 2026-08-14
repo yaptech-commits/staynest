@@ -16,3 +16,5 @@
 - [x] Disable Vercel Deployment Protection for public access
 - [x] Configure robust single-file pre-bundled serverless tRPC API endpoint on Vercel (`api/trpc/[...path].js`)
 - [x] Verify superadmin native sign-in and session creation on production
+- [x] Add a visible mobile and desktop Pay for booking button to the booking summary and connect it to the existing payment flow.
+- [ ] Verify pending, redirect, success, failure, and already-paid payment states for booking checkout.

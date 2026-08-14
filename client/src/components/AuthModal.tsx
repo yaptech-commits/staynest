@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BrandImage } from "@/components/BrandImage";
 import { STAYNEST_LOGO_ALT } from "@/brand";
+import { isValidAuthEmail, normalizeAuthEmail } from "@/lib/authValidation";
 import { toast } from "sonner";
 import { X, Lock, Mail, User, ShieldCheck, ArrowRight } from "lucide-react";
 
@@ -24,7 +25,7 @@ export function AuthModal() {
       await utils.auth.me.invalidate();
       window.location.reload();
     },
-    onError: (err) => {
+    onError: err => {
       toast.error(err.message || "Sign in failed");
     },
   });
@@ -36,7 +37,7 @@ export function AuthModal() {
       await utils.auth.me.invalidate();
       window.location.reload();
     },
-    onError: (err) => {
+    onError: err => {
       toast.error(err.message || "Registration failed");
     },
   });
@@ -47,8 +48,13 @@ export function AuthModal() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim() || !password.trim()) {
+    const normalizedEmail = normalizeAuthEmail(email);
+    if (!normalizedEmail || !password.trim()) {
       toast.error("Please enter both email and password");
+      return;
+    }
+    if (!isValidAuthEmail(normalizedEmail)) {
+      toast.error("Please enter a valid email address");
       return;
     }
     if (isRegister) {
@@ -56,9 +62,13 @@ export function AuthModal() {
         toast.error("Please enter your name");
         return;
       }
-      registerMutation.mutate({ email, password, name });
+      registerMutation.mutate({
+        email: normalizedEmail,
+        password,
+        name: name.trim(),
+      });
     } else {
-      loginMutation.mutate({ email, password });
+      loginMutation.mutate({ email: normalizedEmail, password });
     }
   };
 
@@ -79,7 +89,10 @@ export function AuthModal() {
 
         <div className="text-center">
           <div className="inline-flex rounded-xl bg-[#f7f5f0] p-2 mb-2">
-            <BrandImage alt={STAYNEST_LOGO_ALT} className="h-8 w-auto max-w-[150px] object-contain" />
+            <BrandImage
+              alt={STAYNEST_LOGO_ALT}
+              className="h-8 w-auto max-w-[150px] object-contain"
+            />
           </div>
           <h2 className="font-serif text-[28px] text-[#183a31]">
             {isRegister ? "Create your StayNest account" : "Welcome back"}
@@ -91,17 +104,22 @@ export function AuthModal() {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-7 space-y-4">
+        <form noValidate onSubmit={handleSubmit} className="mt-7 space-y-4">
           {isRegister && (
             <div className="space-y-1.5 text-left">
-              <Label className="text-xs font-bold text-[#50605a]">Full name</Label>
+              <Label className="text-xs font-bold text-[#50605a]">
+                Full name
+              </Label>
               <div className="relative">
-                <User size={16} className="absolute left-3.5 top-3.5 text-[#8a9890]" />
+                <User
+                  size={16}
+                  className="absolute left-3.5 top-3.5 text-[#8a9890]"
+                />
                 <Input
                   type="text"
                   required
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={e => setName(e.target.value)}
                   placeholder="Wisdom Asaare"
                   className="h-11 rounded-xl border-[#dfe4dc] pl-10 text-sm"
                 />
@@ -110,14 +128,22 @@ export function AuthModal() {
           )}
 
           <div className="space-y-1.5 text-left">
-            <Label className="text-xs font-bold text-[#50605a]">Email address</Label>
+            <Label className="text-xs font-bold text-[#50605a]">
+              Email address
+            </Label>
             <div className="relative">
-              <Mail size={16} className="absolute left-3.5 top-3.5 text-[#8a9890]" />
+              <Mail
+                size={16}
+                className="absolute left-3.5 top-3.5 text-[#8a9890]"
+              />
               <Input
-                type="email"
+                type="text"
+                inputMode="email"
+                autoComplete="email"
+                name="email"
                 required
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={e => setEmail(e.target.value)}
                 placeholder="you@example.com"
                 className="h-11 rounded-xl border-[#dfe4dc] pl-10 text-sm"
               />
@@ -127,12 +153,17 @@ export function AuthModal() {
           <div className="space-y-1.5 text-left">
             <Label className="text-xs font-bold text-[#50605a]">Password</Label>
             <div className="relative">
-              <Lock size={16} className="absolute left-3.5 top-3.5 text-[#8a9890]" />
+              <Lock
+                size={16}
+                className="absolute left-3.5 top-3.5 text-[#8a9890]"
+              />
               <Input
                 type="password"
+                autoComplete={isRegister ? "new-password" : "current-password"}
+                name="password"
                 required
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={e => setPassword(e.target.value)}
                 placeholder={isRegister ? "At least 6 characters" : "••••••••"}
                 className="h-11 rounded-xl border-[#dfe4dc] pl-10 text-sm"
               />
@@ -144,7 +175,12 @@ export function AuthModal() {
             disabled={isPending}
             className="mt-2 h-12 w-full rounded-xl bg-[#183a31] text-sm font-bold text-white hover:bg-[#245448]"
           >
-            {isPending ? "Please wait…" : isRegister ? "Create account" : "Sign in to StayNest"} <ArrowRight size={15} className="ml-2" />
+            {isPending
+              ? "Please wait…"
+              : isRegister
+                ? "Create account"
+                : "Sign in to StayNest"}{" "}
+            <ArrowRight size={15} className="ml-2" />
           </Button>
         </form>
 
@@ -175,7 +211,8 @@ export function AuthModal() {
         </div>
 
         <div className="mt-5 flex items-center justify-center gap-2 text-[11px] text-[#8a9890]">
-          <ShieldCheck size={14} className="text-[#2b6755]" /> Secure StayNest native authentication
+          <ShieldCheck size={14} className="text-[#2b6755]" /> Secure StayNest
+          native authentication
         </div>
       </div>
     </div>

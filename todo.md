@@ -151,3 +151,5 @@
 
 - [x] Upgrade password hashing to secure bcrypt and add automated tests for local registration, login, logout, and role-based permissions.
 - [x] Clean up remaining legacy Manus session references across client auth hooks and bootstrap handlers.
+
+- [ ] Verify Vercel production is deploying the latest GitHub `main` commit `051ff1e9` and correct the GitHub-to-Vercel sync if needed.

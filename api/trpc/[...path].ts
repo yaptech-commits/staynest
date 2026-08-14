@@ -18,4 +18,12 @@ app.use(
   })
 );
 
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error("[Vercel Function Error Uncaught]:", err);
+  res.status(500).json({
+    error: err?.message || "Internal server error",
+    stack: process.env.NODE_ENV === "development" ? err?.stack : undefined,
+  });
+});
+
 export default app;

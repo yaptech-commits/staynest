@@ -26,4 +26,19 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   });
 });
 
-export default app;
+export default async function handler(req: any, res: any) {
+  if (!req.body && (req.method === "POST" || req.method === "PUT")) {
+    let body = "";
+    for await (const chunk of req) {
+      body += chunk;
+    }
+    try {
+      if (body) {
+        req.body = JSON.parse(body);
+      }
+    } catch (e) {
+      // ignore parse error
+    }
+  }
+  return app(req, res);
+}

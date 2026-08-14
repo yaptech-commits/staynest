@@ -16,7 +16,7 @@ describe("Vercel API routing", () => {
   it("keeps the tRPC serverless entrypoint configured", async () => {
     const handler = await readProjectFile("server/_core/vercelTrpc.ts");
     expect(handler).toContain("createExpressMiddleware");
-    expect(handler).toContain("export default app");
+    expect(handler).toContain("export default async function handler");
   });
 
   it("does not rewrite API requests to the static index page", async () => {

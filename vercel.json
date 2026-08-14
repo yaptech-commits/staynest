@@ -2,11 +2,13 @@
   "framework": "vite",
   "buildCommand": "pnpm build",
   "outputDirectory": "dist/public",
+  "functions": {
+    "api/trpc/[...path].ts": {
+      "runtime": "nodejs22.x",
+      "maxDuration": 60
+    }
+  },
   "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/api"
-    },
     {
       "source": "/(.*)",
       "destination": "/index.html"

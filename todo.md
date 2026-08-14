@@ -154,7 +154,11 @@
 
 - [x] Verify Vercel production is deploying the latest GitHub `main` commit `5a0e306` and correct the GitHub-to-Vercel sync if needed.
 
-- [ ] Fix the native sign-in form error `The string did not match the expected pattern` when the superadmin submits valid credentials.
+- [x] Fix the native sign-in form error `The string did not match the expected pattern` when the superadmin submits valid credentials.
 - [x] Add automated coverage proving `auth.localLogin` succeeds for `wisdomasaare41@gmail.com` with normalized valid credentials.
 - [ ] Verify the superadmin sign-in flow in the browser after deployment and confirm a session is created without the validation error.
 - [x] Normalize and trim email consistently in server-side local login and registration lookups if required by the end-to-end test.
+- [ ] Fix the deployed native sign-in request failing with `Unexpected end of JSON input` after form submission.
+- [x] Disable Vercel Deployment Protection for the public StayNest production project so native API authentication is reachable by guests and owners.
+- [x] Add a Vercel-compatible serverless entrypoint for `/api/trpc` so mutations do not fall through to the static index page.
+- [ ] Add Vercel routing configuration and verify the public deployed native superadmin login creates a session.

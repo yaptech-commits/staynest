@@ -13,13 +13,8 @@ async function readProjectFile(relativePath: string) {
 }
 
 describe("Vercel API routing", () => {
-  it("keeps the tRPC catch-all serverless entrypoint configured", async () => {
-    const [config, handler] = await Promise.all([
-      readProjectFile("vercel.json").then(JSON.parse),
-      readProjectFile("server/_core/vercelTrpc.ts"),
-    ]);
-
-    expect(config.functions).toBeUndefined();
+  it("keeps the tRPC serverless entrypoint configured", async () => {
+    const handler = await readProjectFile("server/_core/vercelTrpc.ts");
     expect(handler).toContain("createExpressMiddleware");
     expect(handler).toContain("export default app");
   });

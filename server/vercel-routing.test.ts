@@ -19,7 +19,7 @@ describe("Vercel API routing", () => {
       readProjectFile("api/trpc/[...path].ts"),
     ]);
 
-    expect(config.functions).toBeUndefined();
+    expect(config.functions["api/trpc/[...path].ts"].includeFiles).toBe("server/**");
     expect(handler).toContain("createExpressMiddleware");
     expect(handler).toContain("export default app");
   });

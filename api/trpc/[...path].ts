@@ -8,13 +8,13 @@ const app = express();
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
-// Vercel invokes this catch-all function for every /api/trpc/* request.
-// Mounting the same tRPC middleware used by the local Express server keeps
-// procedure paths, cookies, batching, and SuperJSON behavior consistent.
 app.use(
   createExpressMiddleware({
     router: appRouter,
     createContext,
+    onError({ error, path }) {
+      console.error(`[tRPC Error] on path '${path}':`, error);
+    },
   })
 );
 

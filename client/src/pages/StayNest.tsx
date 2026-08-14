@@ -2,12 +2,20 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useRoute } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
-import { completePaymentFlow, redirectToCheckout, startHostedCheckout } from "@/lib/paymentOrchestration";
+import {
+  completePaymentFlow,
+  redirectToCheckout,
+  startHostedCheckout,
+} from "@/lib/paymentOrchestration";
 import { startLogin } from "@/const";
 import { STAYNEST_HERO_BACKGROUND_SRC, STAYNEST_LOGO_ALT } from "@/brand";
 import { BrandImage } from "@/components/BrandImage";
 import { MapView } from "@/components/Map";
 import { PartnerInventoryPanel } from "@/components/PartnerInventoryPanel";
+import {
+  OwnerDashboardWorkspace,
+  type OwnerDashboardTab,
+} from "@/components/OwnerDashboardWorkspace";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -18,10 +26,42 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { verificationPromptEmail } from "@shared/onboarding";
 import {
-  ArrowLeft, ArrowRight, BedDouble, CalendarDays, Check, CheckCircle2, ChevronRight, CircleHelp,
-  Clock3, CreditCard,   Heart, Hotel, LayoutDashboard, LockKeyhole, LogIn, MapPin, Menu, LayoutGrid, List,
-  ShieldCheck, Sparkles, Star, UsersRound, Wifi, Waves, Utensils, Car, X, BarChart3,
-  AlertTriangle, UploadCloud, ClipboardCheck, DollarSign, Bell, ExternalLink, MailCheck,
+  ArrowLeft,
+  ArrowRight,
+  BedDouble,
+  CalendarDays,
+  Check,
+  CheckCircle2,
+  ChevronRight,
+  CircleHelp,
+  Clock3,
+  CreditCard,
+  Heart,
+  Hotel,
+  LayoutDashboard,
+  LockKeyhole,
+  LogIn,
+  MapPin,
+  Menu,
+  LayoutGrid,
+  List,
+  ShieldCheck,
+  Sparkles,
+  Star,
+  UsersRound,
+  Wifi,
+  Waves,
+  Utensils,
+  Car,
+  X,
+  BarChart3,
+  AlertTriangle,
+  UploadCloud,
+  ClipboardCheck,
+  DollarSign,
+  Bell,
+  ExternalLink,
+  MailCheck,
 } from "lucide-react";
 
 const image = {
@@ -31,7 +71,11 @@ const image = {
 };
 
 const formatMoney = (value: number, currency: "GHS" | "USD") =>
-  new Intl.NumberFormat(currency === "GHS" ? "en-GH" : "en-US", { style: "currency", currency, maximumFractionDigits: 0 }).format(value);
+  new Intl.NumberFormat(currency === "GHS" ? "en-GH" : "en-US", {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 0,
+  }).format(value);
 
 const datePlus = (days: number) => {
   const date = new Date();
@@ -39,73 +83,235 @@ const datePlus = (days: number) => {
   return date.toISOString().slice(0, 10);
 };
 
-const nightsBetween = (start: string, end: string) => Math.max(1, Math.round((new Date(end).getTime() - new Date(start).getTime()) / 86400000));
+const nightsBetween = (start: string, end: string) =>
+  Math.max(
+    1,
+    Math.round((new Date(end).getTime() - new Date(start).getTime()) / 86400000)
+  );
 
-function Shell({ children, variant = "light" }: { children: React.ReactNode; variant?: "light" | "cream" }) {
+function Shell({
+  children,
+  variant = "light",
+}: {
+  children: React.ReactNode;
+  variant?: "light" | "cream";
+}) {
   const { user, isAuthenticated, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   return (
-    <div className={variant === "cream" ? "min-h-screen bg-[#f7f5f0] text-[#18231f]" : "min-h-screen bg-[#fbfaf7] text-[#18231f]"}>
+    <div
+      className={
+        variant === "cream"
+          ? "min-h-screen bg-[#f7f5f0] text-[#18231f]"
+          : "min-h-screen bg-[#fbfaf7] text-[#18231f]"
+      }
+    >
       <header className="sticky top-0 z-40 border-b border-[#dfe4dc]/80 bg-[#fbfaf7]/92 backdrop-blur-xl">
         <div className="mx-auto flex h-[76px] max-w-[1240px] items-center justify-between px-5 lg:px-8">
           <Link href="/" className="group flex items-center gap-3">
-            <BrandImage alt={STAYNEST_LOGO_ALT} className="h-9 w-auto max-w-[190px] object-contain" />
+            <BrandImage
+              alt={STAYNEST_LOGO_ALT}
+              className="h-9 w-auto max-w-[190px] object-contain"
+            />
           </Link>
           <nav className="hidden items-center gap-8 md:flex">
-            <Link href="/#stays" className="text-[13px] font-semibold text-[#50605a] transition hover:text-[#183a31]">Explore stays</Link>
-            <Link href="/#how-it-works" className="text-[13px] font-semibold text-[#50605a] transition hover:text-[#183a31]">How it works</Link>
-            <Link href="/hotel-dashboard" className="text-[13px] font-semibold text-[#50605a] transition hover:text-[#183a31]">For hotels</Link>
+            <Link
+              href="/#stays"
+              className="text-[13px] font-semibold text-[#50605a] transition hover:text-[#183a31]"
+            >
+              Explore stays
+            </Link>
+            <Link
+              href="/#how-it-works"
+              className="text-[13px] font-semibold text-[#50605a] transition hover:text-[#183a31]"
+            >
+              How it works
+            </Link>
+            <Link
+              href="/hotel-dashboard"
+              className="text-[13px] font-semibold text-[#50605a] transition hover:text-[#183a31]"
+            >
+              For hotels
+            </Link>
           </nav>
           <div className="hidden items-center gap-3 md:flex">
             {isAuthenticated ? (
-              <Link href="/account" className="flex items-center gap-2 rounded-full px-3 py-2 text-[13px] font-semibold text-[#50605a] transition hover:bg-[#eef2eb] hover:text-[#183a31]">
-                <span className="grid h-7 w-7 place-items-center rounded-full bg-[#e7eee5] text-[#183a31]">{user?.name?.[0] ?? "G"}</span>
+              <Link
+                href="/account"
+                className="flex items-center gap-2 rounded-full px-3 py-2 text-[13px] font-semibold text-[#50605a] transition hover:bg-[#eef2eb] hover:text-[#183a31]"
+              >
+                <span className="grid h-7 w-7 place-items-center rounded-full bg-[#e7eee5] text-[#183a31]">
+                  {user?.name?.[0] ?? "G"}
+                </span>
                 Account
               </Link>
             ) : (
-              <button type="button" onClick={() => startLogin()} className="flex items-center gap-2 rounded-full px-3 py-2 text-[13px] font-semibold text-[#50605a] transition hover:bg-[#eef2eb] hover:text-[#183a31]">
-                <span className="grid h-7 w-7 place-items-center rounded-full bg-[#e7eee5] text-[#183a31]"><LogIn size={14} /></span>
+              <button
+                type="button"
+                onClick={() => startLogin()}
+                className="flex items-center gap-2 rounded-full px-3 py-2 text-[13px] font-semibold text-[#50605a] transition hover:bg-[#eef2eb] hover:text-[#183a31]"
+              >
+                <span className="grid h-7 w-7 place-items-center rounded-full bg-[#e7eee5] text-[#183a31]">
+                  <LogIn size={14} />
+                </span>
                 Sign in
               </button>
             )}
-            {isAuthenticated && <Button variant="ghost" className="text-[12px] text-[#718078]" onClick={() => logout()}>Log out</Button>}
+            {isAuthenticated && (
+              <Button
+                variant="ghost"
+                className="text-[12px] text-[#718078]"
+                onClick={() => logout()}
+              >
+                Log out
+              </Button>
+            )}
           </div>
-          <button aria-label="Open menu" className="grid h-10 w-10 place-items-center rounded-xl border border-[#dfe4dc] md:hidden" onClick={() => setMenuOpen(!menuOpen)}>
+          <button
+            aria-label="Open menu"
+            className="grid h-10 w-10 place-items-center rounded-xl border border-[#dfe4dc] md:hidden"
+            onClick={() => setMenuOpen(!menuOpen)}
+          >
             {menuOpen ? <X size={19} /> : <Menu size={19} />}
           </button>
         </div>
-        {menuOpen && <div className="border-t border-[#dfe4dc] bg-[#fbfaf7] px-5 py-4 md:hidden">
-          <div className="flex flex-col gap-3 text-sm font-semibold text-[#50605a]">
-            <Link href="/#stays" onClick={() => setMenuOpen(false)}>Explore stays</Link>
-            <Link href="/#how-it-works" onClick={() => setMenuOpen(false)}>How it works</Link>
-            <Link href="/hotel-dashboard" onClick={() => setMenuOpen(false)}>For hotels</Link>
-            {isAuthenticated ? (
-              <>
-                <Link href="/account" onClick={() => setMenuOpen(false)}>My account</Link>
-                <Button variant="ghost" onClick={() => { setMenuOpen(false); void logout(); }} className="h-auto justify-start px-0 text-left font-semibold text-[#50605a]">Log out</Button>
-              </>
-            ) : (
-              <button type="button" onClick={() => { setMenuOpen(false); startLogin(); }} className="text-left font-semibold text-[#50605a]">Sign in</button>
-            )}
-            <Link href="/onboarding" onClick={() => setMenuOpen(false)}>Join StayNest</Link>
+        {menuOpen && (
+          <div className="border-t border-[#dfe4dc] bg-[#fbfaf7] px-5 py-4 md:hidden">
+            <div className="flex flex-col gap-3 text-sm font-semibold text-[#50605a]">
+              <Link href="/#stays" onClick={() => setMenuOpen(false)}>
+                Explore stays
+              </Link>
+              <Link href="/#how-it-works" onClick={() => setMenuOpen(false)}>
+                How it works
+              </Link>
+              <Link href="/hotel-dashboard" onClick={() => setMenuOpen(false)}>
+                For hotels
+              </Link>
+              {isAuthenticated ? (
+                <>
+                  <Link href="/account" onClick={() => setMenuOpen(false)}>
+                    My account
+                  </Link>
+                  <Button
+                    variant="ghost"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      void logout();
+                    }}
+                    className="h-auto justify-start px-0 text-left font-semibold text-[#50605a]"
+                  >
+                    Log out
+                  </Button>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    startLogin();
+                  }}
+                  className="text-left font-semibold text-[#50605a]"
+                >
+                  Sign in
+                </button>
+              )}
+              <Link href="/onboarding" onClick={() => setMenuOpen(false)}>
+                Join StayNest
+              </Link>
+            </div>
           </div>
-        </div>}
+        )}
       </header>
       {children}
       <footer className="border-t border-[#dfe4dc] bg-[#183a31] text-white">
         <div className="mx-auto grid max-w-[1240px] gap-10 px-5 py-14 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr] lg:px-8">
-          <div><div className="mb-4 inline-flex rounded-xl bg-white p-2"><BrandImage alt={STAYNEST_LOGO_ALT} className="h-8 w-auto max-w-[170px] object-contain" /></div><p className="max-w-[260px] text-sm leading-6 text-[#c1d0c5]">Thoughtful stays across Ghana, with live availability and a simpler way to arrive well.</p></div>
-          <div><p className="mb-4 text-[11px] font-bold uppercase tracking-[0.16em] text-[#e7c77b]">Discover</p><div className="space-y-3 text-sm text-[#c1d0c5]"><Link href="/#stays" className="block hover:text-white">Accra stays</Link><Link href="/#stays" className="block hover:text-white">Coastal retreats</Link><Link href="/#how-it-works" className="block hover:text-white">How it works</Link></div></div>
-          <div><p className="mb-4 text-[11px] font-bold uppercase tracking-[0.16em] text-[#e7c77b]">For partners</p><div className="space-y-3 text-sm text-[#c1d0c5]"><Link href="/onboarding?role=partner" className="block hover:text-white">List your hotel</Link><Link href="/onboarding?role=partner" className="block hover:text-white">Partner onboarding</Link><a href="mailto:hello@staynest.example" className="block hover:text-white">Partner support</a></div></div>
-          <div><p className="mb-4 text-[11px] font-bold uppercase tracking-[0.16em] text-[#e7c77b]">Stay in touch</p><p className="mb-4 text-sm leading-6 text-[#c1d0c5]">Questions about a booking? Our guest team is here to help.</p><a href="mailto:hello@staynest.example" className="inline-flex items-center gap-2 text-sm font-semibold text-white">hello@staynest.example <ArrowRight size={14} /></a></div>
+          <div>
+            <div className="mb-4 inline-flex rounded-xl bg-white p-2">
+              <BrandImage
+                alt={STAYNEST_LOGO_ALT}
+                className="h-8 w-auto max-w-[170px] object-contain"
+              />
+            </div>
+            <p className="max-w-[260px] text-sm leading-6 text-[#c1d0c5]">
+              Thoughtful stays across Ghana, with live availability and a
+              simpler way to arrive well.
+            </p>
+          </div>
+          <div>
+            <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.16em] text-[#e7c77b]">
+              Discover
+            </p>
+            <div className="space-y-3 text-sm text-[#c1d0c5]">
+              <Link href="/#stays" className="block hover:text-white">
+                Accra stays
+              </Link>
+              <Link href="/#stays" className="block hover:text-white">
+                Coastal retreats
+              </Link>
+              <Link href="/#how-it-works" className="block hover:text-white">
+                How it works
+              </Link>
+            </div>
+          </div>
+          <div>
+            <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.16em] text-[#e7c77b]">
+              For partners
+            </p>
+            <div className="space-y-3 text-sm text-[#c1d0c5]">
+              <Link
+                href="/onboarding?role=partner"
+                className="block hover:text-white"
+              >
+                List your hotel
+              </Link>
+              <Link
+                href="/onboarding?role=partner"
+                className="block hover:text-white"
+              >
+                Partner onboarding
+              </Link>
+              <a
+                href="mailto:hello@staynest.example"
+                className="block hover:text-white"
+              >
+                Partner support
+              </a>
+            </div>
+          </div>
+          <div>
+            <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.16em] text-[#e7c77b]">
+              Stay in touch
+            </p>
+            <p className="mb-4 text-sm leading-6 text-[#c1d0c5]">
+              Questions about a booking? Our guest team is here to help.
+            </p>
+            <a
+              href="mailto:hello@staynest.example"
+              className="inline-flex items-center gap-2 text-sm font-semibold text-white"
+            >
+              hello@staynest.example <ArrowRight size={14} />
+            </a>
+          </div>
         </div>
-        <div className="border-t border-[#3b5a50] px-5 py-5 text-center text-xs text-[#9cb3a5]">© 2026 StayNest · Ghana Cedis and USD · English</div>
+        <div className="border-t border-[#3b5a50] px-5 py-5 text-center text-xs text-[#9cb3a5]">
+          © 2026 StayNest · Ghana Cedis and USD · English
+        </div>
       </footer>
     </div>
   );
 }
 
-function SearchPanel({ onSearch }: { onSearch?: (values: { location: string; checkInDate: string; checkOutDate: string; guestsCount: number; currency: "GHS" | "USD" }) => void }) {
+function SearchPanel({
+  onSearch,
+}: {
+  onSearch?: (values: {
+    location: string;
+    checkInDate: string;
+    checkOutDate: string;
+    guestsCount: number;
+    currency: "GHS" | "USD";
+  }) => void;
+}) {
   const [location, setLocation] = useState("Accra");
   const [checkInDate, setCheckInDate] = useState(datePlus(14));
   const [checkOutDate, setCheckOutDate] = useState(datePlus(17));
@@ -115,263 +321,3782 @@ function SearchPanel({ onSearch }: { onSearch?: (values: { location: string; che
     onSearch?.({ location, checkInDate, checkOutDate, guestsCount, currency });
     document.getElementById("stays")?.scrollIntoView({ behavior: "smooth" });
   };
-  return <div className="rounded-[18px] border border-[#cfd8d0] bg-white p-2.5 text-[#183a31] shadow-[0_18px_70px_rgba(24,58,49,.14)] md:rounded-[20px] md:p-3">
-    <div className="mb-2 flex items-center gap-1 overflow-x-auto border-b border-[#edf0eb] px-1">
-      <button className="flex shrink-0 items-center gap-2 border-b-2 border-[#183a31] px-3 py-2.5 text-xs font-bold text-[#183a31]"><Hotel size={14} /> Stays</button>
-      <button onClick={() => toast.info("Experiences search coming soon", { description: "Explore our featured Ghana stays below." })} className="flex shrink-0 items-center gap-2 rounded-t-lg px-3 py-2.5 text-xs font-semibold text-[#718078] transition hover:bg-[#f2f5f1]"><Sparkles size={14} /> Experiences</button>
-      <button onClick={() => toast.info("Places to explore coming soon", { description: "Explore our featured Ghana stays below." })} className="flex shrink-0 items-center gap-2 rounded-t-lg px-3 py-2.5 text-xs font-semibold text-[#718078] transition hover:bg-[#f2f5f1]"><MapPin size={14} /> Places to explore</button>
+  return (
+    <div className="rounded-[18px] border border-[#cfd8d0] bg-white p-2.5 text-[#183a31] shadow-[0_18px_70px_rgba(24,58,49,.14)] md:rounded-[20px] md:p-3">
+      <div className="mb-2 flex items-center gap-1 overflow-x-auto border-b border-[#edf0eb] px-1">
+        <button className="flex shrink-0 items-center gap-2 border-b-2 border-[#183a31] px-3 py-2.5 text-xs font-bold text-[#183a31]">
+          <Hotel size={14} /> Stays
+        </button>
+        <button
+          onClick={() =>
+            toast.info("Experiences search coming soon", {
+              description: "Explore our featured Ghana stays below.",
+            })
+          }
+          className="flex shrink-0 items-center gap-2 rounded-t-lg px-3 py-2.5 text-xs font-semibold text-[#718078] transition hover:bg-[#f2f5f1]"
+        >
+          <Sparkles size={14} /> Experiences
+        </button>
+        <button
+          onClick={() =>
+            toast.info("Places to explore coming soon", {
+              description: "Explore our featured Ghana stays below.",
+            })
+          }
+          className="flex shrink-0 items-center gap-2 rounded-t-lg px-3 py-2.5 text-xs font-semibold text-[#718078] transition hover:bg-[#f2f5f1]"
+        >
+          <MapPin size={14} /> Places to explore
+        </button>
+      </div>
+      <div className="grid gap-2 md:grid-cols-[1.25fr_1fr_1fr_.9fr_auto] md:items-center">
+        <div className="rounded-xl border border-[#b8c8bb] px-3 py-2 focus-within:border-[#183a31]">
+          <Label className="mb-1 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.12em] text-[#718078]">
+            <MapPin size={13} className="text-[#b18143]" /> Where
+          </Label>
+          <Input
+            value={location}
+            onChange={event => setLocation(event.target.value)}
+            className="h-6 border-0 p-0 text-sm font-semibold shadow-none focus-visible:ring-0"
+            placeholder="City or neighborhood"
+          />
+        </div>
+        <div className="rounded-xl border border-[#b8c8bb] px-3 py-2 focus-within:border-[#183a31]">
+          <Label className="mb-1 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.12em] text-[#718078]">
+            <CalendarDays size={13} className="text-[#b18143]" /> Check in
+          </Label>
+          <Input
+            type="date"
+            value={checkInDate}
+            onChange={event => setCheckInDate(event.target.value)}
+            className="h-6 border-0 p-0 text-sm font-semibold shadow-none focus-visible:ring-0"
+          />
+        </div>
+        <div className="rounded-xl border border-[#b8c8bb] px-3 py-2 focus-within:border-[#183a31]">
+          <Label className="mb-1 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.12em] text-[#718078]">
+            <CalendarDays size={13} className="text-[#b18143]" /> Check out
+          </Label>
+          <Input
+            type="date"
+            value={checkOutDate}
+            onChange={event => setCheckOutDate(event.target.value)}
+            className="h-6 border-0 p-0 text-sm font-semibold shadow-none focus-visible:ring-0"
+          />
+        </div>
+        <div className="rounded-xl border border-[#b8c8bb] px-3 py-2">
+          <Label className="mb-1 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.12em] text-[#718078]">
+            <UsersRound size={13} className="text-[#b18143]" /> Guests
+          </Label>
+          <select
+            value={guestsCount}
+            onChange={event => setGuestsCount(Number(event.target.value))}
+            className="h-6 w-full bg-transparent text-sm font-semibold outline-none"
+          >
+            <option value={1}>1 guest</option>
+            <option value={2}>2 guests</option>
+            <option value={3}>3 guests</option>
+            <option value={4}>4 guests</option>
+          </select>
+        </div>
+        <div className="flex gap-2">
+          <select
+            aria-label="Currency"
+            value={currency}
+            onChange={event => setCurrency(event.target.value as "GHS" | "USD")}
+            className="h-11 rounded-xl border border-[#b8c8bb] bg-white px-2 text-xs font-bold outline-none"
+          >
+            <option value="GHS">GHS</option>
+            <option value="USD">USD</option>
+          </select>
+          <Button
+            onClick={submit}
+            className="h-11 flex-1 rounded-xl bg-[#183a31] px-4 text-sm font-bold text-white hover:bg-[#245448]"
+          >
+            Search <ArrowRight size={15} />
+          </Button>
+        </div>
+      </div>
     </div>
-    <div className="grid gap-2 md:grid-cols-[1.25fr_1fr_1fr_.9fr_auto] md:items-center">
-      <div className="rounded-xl border border-[#b8c8bb] px-3 py-2 focus-within:border-[#183a31]"><Label className="mb-1 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.12em] text-[#718078]"><MapPin size={13} className="text-[#b18143]" /> Where</Label><Input value={location} onChange={(event) => setLocation(event.target.value)} className="h-6 border-0 p-0 text-sm font-semibold shadow-none focus-visible:ring-0" placeholder="City or neighborhood" /></div>
-      <div className="rounded-xl border border-[#b8c8bb] px-3 py-2 focus-within:border-[#183a31]"><Label className="mb-1 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.12em] text-[#718078]"><CalendarDays size={13} className="text-[#b18143]" /> Check in</Label><Input type="date" value={checkInDate} onChange={(event) => setCheckInDate(event.target.value)} className="h-6 border-0 p-0 text-sm font-semibold shadow-none focus-visible:ring-0" /></div>
-      <div className="rounded-xl border border-[#b8c8bb] px-3 py-2 focus-within:border-[#183a31]"><Label className="mb-1 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.12em] text-[#718078]"><CalendarDays size={13} className="text-[#b18143]" /> Check out</Label><Input type="date" value={checkOutDate} onChange={(event) => setCheckOutDate(event.target.value)} className="h-6 border-0 p-0 text-sm font-semibold shadow-none focus-visible:ring-0" /></div>
-      <div className="rounded-xl border border-[#b8c8bb] px-3 py-2"><Label className="mb-1 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.12em] text-[#718078]"><UsersRound size={13} className="text-[#b18143]" /> Guests</Label><select value={guestsCount} onChange={(event) => setGuestsCount(Number(event.target.value))} className="h-6 w-full bg-transparent text-sm font-semibold outline-none"><option value={1}>1 guest</option><option value={2}>2 guests</option><option value={3}>3 guests</option><option value={4}>4 guests</option></select></div>
-      <div className="flex gap-2"><select aria-label="Currency" value={currency} onChange={(event) => setCurrency(event.target.value as "GHS" | "USD")} className="h-11 rounded-xl border border-[#b8c8bb] bg-white px-2 text-xs font-bold outline-none"><option value="GHS">GHS</option><option value="USD">USD</option></select><Button onClick={submit} className="h-11 flex-1 rounded-xl bg-[#183a31] px-4 text-sm font-bold text-white hover:bg-[#245448]">Search <ArrowRight size={15} /></Button></div>
-    </div>
-  </div>;
+  );
 }
 
-function HotelCard({ hotel, currency, onSelect }: { hotel: any; currency: "GHS" | "USD"; onSelect: () => void }) {
-  const prices = hotel.rooms.map((room: any) => currency === "GHS" ? room.priceGhs : room.priceUsd);
+function HotelCard({
+  hotel,
+  currency,
+  onSelect,
+}: {
+  hotel: any;
+  currency: "GHS" | "USD";
+  onSelect: () => void;
+}) {
+  const prices = hotel.rooms.map((room: any) =>
+    currency === "GHS" ? room.priceGhs : room.priceUsd
+  );
   const minPrice = Math.min(...prices);
-  const availableRooms = hotel.rooms.reduce((sum: number, room: any) => sum + Number(room.availableRooms ?? room.totalRooms ?? 0), 0);
-  return <Card className="group overflow-hidden rounded-2xl border-[#d9e1da] bg-white shadow-none transition duration-200 hover:border-[#91a99a] hover:shadow-[0_12px_30px_rgba(24,58,49,.10)]">
-    <div className="grid md:grid-cols-[258px_1fr_auto]">
-      <button className="relative h-[218px] overflow-hidden text-left md:h-full" onClick={onSelect}>
-        <img src={hotel.images[0] ?? image.city} alt={hotel.name} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#071c17]/55 via-transparent to-transparent" />
-        <span className="absolute left-3 top-3 rounded-md bg-white px-2.5 py-1 text-[10px] font-bold text-[#183a31]">{hotel.isBillflowConnected ? "Live availability" : "StayNest partner"}</span>
-        <span className="absolute bottom-3 left-3 flex items-center gap-1.5 text-xs font-semibold text-white"><MapPin size={13} /> {hotel.location}</span>
-      </button>
-      <CardContent className="min-w-0 p-5 md:p-6">
-        <div className="flex items-start justify-between gap-4"><div><button onClick={onSelect} className="text-left"><h3 className="font-serif text-[25px] leading-tight text-[#183a31] hover:underline">{hotel.name}</h3></button><p className="mt-1 text-xs text-[#718078]">{hotel.location}</p></div><button aria-label={`Save ${hotel.name}`} className="text-[#8fa098] transition hover:text-[#b18143]"><Heart size={18} strokeWidth={1.6} /></button></div>
-        <div className="mt-3 flex flex-wrap items-center gap-3 text-xs">
-          <div className="flex items-center gap-2 rounded-lg bg-[#eef4ed] px-2.5 py-1">
-            <span className="flex items-center gap-1 rounded-md bg-[#183a31] px-1.5 py-0.5 font-bold text-white"><Star size={11} className="fill-[#e7c77b] text-[#e7c77b]" /> {hotel.rating ? hotel.rating.toFixed(1) : "4.8"}</span>
+  const availableRooms = hotel.rooms.reduce(
+    (sum: number, room: any) =>
+      sum + Number(room.availableRooms ?? room.totalRooms ?? 0),
+    0
+  );
+  return (
+    <Card className="group overflow-hidden rounded-2xl border-[#d9e1da] bg-white shadow-none transition duration-200 hover:border-[#91a99a] hover:shadow-[0_12px_30px_rgba(24,58,49,.10)]">
+      <div className="grid md:grid-cols-[258px_1fr_auto]">
+        <button
+          className="relative h-[218px] overflow-hidden text-left md:h-full"
+          onClick={onSelect}
+        >
+          <img
+            src={hotel.images[0] ?? image.city}
+            alt={hotel.name}
+            className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#071c17]/55 via-transparent to-transparent" />
+          <span className="absolute left-3 top-3 rounded-md bg-white px-2.5 py-1 text-[10px] font-bold text-[#183a31]">
+            {hotel.isBillflowConnected
+              ? "Live availability"
+              : "StayNest partner"}
+          </span>
+          <span className="absolute bottom-3 left-3 flex items-center gap-1.5 text-xs font-semibold text-white">
+            <MapPin size={13} /> {hotel.location}
+          </span>
+        </button>
+        <CardContent className="min-w-0 p-5 md:p-6">
+          <div className="flex items-start justify-between gap-4">
             <div>
-              <span className="block font-bold text-[#183a31]">{hotel.rating >= 4.8 ? "Exceptional" : hotel.rating >= 4.5 ? "Fabulous" : "Very Good"}</span>
-              <span className="text-[10px] text-[#718078]">{hotel.reviewCount ? `${hotel.reviewCount} reviews` : "24 verified reviews"}</span>
+              <button onClick={onSelect} className="text-left">
+                <h3 className="font-serif text-[25px] leading-tight text-[#183a31] hover:underline">
+                  {hotel.name}
+                </h3>
+              </button>
+              <p className="mt-1 text-xs text-[#718078]">{hotel.location}</p>
             </div>
+            <button
+              aria-label={`Save ${hotel.name}`}
+              className="text-[#8fa098] transition hover:text-[#b18143]"
+            >
+              <Heart size={18} strokeWidth={1.6} />
+            </button>
           </div>
-          <span className="text-[#8a9890]">·</span>
-          <span className="text-[#607269]">{hotel.amenities?.slice(0, 2).join(" · ")}</span>
+          <div className="mt-3 flex flex-wrap items-center gap-3 text-xs">
+            <div className="flex items-center gap-2 rounded-lg bg-[#eef4ed] px-2.5 py-1">
+              <span className="flex items-center gap-1 rounded-md bg-[#183a31] px-1.5 py-0.5 font-bold text-white">
+                <Star size={11} className="fill-[#e7c77b] text-[#e7c77b]" />{" "}
+                {hotel.rating ? hotel.rating.toFixed(1) : "4.8"}
+              </span>
+              <div>
+                <span className="block font-bold text-[#183a31]">
+                  {hotel.rating >= 4.8
+                    ? "Exceptional"
+                    : hotel.rating >= 4.5
+                      ? "Fabulous"
+                      : "Very Good"}
+                </span>
+                <span className="text-[10px] text-[#718078]">
+                  {hotel.reviewCount
+                    ? `${hotel.reviewCount} reviews`
+                    : "24 verified reviews"}
+                </span>
+              </div>
+            </div>
+            <span className="text-[#8a9890]">·</span>
+            <span className="text-[#607269]">
+              {hotel.amenities?.slice(0, 2).join(" · ")}
+            </span>
+          </div>
+          <p className="mt-4 line-clamp-2 text-sm leading-6 text-[#607269]">
+            {hotel.description ||
+              "A considered StayNest property with warm service and details worth remembering."}
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <span className="rounded-md bg-[#eef4ed] px-2.5 py-1 text-[11px] font-semibold text-[#2b6755]">
+              {availableRooms > 0
+                ? `${availableRooms} rooms available`
+                : "Check availability"}
+            </span>
+            <span className="rounded-md bg-[#f7f2e7] px-2.5 py-1 text-[11px] font-semibold text-[#8a632c]">
+              Free cancellation on select rooms
+            </span>
+          </div>
+        </CardContent>
+        <div className="flex items-end justify-between gap-4 border-t border-[#edf0eb] p-5 md:w-[190px] md:flex-col md:items-end md:justify-center md:border-l md:border-t-0 md:p-6">
+          <div className="text-left md:text-right">
+            <span className="block text-[11px] text-[#718078]">
+              1 night, 2 adults
+            </span>
+            <span className="mt-1 block font-serif text-[23px] text-[#183a31]">
+              {formatMoney(minPrice, currency)}
+            </span>
+            <span className="block text-[11px] text-[#718078]">
+              + taxes and fees
+            </span>
+          </div>
+          <Button
+            onClick={onSelect}
+            className="rounded-lg bg-[#183a31] px-4 text-xs font-bold text-white hover:bg-[#245448]"
+          >
+            See availability <ArrowRight size={14} />
+          </Button>
         </div>
-        <p className="mt-4 line-clamp-2 text-sm leading-6 text-[#607269]">{hotel.description || "A considered StayNest property with warm service and details worth remembering."}</p>
-        <div className="mt-4 flex flex-wrap gap-2"><span className="rounded-md bg-[#eef4ed] px-2.5 py-1 text-[11px] font-semibold text-[#2b6755]">{availableRooms > 0 ? `${availableRooms} rooms available` : "Check availability"}</span><span className="rounded-md bg-[#f7f2e7] px-2.5 py-1 text-[11px] font-semibold text-[#8a632c]">Free cancellation on select rooms</span></div>
-      </CardContent>
-      <div className="flex items-end justify-between gap-4 border-t border-[#edf0eb] p-5 md:w-[190px] md:flex-col md:items-end md:justify-center md:border-l md:border-t-0 md:p-6"><div className="text-left md:text-right"><span className="block text-[11px] text-[#718078]">1 night, 2 adults</span><span className="mt-1 block font-serif text-[23px] text-[#183a31]">{formatMoney(minPrice, currency)}</span><span className="block text-[11px] text-[#718078]">+ taxes and fees</span></div><Button onClick={onSelect} className="rounded-lg bg-[#183a31] px-4 text-xs font-bold text-white hover:bg-[#245448]">See availability <ArrowRight size={14} /></Button></div>
-    </div>
-  </Card>;
+      </div>
+    </Card>
+  );
 }
 
 export function Home() {
   const [, navigate] = useLocation();
-  const [query, setQuery] = useState({ location: "Accra", checkInDate: datePlus(14), checkOutDate: datePlus(17), guestsCount: 2, currency: "GHS" as "GHS" | "USD" });
+  const [query, setQuery] = useState({
+    location: "Accra",
+    checkInDate: datePlus(14),
+    checkOutDate: datePlus(17),
+    guestsCount: 2,
+    currency: "GHS" as "GHS" | "USD",
+  });
   const [minPrice, setMinPrice] = useState<number | undefined>(undefined);
   const [maxPrice, setMaxPrice] = useState<number | undefined>(undefined);
   const [minRating, setMinRating] = useState<number | undefined>(undefined);
   const [view, setView] = useState<"grid" | "list">("list");
-  const [sortBy, setSortBy] = useState<"recommended" | "priceLow" | "rating">("recommended");
-  const input = useMemo(() => ({ ...query, minPrice, maxPrice, minRating }), [query, minPrice, maxPrice, minRating]);
+  const [sortBy, setSortBy] = useState<"recommended" | "priceLow" | "rating">(
+    "recommended"
+  );
+  const input = useMemo(
+    () => ({ ...query, minPrice, maxPrice, minRating }),
+    [query, minPrice, maxPrice, minRating]
+  );
   const { data: hotels = [], isLoading } = trpc.catalog.search.useQuery(input);
   const sortedHotels = useMemo(() => {
-    const lowestPrice = (hotel: any) => Math.min(...hotel.rooms.map((room: any) => query.currency === "GHS" ? room.priceGhs : room.priceUsd));
-    return [...hotels].sort((a: any, b: any) => sortBy === "priceLow" ? lowestPrice(a) - lowestPrice(b) : sortBy === "rating" ? (b.rating ?? 0) - (a.rating ?? 0) : (b.rating ?? 0) - (a.rating ?? 0));
+    const lowestPrice = (hotel: any) =>
+      Math.min(
+        ...hotel.rooms.map((room: any) =>
+          query.currency === "GHS" ? room.priceGhs : room.priceUsd
+        )
+      );
+    return [...hotels].sort((a: any, b: any) =>
+      sortBy === "priceLow"
+        ? lowestPrice(a) - lowestPrice(b)
+        : sortBy === "rating"
+          ? (b.rating ?? 0) - (a.rating ?? 0)
+          : (b.rating ?? 0) - (a.rating ?? 0)
+    );
   }, [hotels, query.currency, sortBy]);
   const selectHotel = (id: number) => navigate(`/hotel/${id}`);
-  return <Shell>
-    <main>
-      <section className="relative min-h-[720px] overflow-hidden bg-[#183a31] text-white md:min-h-[760px]">
-        <div className="pointer-events-none absolute inset-0 z-[1] flex items-start justify-center">
-          <div className="relative aspect-[800/598] w-full max-w-[1017px] overflow-hidden" style={{ WebkitMaskImage: "radial-gradient(ellipse 84% 84% at center, black 57%, rgba(0,0,0,.96) 73%, transparent 100%)", maskImage: "radial-gradient(ellipse 84% 84% at center, black 57%, rgba(0,0,0,.96) 73%, transparent 100%)" }}>
-            <img src={STAYNEST_HERO_BACKGROUND_SRC} alt="Ghanaian seaside suite with ocean views" className="h-full w-full object-contain" />
+  return (
+    <Shell>
+      <main>
+        <section className="relative min-h-[720px] overflow-hidden bg-[#183a31] text-white md:min-h-[760px]">
+          <div className="pointer-events-none absolute inset-0 z-[1] flex items-start justify-center">
+            <div
+              className="relative aspect-[800/598] w-full max-w-[1017px] overflow-hidden"
+              style={{
+                WebkitMaskImage:
+                  "radial-gradient(ellipse 84% 84% at center, black 57%, rgba(0,0,0,.96) 73%, transparent 100%)",
+                maskImage:
+                  "radial-gradient(ellipse 84% 84% at center, black 57%, rgba(0,0,0,.96) 73%, transparent 100%)",
+              }}
+            >
+              <img
+                src={STAYNEST_HERO_BACKGROUND_SRC}
+                alt="Ghanaian seaside suite with ocean views"
+                className="h-full w-full object-contain"
+              />
+            </div>
           </div>
-        </div>
-        <div className="pointer-events-none absolute inset-0 z-[2] bg-gradient-to-r from-[#071c17]/90 via-[#071c17]/58 to-[#071c17]/18" />
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#071c17]/88 via-transparent to-[#071c17]/22" />
-        <div className="relative z-10 mx-auto flex min-h-[720px] max-w-[1240px] flex-col justify-between px-5 pb-28 pt-16 md:min-h-[760px] md:pb-28 md:pt-24 lg:px-8">
-          <div className="max-w-[760px] pt-6 md:pt-10"><div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/35 bg-[#071c17]/30 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.15em] text-[#f3d98d] backdrop-blur-sm"><Sparkles size={13} /> Stays with a sense of place</div><h1 className="max-w-[760px] font-serif text-[clamp(3.5rem,8vw,7rem)] leading-[.88] tracking-[-0.045em]">Arrive somewhere <span className="text-[#f3d98d]">wonderful.</span></h1><p className="mt-7 max-w-[520px] text-[16px] leading-7 text-[#f0f4ef]">Find considered hotels, warm service, and the little details that make a stay worth remembering.</p><div className="mt-7 flex max-w-[300px] items-start gap-3 rounded-[18px] border border-white/25 bg-[#071c17]/48 p-4 backdrop-blur-md"><ShieldCheck size={17} className="mt-0.5 shrink-0 text-[#f3d98d]" /><p className="text-sm leading-5 text-[#f0f4ef]">Live availability from connected hotels, so you can book what is genuinely available.</p></div></div>
-          <div className="md:absolute md:bottom-[-43px] md:left-5 md:right-5 lg:left-8 lg:right-8"><SearchPanel onSearch={setQuery} /></div>
-        </div>
-      </section>
-      <section id="stays" className="mx-auto max-w-[1240px] px-5 pb-20 pt-24 lg:px-8">
-        <div className="flex flex-col justify-between gap-5 border-b border-[#dfe4dc] pb-5 sm:flex-row sm:items-end"><div><p className="mb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-[#b18143]">Search stays</p><h2 className="font-serif text-[42px] leading-none tracking-[-0.035em] text-[#183a31]">Find your next Ghana stay</h2><p className="mt-3 text-sm text-[#718078]">Live and partner inventory across Accra, Ada, and the coast.</p></div><div className="flex items-center gap-2"><span className="hidden text-xs text-[#718078] sm:inline">Prices shown in</span><select value={query.currency} onChange={(event) => setQuery({ ...query, currency: event.target.value as "GHS" | "USD" })} className="h-9 rounded-lg border border-[#cfd9cf] bg-white px-3 text-xs font-bold text-[#183a31] outline-none"><option value="GHS">GHS</option><option value="USD">USD</option></select><select aria-label="Sort stays" value={sortBy} onChange={(event) => setSortBy(event.target.value as "recommended" | "priceLow" | "rating")} className="h-9 rounded-lg border border-[#cfd9cf] bg-white px-3 text-xs font-bold text-[#183a31] outline-none"><option value="recommended">Recommended</option><option value="priceLow">Lowest price</option><option value="rating">Top rated</option></select></div></div>
-        <details className="mt-5 rounded-xl border border-[#dfe4dc] bg-white p-4 lg:hidden"><summary className="cursor-pointer text-sm font-bold text-[#183a31]">Filter stays</summary><div className="mt-4 grid gap-3 sm:grid-cols-3"><select value={minPrice ?? ""} onChange={(event) => setMinPrice(event.target.value ? Number(event.target.value) : undefined)} className="h-10 rounded-lg border border-[#cfd9cf] bg-white px-3 text-xs font-semibold text-[#183a31] outline-none"><option value="">Any price</option><option value="1500">From GHS 1,500</option><option value="2500">From GHS 2,500</option><option value="4000">From GHS 4,000</option></select><select value={maxPrice ?? ""} onChange={(event) => setMaxPrice(event.target.value ? Number(event.target.value) : undefined)} className="h-10 rounded-lg border border-[#cfd9cf] bg-white px-3 text-xs font-semibold text-[#183a31] outline-none"><option value="">No max price</option><option value="2500">Up to GHS 2,500</option><option value="4000">Up to GHS 4,000</option><option value="6000">Up to GHS 6,000</option></select><select value={minRating ?? ""} onChange={(event) => setMinRating(event.target.value ? Number(event.target.value) : undefined)} className="h-10 rounded-lg border border-[#cfd9cf] bg-white px-3 text-xs font-semibold text-[#183a31] outline-none"><option value="">Any rating</option><option value="4">4+ rating</option><option value="4.5">4.5+ rating</option></select></div></details>
-        <div className="mt-6 grid gap-8 lg:grid-cols-[232px_1fr]">
-          <aside className="sticky top-[94px] hidden h-fit rounded-2xl border border-[#dfe4dc] bg-white p-5 lg:block"><div className="mb-5 flex items-center justify-between"><h3 className="text-sm font-bold text-[#183a31]">Filter by:</h3><button onClick={() => { setMinPrice(undefined); setMaxPrice(undefined); setMinRating(undefined); }} className="text-[11px] font-semibold text-[#2b6755] hover:underline">Clear all</button></div><div className="space-y-6"><div><p className="mb-3 text-xs font-bold text-[#183a31]">Your budget</p><div className="space-y-2 text-xs text-[#607269]"><label className="flex items-center gap-2"><input type="radio" name="price" checked={minPrice === undefined && maxPrice === undefined} onChange={() => { setMinPrice(undefined); setMaxPrice(undefined); }} /> Any price</label><label className="flex items-center gap-2"><input type="radio" name="price" checked={minPrice === 1500} onChange={() => setMinPrice(1500)} /> From GHS 1,500</label><label className="flex items-center gap-2"><input type="radio" name="price" checked={maxPrice === 4000} onChange={() => setMaxPrice(4000)} /> Up to GHS 4,000</label></div></div><div><p className="mb-3 text-xs font-bold text-[#183a31]">Guest rating</p><div className="space-y-2 text-xs text-[#607269]"><label className="flex items-center gap-2"><input type="radio" name="rating" checked={minRating === undefined} onChange={() => setMinRating(undefined)} /> Any rating</label><label className="flex items-center gap-2"><input type="radio" name="rating" checked={minRating === 4} onChange={() => setMinRating(4)} /> 4+ Excellent</label><label className="flex items-center gap-2"><input type="radio" name="rating" checked={minRating === 4.5} onChange={() => setMinRating(4.5)} /> 4.5+ Exceptional</label></div></div><div><p className="mb-3 text-xs font-bold text-[#183a31]">StayNest inventory</p><p className="text-xs leading-5 text-[#718078]">Connected hotels use BillFlow as the source of truth. Other partners manage rooms manually through their dashboard.</p></div></div>          </aside>
-          <div className="min-w-0"><div className="mb-3 flex items-center justify-between gap-3"><p className="text-sm font-bold text-[#183a31]">{isLoading ? "Finding stays…" : `${sortedHotels.length} ${sortedHotels.length === 1 ? "property" : "properties"} in ${query.location || "Ghana"}`}</p><span className="hidden items-center gap-1 text-xs text-[#718078] sm:flex"><ShieldCheck size={14} className="text-[#2b6755]" /> Verified stays</span></div>{isLoading ? <div className="space-y-4"><div className="h-[250px] animate-pulse rounded-2xl bg-[#edf1eb]" /><div className="h-[250px] animate-pulse rounded-2xl bg-[#edf1eb]" /><div className="h-[250px] animate-pulse rounded-2xl bg-[#edf1eb]" /></div> : sortedHotels.length ? <div className="space-y-4">{sortedHotels.map((hotel: any) => <HotelCard key={hotel.id} hotel={hotel} currency={query.currency} onSelect={() => selectHotel(hotel.id)} />)}</div> : <Card className="rounded-2xl border-[#dfe4dc] bg-white p-8 text-center"><CardTitle className="font-serif text-2xl text-[#183a31]">{hotels.length === 0 ? "StayNest is ready for its first listing" : "No stays match those filters"}</CardTitle><p className="mt-2 text-sm text-[#718078]">{hotels.length === 0 ? "Real hotel owners can now add their properties, rooms, prices, and availability through the partner workspace." : "Try widening your price range or searching another Ghanaian destination."}</p>{hotels.length === 0 ? <Link href="/onboarding?role=partner" className="mt-5 inline-flex items-center gap-2 rounded-lg bg-[#183a31] px-4 py-2.5 text-xs font-bold text-white">List a property <ArrowRight size={14} /></Link> : <Button onClick={() => { setMinPrice(undefined); setMaxPrice(undefined); setMinRating(undefined); }} className="mt-5 rounded-lg bg-[#183a31] text-xs font-bold text-white">Clear filters</Button>}</Card>}</div>
-        </div>
-      </section>
-      <section className="border-y border-[#dfe4dc] bg-[#f7f5f0]"><div className="mx-auto max-w-[1240px] px-5 py-16 lg:px-8"><div className="mb-7 flex items-end justify-between gap-4"><div><p className="mb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-[#b18143]">Offers for your next escape</p><h2 className="font-serif text-[36px] leading-none tracking-[-0.035em] text-[#183a31]">A little more room to roam</h2></div><Link href="#stays" className="hidden items-center gap-2 text-xs font-bold text-[#2b6755] sm:flex">See all stays <ArrowRight size={14} /></Link></div><div className="grid gap-4 md:grid-cols-2"><div className="relative overflow-hidden rounded-2xl bg-[#183a31] p-6 text-white"><div className="relative z-10 max-w-[340px]"><span className="inline-flex rounded-md bg-[#e7c77b] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-[#183a31]">Stay longer</span><h3 className="mt-5 font-serif text-[30px] leading-none">Make the weekend feel unhurried.</h3><p className="mt-3 text-sm leading-6 text-[#c9d8cc]">Choose three nights or more at selected StayNest properties and keep more time for the good parts.</p><Link href="#stays" className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-[#e7c77b]">Browse longer stays <ArrowRight size={14} /></Link></div><div className="absolute -right-10 -top-16 h-56 w-56 rounded-full border-[22px] border-[#315d4d] opacity-60" /></div><div className="relative overflow-hidden rounded-2xl bg-[#e8efe7] p-6 text-[#183a31]"><div className="relative z-10 max-w-[340px]"><span className="inline-flex rounded-md bg-white px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-[#2b6755]">Ghana, thoughtfully</span><h3 className="mt-5 font-serif text-[30px] leading-none">From leafy Accra to the coast.</h3><p className="mt-3 text-sm leading-6 text-[#607269]">Find stays with local texture, clear availability, and an easier way to plan your arrival.</p><Link href="#stays" className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-[#183a31]">Explore the collection <ArrowRight size={14} /></Link></div><div className="absolute -bottom-16 -right-5 h-48 w-48 rounded-full bg-[#d4e2d4]" /></div></div></div></section>
-      <section className="mx-auto max-w-[1240px] px-5 py-16 lg:px-8"><div className="mb-7"><p className="mb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-[#b18143]">Explore Ghana</p><h2 className="font-serif text-[36px] leading-none tracking-[-0.035em] text-[#183a31]">Where will you arrive?</h2><p className="mt-3 text-sm text-[#718078]">Start with a destination, then let the right stay find you.</p></div><div className="grid grid-cols-2 gap-3 sm:grid-cols-4"><Link href="#stays" className="group relative h-[180px] overflow-hidden rounded-2xl"><img src={image.city} alt="Accra city stays" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" /><div className="absolute inset-0 bg-gradient-to-t from-[#071c17]/75 to-transparent" /><div className="absolute bottom-4 left-4 text-white"><p className="font-serif text-2xl">Accra</p><p className="text-xs text-white/75">City energy, leafy corners</p></div></Link><Link href="#stays" className="group relative h-[180px] overflow-hidden rounded-2xl"><img src={image.coast} alt="Ada coastal stays" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" /><div className="absolute inset-0 bg-gradient-to-t from-[#071c17]/75 to-transparent" /><div className="absolute bottom-4 left-4 text-white"><p className="font-serif text-2xl">Ada</p><p className="text-xs text-white/75">Lagoon air and slow days</p></div></Link><Link href="#stays" className="group relative h-[180px] overflow-hidden rounded-2xl"><img src={image.room} alt="Kumasi boutique stays" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" /><div className="absolute inset-0 bg-gradient-to-t from-[#071c17]/75 to-transparent" /><div className="absolute bottom-4 left-4 text-white"><p className="font-serif text-2xl">Kumasi</p><p className="text-xs text-white/75">Culture, craft, character</p></div></Link><Link href="#stays" className="group relative h-[180px] overflow-hidden rounded-2xl"><img src={image.city} alt="Cape Coast stays" className="h-full w-full object-cover object-right transition duration-500 group-hover:scale-105" /><div className="absolute inset-0 bg-gradient-to-t from-[#071c17]/75 to-transparent" /><div className="absolute bottom-4 left-4 text-white"><p className="font-serif text-2xl">Cape Coast</p><p className="text-xs text-white/75">History by the water</p></div></Link></div></section>
-      <section className="border-y border-[#dfe4dc] bg-[#f3f5f0]"><div className="mx-auto max-w-[1240px] px-5 py-16 lg:px-8"><div className="mb-7"><p className="mb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-[#b18143]">Browse by property type</p><h2 className="font-serif text-[36px] leading-none tracking-[-0.035em] text-[#183a31]">The stay that fits the trip</h2></div><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4"><Link href="#stays" className="rounded-2xl border border-[#dfe4dc] bg-white p-5 transition hover:-translate-y-0.5 hover:border-[#91a99a]"><Hotel className="mb-8 text-[#2b6755]" size={22} /><h3 className="font-serif text-2xl text-[#183a31]">Hotels</h3><p className="mt-2 text-xs leading-5 text-[#718078]">Reliable rooms, warm service, easy arrivals.</p></Link><Link href="#stays" className="rounded-2xl border border-[#dfe4dc] bg-white p-5 transition hover:-translate-y-0.5 hover:border-[#91a99a]"><BedDouble className="mb-8 text-[#2b6755]" size={22} /><h3 className="font-serif text-2xl text-[#183a31]">Boutique stays</h3><p className="mt-2 text-xs leading-5 text-[#718078]">Smaller properties with a distinct point of view.</p></Link><Link href="#stays" className="rounded-2xl border border-[#dfe4dc] bg-white p-5 transition hover:-translate-y-0.5 hover:border-[#91a99a]"><Waves className="mb-8 text-[#2b6755]" size={22} /><h3 className="font-serif text-2xl text-[#183a31]">Coastal retreats</h3><p className="mt-2 text-xs leading-5 text-[#718078]">A slower rhythm, with water close by.</p></Link><Link href="#stays" className="rounded-2xl border border-[#dfe4dc] bg-white p-5 transition hover:-translate-y-0.5 hover:border-[#91a99a]"><Sparkles className="mb-8 text-[#2b6755]" size={22} /><h3 className="font-serif text-2xl text-[#183a31]">Serviced apartments</h3><p className="mt-2 text-xs leading-5 text-[#718078]">More space for work trips and longer visits.</p></Link></div></div></section>
-      <section id="how-it-works" className="border-y border-[#dfe4dc] bg-[#f3f5f0]"><div className="mx-auto grid max-w-[1240px] gap-10 px-5 py-20 lg:grid-cols-[.8fr_1.2fr] lg:px-8"><div><p className="mb-3 text-[11px] font-bold uppercase tracking-[0.2em] text-[#b18143]">The StayNest standard</p><h2 className="max-w-[360px] font-serif text-[43px] leading-[.96] tracking-[-0.04em] text-[#183a31]">Thoughtful from search to check-out.</h2><p className="mt-5 max-w-[360px] text-sm leading-6 text-[#718078]">We keep the experience simple for guests, and the important details visible for the people running each stay.</p></div><div className="grid gap-4 sm:grid-cols-2"><div className="rounded-[20px] bg-white p-6 shadow-[0_12px_32px_rgba(24,58,49,.05)]"><span className="mb-7 grid h-11 w-11 place-items-center rounded-2xl bg-[#e7efe6] text-[#2a6755]"><ShieldCheck size={20} /></span><h3 className="font-serif text-[24px] text-[#183a31]">Live, not last week</h3><p className="mt-2 text-sm leading-6 text-[#718078]">Connected hotels read and write availability through BillFlow's reservation engine.</p></div><div className="rounded-[20px] bg-white p-6 shadow-[0_12px_32px_rgba(24,58,49,.05)]"><span className="mb-7 grid h-11 w-11 place-items-center rounded-2xl bg-[#f4ead7] text-[#a16c2d]"><Heart size={20} /></span><h3 className="font-serif text-[24px] text-[#183a31]">Made for real stays</h3><p className="mt-2 text-sm leading-6 text-[#718078]">Clear policies, verified payment, and support that feels like a person is on the other side.</p></div><div className="rounded-[20px] bg-white p-6 shadow-[0_12px_32px_rgba(24,58,49,.05)]"><span className="mb-7 grid h-11 w-11 place-items-center rounded-2xl bg-[#e7efe6] text-[#2a6755]"><Sparkles size={20} /></span><h3 className="font-serif text-[24px] text-[#183a31]">A little more local</h3><p className="mt-2 text-sm leading-6 text-[#718078]">Stays with texture, from Accra's leafy neighborhoods to the lagoon air of Ada.</p></div><div className="rounded-[20px] bg-white p-6 shadow-[0_12px_32px_rgba(24,58,49,.05)]"><span className="mb-7 grid h-11 w-11 place-items-center rounded-2xl bg-[#f4ead7] text-[#a16c2d]"><CircleHelp size={20} /></span><h3 className="font-serif text-[24px] text-[#183a31]">Help when it matters</h3><p className="mt-2 text-sm leading-6 text-[#718078]">From a change of plans to a question about your room, our team keeps things moving.</p></div></div></div></section>
-      <section className="mx-auto max-w-[1240px] px-5 py-20 lg:px-8"><div className="grid items-center gap-10 rounded-[28px] bg-[#e8efe7] p-8 md:grid-cols-[1.15fr_.85fr] md:p-12"><div><p className="mb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-[#b18143]">For hotel owners</p><h2 className="max-w-[540px] font-serif text-[43px] leading-[.95] tracking-[-0.04em] text-[#183a31]">More eyes on your rooms. Less double entry.</h2><p className="mt-5 max-w-[490px] text-sm leading-6 text-[#607269]">Connect a BillFlow property and keep your rates, inventory, and reservations in one place. Or start with a lightweight manual dashboard.</p><Link href="/hotel-dashboard" className="mt-7 inline-flex items-center gap-2 rounded-xl bg-[#183a31] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#245448]">Explore the partner dashboard <ArrowRight size={15} /></Link></div><div className="relative min-h-[240px] overflow-hidden rounded-[22px]"><img src={image.room} alt="Boutique hotel room" className="absolute inset-0 h-full w-full object-cover" /><div className="absolute inset-0 bg-[#183a31]/35" /><div className="absolute bottom-4 left-4 right-4 rounded-[16px] border border-white/20 bg-white/15 p-4 text-white backdrop-blur-lg"><div className="mb-2 flex items-center gap-2"><Wifi size={15} className="text-[#e7c77b]" /><span className="text-xs font-bold">BillFlow-connected inventory</span></div><p className="text-xs leading-5 text-white/80">One source of truth for availability, with conflicts surfaced instead of hidden.</p></div></div></div></section>
-    </main>
-  </Shell>;
+          <div className="pointer-events-none absolute inset-0 z-[2] bg-gradient-to-r from-[#071c17]/90 via-[#071c17]/58 to-[#071c17]/18" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#071c17]/88 via-transparent to-[#071c17]/22" />
+          <div className="relative z-10 mx-auto flex min-h-[720px] max-w-[1240px] flex-col justify-between px-5 pb-28 pt-16 md:min-h-[760px] md:pb-28 md:pt-24 lg:px-8">
+            <div className="max-w-[760px] pt-6 md:pt-10">
+              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/35 bg-[#071c17]/30 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.15em] text-[#f3d98d] backdrop-blur-sm">
+                <Sparkles size={13} /> Stays with a sense of place
+              </div>
+              <h1 className="max-w-[760px] font-serif text-[clamp(3.5rem,8vw,7rem)] leading-[.88] tracking-[-0.045em]">
+                Arrive somewhere{" "}
+                <span className="text-[#f3d98d]">wonderful.</span>
+              </h1>
+              <p className="mt-7 max-w-[520px] text-[16px] leading-7 text-[#f0f4ef]">
+                Find considered hotels, warm service, and the little details
+                that make a stay worth remembering.
+              </p>
+              <div className="mt-7 flex max-w-[300px] items-start gap-3 rounded-[18px] border border-white/25 bg-[#071c17]/48 p-4 backdrop-blur-md">
+                <ShieldCheck
+                  size={17}
+                  className="mt-0.5 shrink-0 text-[#f3d98d]"
+                />
+                <p className="text-sm leading-5 text-[#f0f4ef]">
+                  Live availability from connected hotels, so you can book what
+                  is genuinely available.
+                </p>
+              </div>
+            </div>
+            <div className="md:absolute md:bottom-[-43px] md:left-5 md:right-5 lg:left-8 lg:right-8">
+              <SearchPanel onSearch={setQuery} />
+            </div>
+          </div>
+        </section>
+        <section
+          id="stays"
+          className="mx-auto max-w-[1240px] px-5 pb-20 pt-24 lg:px-8"
+        >
+          <div className="flex flex-col justify-between gap-5 border-b border-[#dfe4dc] pb-5 sm:flex-row sm:items-end">
+            <div>
+              <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-[#b18143]">
+                Search stays
+              </p>
+              <h2 className="font-serif text-[42px] leading-none tracking-[-0.035em] text-[#183a31]">
+                Find your next Ghana stay
+              </h2>
+              <p className="mt-3 text-sm text-[#718078]">
+                Live and partner inventory across Accra, Ada, and the coast.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="hidden text-xs text-[#718078] sm:inline">
+                Prices shown in
+              </span>
+              <select
+                value={query.currency}
+                onChange={event =>
+                  setQuery({
+                    ...query,
+                    currency: event.target.value as "GHS" | "USD",
+                  })
+                }
+                className="h-9 rounded-lg border border-[#cfd9cf] bg-white px-3 text-xs font-bold text-[#183a31] outline-none"
+              >
+                <option value="GHS">GHS</option>
+                <option value="USD">USD</option>
+              </select>
+              <select
+                aria-label="Sort stays"
+                value={sortBy}
+                onChange={event =>
+                  setSortBy(
+                    event.target.value as "recommended" | "priceLow" | "rating"
+                  )
+                }
+                className="h-9 rounded-lg border border-[#cfd9cf] bg-white px-3 text-xs font-bold text-[#183a31] outline-none"
+              >
+                <option value="recommended">Recommended</option>
+                <option value="priceLow">Lowest price</option>
+                <option value="rating">Top rated</option>
+              </select>
+            </div>
+          </div>
+          <details className="mt-5 rounded-xl border border-[#dfe4dc] bg-white p-4 lg:hidden">
+            <summary className="cursor-pointer text-sm font-bold text-[#183a31]">
+              Filter stays
+            </summary>
+            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+              <select
+                value={minPrice ?? ""}
+                onChange={event =>
+                  setMinPrice(
+                    event.target.value ? Number(event.target.value) : undefined
+                  )
+                }
+                className="h-10 rounded-lg border border-[#cfd9cf] bg-white px-3 text-xs font-semibold text-[#183a31] outline-none"
+              >
+                <option value="">Any price</option>
+                <option value="1500">From GHS 1,500</option>
+                <option value="2500">From GHS 2,500</option>
+                <option value="4000">From GHS 4,000</option>
+              </select>
+              <select
+                value={maxPrice ?? ""}
+                onChange={event =>
+                  setMaxPrice(
+                    event.target.value ? Number(event.target.value) : undefined
+                  )
+                }
+                className="h-10 rounded-lg border border-[#cfd9cf] bg-white px-3 text-xs font-semibold text-[#183a31] outline-none"
+              >
+                <option value="">No max price</option>
+                <option value="2500">Up to GHS 2,500</option>
+                <option value="4000">Up to GHS 4,000</option>
+                <option value="6000">Up to GHS 6,000</option>
+              </select>
+              <select
+                value={minRating ?? ""}
+                onChange={event =>
+                  setMinRating(
+                    event.target.value ? Number(event.target.value) : undefined
+                  )
+                }
+                className="h-10 rounded-lg border border-[#cfd9cf] bg-white px-3 text-xs font-semibold text-[#183a31] outline-none"
+              >
+                <option value="">Any rating</option>
+                <option value="4">4+ rating</option>
+                <option value="4.5">4.5+ rating</option>
+              </select>
+            </div>
+          </details>
+          <div className="mt-6 grid gap-8 lg:grid-cols-[232px_1fr]">
+            <aside className="sticky top-[94px] hidden h-fit rounded-2xl border border-[#dfe4dc] bg-white p-5 lg:block">
+              <div className="mb-5 flex items-center justify-between">
+                <h3 className="text-sm font-bold text-[#183a31]">Filter by:</h3>
+                <button
+                  onClick={() => {
+                    setMinPrice(undefined);
+                    setMaxPrice(undefined);
+                    setMinRating(undefined);
+                  }}
+                  className="text-[11px] font-semibold text-[#2b6755] hover:underline"
+                >
+                  Clear all
+                </button>
+              </div>
+              <div className="space-y-6">
+                <div>
+                  <p className="mb-3 text-xs font-bold text-[#183a31]">
+                    Your budget
+                  </p>
+                  <div className="space-y-2 text-xs text-[#607269]">
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="price"
+                        checked={
+                          minPrice === undefined && maxPrice === undefined
+                        }
+                        onChange={() => {
+                          setMinPrice(undefined);
+                          setMaxPrice(undefined);
+                        }}
+                      />{" "}
+                      Any price
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="price"
+                        checked={minPrice === 1500}
+                        onChange={() => setMinPrice(1500)}
+                      />{" "}
+                      From GHS 1,500
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="price"
+                        checked={maxPrice === 4000}
+                        onChange={() => setMaxPrice(4000)}
+                      />{" "}
+                      Up to GHS 4,000
+                    </label>
+                  </div>
+                </div>
+                <div>
+                  <p className="mb-3 text-xs font-bold text-[#183a31]">
+                    Guest rating
+                  </p>
+                  <div className="space-y-2 text-xs text-[#607269]">
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="rating"
+                        checked={minRating === undefined}
+                        onChange={() => setMinRating(undefined)}
+                      />{" "}
+                      Any rating
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="rating"
+                        checked={minRating === 4}
+                        onChange={() => setMinRating(4)}
+                      />{" "}
+                      4+ Excellent
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="rating"
+                        checked={minRating === 4.5}
+                        onChange={() => setMinRating(4.5)}
+                      />{" "}
+                      4.5+ Exceptional
+                    </label>
+                  </div>
+                </div>
+                <div>
+                  <p className="mb-3 text-xs font-bold text-[#183a31]">
+                    StayNest inventory
+                  </p>
+                  <p className="text-xs leading-5 text-[#718078]">
+                    Connected hotels use BillFlow as the source of truth. Other
+                    partners manage rooms manually through their dashboard.
+                  </p>
+                </div>
+              </div>{" "}
+            </aside>
+            <div className="min-w-0">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <p className="text-sm font-bold text-[#183a31]">
+                  {isLoading
+                    ? "Finding stays…"
+                    : `${sortedHotels.length} ${sortedHotels.length === 1 ? "property" : "properties"} in ${query.location || "Ghana"}`}
+                </p>
+                <span className="hidden items-center gap-1 text-xs text-[#718078] sm:flex">
+                  <ShieldCheck size={14} className="text-[#2b6755]" /> Verified
+                  stays
+                </span>
+              </div>
+              {isLoading ? (
+                <div className="space-y-4">
+                  <div className="h-[250px] animate-pulse rounded-2xl bg-[#edf1eb]" />
+                  <div className="h-[250px] animate-pulse rounded-2xl bg-[#edf1eb]" />
+                  <div className="h-[250px] animate-pulse rounded-2xl bg-[#edf1eb]" />
+                </div>
+              ) : sortedHotels.length ? (
+                <div className="space-y-4">
+                  {sortedHotels.map((hotel: any) => (
+                    <HotelCard
+                      key={hotel.id}
+                      hotel={hotel}
+                      currency={query.currency}
+                      onSelect={() => selectHotel(hotel.id)}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <Card className="rounded-2xl border-[#dfe4dc] bg-white p-8 text-center">
+                  <CardTitle className="font-serif text-2xl text-[#183a31]">
+                    {hotels.length === 0
+                      ? "StayNest is ready for its first listing"
+                      : "No stays match those filters"}
+                  </CardTitle>
+                  <p className="mt-2 text-sm text-[#718078]">
+                    {hotels.length === 0
+                      ? "Real hotel owners can now add their properties, rooms, prices, and availability through the partner workspace."
+                      : "Try widening your price range or searching another Ghanaian destination."}
+                  </p>
+                  {hotels.length === 0 ? (
+                    <Link
+                      href="/onboarding?role=partner"
+                      className="mt-5 inline-flex items-center gap-2 rounded-lg bg-[#183a31] px-4 py-2.5 text-xs font-bold text-white"
+                    >
+                      List a property <ArrowRight size={14} />
+                    </Link>
+                  ) : (
+                    <Button
+                      onClick={() => {
+                        setMinPrice(undefined);
+                        setMaxPrice(undefined);
+                        setMinRating(undefined);
+                      }}
+                      className="mt-5 rounded-lg bg-[#183a31] text-xs font-bold text-white"
+                    >
+                      Clear filters
+                    </Button>
+                  )}
+                </Card>
+              )}
+            </div>
+          </div>
+        </section>
+        <section className="border-y border-[#dfe4dc] bg-[#f7f5f0]">
+          <div className="mx-auto max-w-[1240px] px-5 py-16 lg:px-8">
+            <div className="mb-7 flex items-end justify-between gap-4">
+              <div>
+                <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-[#b18143]">
+                  Offers for your next escape
+                </p>
+                <h2 className="font-serif text-[36px] leading-none tracking-[-0.035em] text-[#183a31]">
+                  A little more room to roam
+                </h2>
+              </div>
+              <Link
+                href="#stays"
+                className="hidden items-center gap-2 text-xs font-bold text-[#2b6755] sm:flex"
+              >
+                See all stays <ArrowRight size={14} />
+              </Link>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="relative overflow-hidden rounded-2xl bg-[#183a31] p-6 text-white">
+                <div className="relative z-10 max-w-[340px]">
+                  <span className="inline-flex rounded-md bg-[#e7c77b] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-[#183a31]">
+                    Stay longer
+                  </span>
+                  <h3 className="mt-5 font-serif text-[30px] leading-none">
+                    Make the weekend feel unhurried.
+                  </h3>
+                  <p className="mt-3 text-sm leading-6 text-[#c9d8cc]">
+                    Choose three nights or more at selected StayNest properties
+                    and keep more time for the good parts.
+                  </p>
+                  <Link
+                    href="#stays"
+                    className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-[#e7c77b]"
+                  >
+                    Browse longer stays <ArrowRight size={14} />
+                  </Link>
+                </div>
+                <div className="absolute -right-10 -top-16 h-56 w-56 rounded-full border-[22px] border-[#315d4d] opacity-60" />
+              </div>
+              <div className="relative overflow-hidden rounded-2xl bg-[#e8efe7] p-6 text-[#183a31]">
+                <div className="relative z-10 max-w-[340px]">
+                  <span className="inline-flex rounded-md bg-white px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-[#2b6755]">
+                    Ghana, thoughtfully
+                  </span>
+                  <h3 className="mt-5 font-serif text-[30px] leading-none">
+                    From leafy Accra to the coast.
+                  </h3>
+                  <p className="mt-3 text-sm leading-6 text-[#607269]">
+                    Find stays with local texture, clear availability, and an
+                    easier way to plan your arrival.
+                  </p>
+                  <Link
+                    href="#stays"
+                    className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-[#183a31]"
+                  >
+                    Explore the collection <ArrowRight size={14} />
+                  </Link>
+                </div>
+                <div className="absolute -bottom-16 -right-5 h-48 w-48 rounded-full bg-[#d4e2d4]" />
+              </div>
+            </div>
+          </div>
+        </section>
+        <section className="mx-auto max-w-[1240px] px-5 py-16 lg:px-8">
+          <div className="mb-7">
+            <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-[#b18143]">
+              Explore Ghana
+            </p>
+            <h2 className="font-serif text-[36px] leading-none tracking-[-0.035em] text-[#183a31]">
+              Where will you arrive?
+            </h2>
+            <p className="mt-3 text-sm text-[#718078]">
+              Start with a destination, then let the right stay find you.
+            </p>
+          </div>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <Link
+              href="#stays"
+              className="group relative h-[180px] overflow-hidden rounded-2xl"
+            >
+              <img
+                src={image.city}
+                alt="Accra city stays"
+                className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#071c17]/75 to-transparent" />
+              <div className="absolute bottom-4 left-4 text-white">
+                <p className="font-serif text-2xl">Accra</p>
+                <p className="text-xs text-white/75">
+                  City energy, leafy corners
+                </p>
+              </div>
+            </Link>
+            <Link
+              href="#stays"
+              className="group relative h-[180px] overflow-hidden rounded-2xl"
+            >
+              <img
+                src={image.coast}
+                alt="Ada coastal stays"
+                className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#071c17]/75 to-transparent" />
+              <div className="absolute bottom-4 left-4 text-white">
+                <p className="font-serif text-2xl">Ada</p>
+                <p className="text-xs text-white/75">
+                  Lagoon air and slow days
+                </p>
+              </div>
+            </Link>
+            <Link
+              href="#stays"
+              className="group relative h-[180px] overflow-hidden rounded-2xl"
+            >
+              <img
+                src={image.room}
+                alt="Kumasi boutique stays"
+                className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#071c17]/75 to-transparent" />
+              <div className="absolute bottom-4 left-4 text-white">
+                <p className="font-serif text-2xl">Kumasi</p>
+                <p className="text-xs text-white/75">
+                  Culture, craft, character
+                </p>
+              </div>
+            </Link>
+            <Link
+              href="#stays"
+              className="group relative h-[180px] overflow-hidden rounded-2xl"
+            >
+              <img
+                src={image.city}
+                alt="Cape Coast stays"
+                className="h-full w-full object-cover object-right transition duration-500 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#071c17]/75 to-transparent" />
+              <div className="absolute bottom-4 left-4 text-white">
+                <p className="font-serif text-2xl">Cape Coast</p>
+                <p className="text-xs text-white/75">History by the water</p>
+              </div>
+            </Link>
+          </div>
+        </section>
+        <section className="border-y border-[#dfe4dc] bg-[#f3f5f0]">
+          <div className="mx-auto max-w-[1240px] px-5 py-16 lg:px-8">
+            <div className="mb-7">
+              <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-[#b18143]">
+                Browse by property type
+              </p>
+              <h2 className="font-serif text-[36px] leading-none tracking-[-0.035em] text-[#183a31]">
+                The stay that fits the trip
+              </h2>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <Link
+                href="#stays"
+                className="rounded-2xl border border-[#dfe4dc] bg-white p-5 transition hover:-translate-y-0.5 hover:border-[#91a99a]"
+              >
+                <Hotel className="mb-8 text-[#2b6755]" size={22} />
+                <h3 className="font-serif text-2xl text-[#183a31]">Hotels</h3>
+                <p className="mt-2 text-xs leading-5 text-[#718078]">
+                  Reliable rooms, warm service, easy arrivals.
+                </p>
+              </Link>
+              <Link
+                href="#stays"
+                className="rounded-2xl border border-[#dfe4dc] bg-white p-5 transition hover:-translate-y-0.5 hover:border-[#91a99a]"
+              >
+                <BedDouble className="mb-8 text-[#2b6755]" size={22} />
+                <h3 className="font-serif text-2xl text-[#183a31]">
+                  Boutique stays
+                </h3>
+                <p className="mt-2 text-xs leading-5 text-[#718078]">
+                  Smaller properties with a distinct point of view.
+                </p>
+              </Link>
+              <Link
+                href="#stays"
+                className="rounded-2xl border border-[#dfe4dc] bg-white p-5 transition hover:-translate-y-0.5 hover:border-[#91a99a]"
+              >
+                <Waves className="mb-8 text-[#2b6755]" size={22} />
+                <h3 className="font-serif text-2xl text-[#183a31]">
+                  Coastal retreats
+                </h3>
+                <p className="mt-2 text-xs leading-5 text-[#718078]">
+                  A slower rhythm, with water close by.
+                </p>
+              </Link>
+              <Link
+                href="#stays"
+                className="rounded-2xl border border-[#dfe4dc] bg-white p-5 transition hover:-translate-y-0.5 hover:border-[#91a99a]"
+              >
+                <Sparkles className="mb-8 text-[#2b6755]" size={22} />
+                <h3 className="font-serif text-2xl text-[#183a31]">
+                  Serviced apartments
+                </h3>
+                <p className="mt-2 text-xs leading-5 text-[#718078]">
+                  More space for work trips and longer visits.
+                </p>
+              </Link>
+            </div>
+          </div>
+        </section>
+        <section
+          id="how-it-works"
+          className="border-y border-[#dfe4dc] bg-[#f3f5f0]"
+        >
+          <div className="mx-auto grid max-w-[1240px] gap-10 px-5 py-20 lg:grid-cols-[.8fr_1.2fr] lg:px-8">
+            <div>
+              <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.2em] text-[#b18143]">
+                The StayNest standard
+              </p>
+              <h2 className="max-w-[360px] font-serif text-[43px] leading-[.96] tracking-[-0.04em] text-[#183a31]">
+                Thoughtful from search to check-out.
+              </h2>
+              <p className="mt-5 max-w-[360px] text-sm leading-6 text-[#718078]">
+                We keep the experience simple for guests, and the important
+                details visible for the people running each stay.
+              </p>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="rounded-[20px] bg-white p-6 shadow-[0_12px_32px_rgba(24,58,49,.05)]">
+                <span className="mb-7 grid h-11 w-11 place-items-center rounded-2xl bg-[#e7efe6] text-[#2a6755]">
+                  <ShieldCheck size={20} />
+                </span>
+                <h3 className="font-serif text-[24px] text-[#183a31]">
+                  Live, not last week
+                </h3>
+                <p className="mt-2 text-sm leading-6 text-[#718078]">
+                  Connected hotels read and write availability through
+                  BillFlow's reservation engine.
+                </p>
+              </div>
+              <div className="rounded-[20px] bg-white p-6 shadow-[0_12px_32px_rgba(24,58,49,.05)]">
+                <span className="mb-7 grid h-11 w-11 place-items-center rounded-2xl bg-[#f4ead7] text-[#a16c2d]">
+                  <Heart size={20} />
+                </span>
+                <h3 className="font-serif text-[24px] text-[#183a31]">
+                  Made for real stays
+                </h3>
+                <p className="mt-2 text-sm leading-6 text-[#718078]">
+                  Clear policies, verified payment, and support that feels like
+                  a person is on the other side.
+                </p>
+              </div>
+              <div className="rounded-[20px] bg-white p-6 shadow-[0_12px_32px_rgba(24,58,49,.05)]">
+                <span className="mb-7 grid h-11 w-11 place-items-center rounded-2xl bg-[#e7efe6] text-[#2a6755]">
+                  <Sparkles size={20} />
+                </span>
+                <h3 className="font-serif text-[24px] text-[#183a31]">
+                  A little more local
+                </h3>
+                <p className="mt-2 text-sm leading-6 text-[#718078]">
+                  Stays with texture, from Accra's leafy neighborhoods to the
+                  lagoon air of Ada.
+                </p>
+              </div>
+              <div className="rounded-[20px] bg-white p-6 shadow-[0_12px_32px_rgba(24,58,49,.05)]">
+                <span className="mb-7 grid h-11 w-11 place-items-center rounded-2xl bg-[#f4ead7] text-[#a16c2d]">
+                  <CircleHelp size={20} />
+                </span>
+                <h3 className="font-serif text-[24px] text-[#183a31]">
+                  Help when it matters
+                </h3>
+                <p className="mt-2 text-sm leading-6 text-[#718078]">
+                  From a change of plans to a question about your room, our team
+                  keeps things moving.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section className="mx-auto max-w-[1240px] px-5 py-20 lg:px-8">
+          <div className="grid items-center gap-10 rounded-[28px] bg-[#e8efe7] p-8 md:grid-cols-[1.15fr_.85fr] md:p-12">
+            <div>
+              <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-[#b18143]">
+                For hotel owners
+              </p>
+              <h2 className="max-w-[540px] font-serif text-[43px] leading-[.95] tracking-[-0.04em] text-[#183a31]">
+                More eyes on your rooms. Less double entry.
+              </h2>
+              <p className="mt-5 max-w-[490px] text-sm leading-6 text-[#607269]">
+                Connect a BillFlow property and keep your rates, inventory, and
+                reservations in one place. Or start with a lightweight manual
+                dashboard.
+              </p>
+              <Link
+                href="/hotel-dashboard"
+                className="mt-7 inline-flex items-center gap-2 rounded-xl bg-[#183a31] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#245448]"
+              >
+                Explore the partner dashboard <ArrowRight size={15} />
+              </Link>
+            </div>
+            <div className="relative min-h-[240px] overflow-hidden rounded-[22px]">
+              <img
+                src={image.room}
+                alt="Boutique hotel room"
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+              <div className="absolute inset-0 bg-[#183a31]/35" />
+              <div className="absolute bottom-4 left-4 right-4 rounded-[16px] border border-white/20 bg-white/15 p-4 text-white backdrop-blur-lg">
+                <div className="mb-2 flex items-center gap-2">
+                  <Wifi size={15} className="text-[#e7c77b]" />
+                  <span className="text-xs font-bold">
+                    BillFlow-connected inventory
+                  </span>
+                </div>
+                <p className="text-xs leading-5 text-white/80">
+                  One source of truth for availability, with conflicts surfaced
+                  instead of hidden.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </Shell>
+  );
 }
 
 export function PropertyPage() {
   const [, navigate] = useLocation();
   const [, params] = useRoute("/hotel/:id");
   const hotelId = Number(params?.id ?? 1);
-  const { data: hotel, isLoading } = trpc.catalog.getHotel.useQuery({ id: hotelId });
+  const { data: hotel, isLoading } = trpc.catalog.getHotel.useQuery({
+    id: hotelId,
+  });
   const [activeImage, setActiveImage] = useState(0);
   const [checkInDate, setCheckInDate] = useState(datePlus(14));
   const [checkOutDate, setCheckOutDate] = useState(datePlus(17));
   const [guestsCount, setGuestsCount] = useState(2);
   const [currency, setCurrency] = useState<"GHS" | "USD">("GHS");
   const [selectedRoomId, setSelectedRoomId] = useState<number | null>(null);
-  const liveInput = useMemo(() => selectedRoomId ? { hotelId, roomTypeId: selectedRoomId, checkInDate, checkOutDate } : { hotelId, roomTypeId: 101, checkInDate, checkOutDate }, [hotelId, selectedRoomId, checkInDate, checkOutDate]);
-  const live = trpc.catalog.liveAvailability.useQuery(liveInput, { enabled: Boolean(selectedRoomId) });
-  if (isLoading || !hotel) return <Shell><div className="mx-auto max-w-[1240px] px-5 py-24 lg:px-8"><div className="h-96 animate-pulse rounded-[28px] bg-[#edf1eb]" /></div></Shell>;
-  const selectedRoom = hotel.rooms.find((room: any) => room.id === selectedRoomId);
-  const nearbyLandmarks = hotel.location === "Ada" ? [{ name: "Ada Foah Beach", lat: hotel.lat + 0.012, lng: hotel.lng + 0.006 }, { name: "Songor Lagoon", lat: hotel.lat - 0.008, lng: hotel.lng - 0.01 }] : [{ name: "Labadi Beach", lat: hotel.lat + 0.01, lng: hotel.lng + 0.008 }, { name: "Osu Oxford Street", lat: hotel.lat - 0.006, lng: hotel.lng + 0.012 }];
-  const chooseRoom = (room: any) => { setSelectedRoomId(room.id); toast.success("Room selected", { description: "We will re-check live availability before payment." }); };
+  const liveInput = useMemo(
+    () =>
+      selectedRoomId
+        ? { hotelId, roomTypeId: selectedRoomId, checkInDate, checkOutDate }
+        : { hotelId, roomTypeId: 101, checkInDate, checkOutDate },
+    [hotelId, selectedRoomId, checkInDate, checkOutDate]
+  );
+  const live = trpc.catalog.liveAvailability.useQuery(liveInput, {
+    enabled: Boolean(selectedRoomId),
+  });
+  if (isLoading || !hotel)
+    return (
+      <Shell>
+        <div className="mx-auto max-w-[1240px] px-5 py-24 lg:px-8">
+          <div className="h-96 animate-pulse rounded-[28px] bg-[#edf1eb]" />
+        </div>
+      </Shell>
+    );
+  const selectedRoom = hotel.rooms.find(
+    (room: any) => room.id === selectedRoomId
+  );
+  const nearbyLandmarks =
+    hotel.location === "Ada"
+      ? [
+          {
+            name: "Ada Foah Beach",
+            lat: hotel.lat + 0.012,
+            lng: hotel.lng + 0.006,
+          },
+          {
+            name: "Songor Lagoon",
+            lat: hotel.lat - 0.008,
+            lng: hotel.lng - 0.01,
+          },
+        ]
+      : [
+          {
+            name: "Labadi Beach",
+            lat: hotel.lat + 0.01,
+            lng: hotel.lng + 0.008,
+          },
+          {
+            name: "Osu Oxford Street",
+            lat: hotel.lat - 0.006,
+            lng: hotel.lng + 0.012,
+          },
+        ];
+  const chooseRoom = (room: any) => {
+    setSelectedRoomId(room.id);
+    toast.success("Room selected", {
+      description: "We will re-check live availability before payment.",
+    });
+  };
   const beginBooking = () => {
-    if (!selectedRoom) return toast.error("Choose a room first", { description: "Select one of the available room types to continue." });
-    sessionStorage.setItem("staynest_booking", JSON.stringify({ hotel, room: selectedRoom, checkInDate, checkOutDate, guestsCount, currency, liveAvailableRooms: live.data?.availableRooms ?? selectedRoom.availableRooms }));
+    if (!selectedRoom)
+      return toast.error("Choose a room first", {
+        description: "Select one of the available room types to continue.",
+      });
+    sessionStorage.setItem(
+      "staynest_booking",
+      JSON.stringify({
+        hotel,
+        room: selectedRoom,
+        checkInDate,
+        checkOutDate,
+        guestsCount,
+        currency,
+        liveAvailableRooms:
+          live.data?.availableRooms ?? selectedRoom.availableRooms,
+      })
+    );
     navigate("/book");
   };
-  return <Shell>
-    <main className="mx-auto max-w-[1240px] px-5 pb-24 pt-8 lg:px-8"><Link href="/" className="mb-7 inline-flex items-center gap-2 text-xs font-bold text-[#718078] transition hover:text-[#183a31]"><ArrowLeft size={14} /> Back to stays</Link>
-      <div className="grid gap-2 overflow-hidden rounded-[26px] md:grid-cols-[1.35fr_.65fr] md:grid-rows-2 md:h-[480px]"><button onClick={() => setActiveImage(0)} className="group relative h-[320px] overflow-hidden md:row-span-2 md:h-full"><img src={hotel.images[activeImage] ?? image.city} alt={hotel.name} className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.02]" /><div className="absolute inset-0 bg-gradient-to-t from-black/35 to-transparent" /><span className="absolute bottom-5 left-5 rounded-full bg-black/25 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-white backdrop-blur">Photo gallery</span></button><button onClick={() => setActiveImage(1)} className="hidden overflow-hidden md:block"><img src={hotel.images[1] ?? image.room} alt={`${hotel.name} room`} className="h-full w-full object-cover transition duration-700 hover:scale-[1.03]" /></button><button onClick={() => setActiveImage(2)} className="relative hidden overflow-hidden md:block"><img src={hotel.images[2] ?? image.coast} alt={`${hotel.name} exterior`} className="h-full w-full object-cover transition duration-700 hover:scale-[1.03]" /><span className="absolute bottom-4 right-4 rounded-full bg-white/90 px-3 py-2 text-[11px] font-bold text-[#183a31]">View all photos</span></button></div>
-      <div className="mt-9 grid gap-10 lg:grid-cols-[1fr_380px]"><div><div className="flex flex-wrap items-center gap-2"><Badge className="border-0 bg-[#e8efe7] text-[#2b6755]">{hotel.isBillflowConnected ? <><CheckCircle2 size={13} /> Live availability</> : "Curated stay"}</Badge><span className="text-xs font-semibold text-[#718078]">{hotel.location}</span></div><h1 className="mt-4 max-w-[680px] font-serif text-[54px] leading-[.93] tracking-[-0.045em] text-[#183a31]">{hotel.name}</h1><p className="mt-4 flex items-center gap-2 text-sm text-[#607269]"><MapPin size={15} className="text-[#b18143]" /> {hotel.address}</p><div className="mt-7 flex flex-wrap gap-3 text-xs font-semibold text-[#607269]"><span className="flex items-center gap-2 rounded-full bg-[#f3f5f0] px-3 py-2"><Star size={14} className="fill-[#c9954a] text-[#c9954a]" /> {hotel.rating ? hotel.rating.toFixed(1) : "New"} · {hotel.reviewCount ? `${hotel.reviewCount} reviews` : "No reviews yet"}</span><span className="flex items-center gap-2 rounded-full bg-[#f3f5f0] px-3 py-2"><ShieldCheck size={14} className="text-[#2b6755]" /> Verified property</span></div><p className="mt-8 max-w-[680px] text-[16px] leading-8 text-[#52655b]">{hotel.description}</p><div className="mt-10"><h2 className="font-serif text-[30px] text-[#183a31]">At the property</h2><div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{hotel.amenities.map((amenity: string) => <div key={amenity} className="flex items-center gap-3 rounded-xl border border-[#e2e7df] bg-white px-4 py-3 text-sm font-semibold text-[#52655b]"><Check size={15} className="text-[#b18143]" /> {amenity}</div>)}</div></div><div className="mt-12 overflow-hidden rounded-[24px] border border-[#e2e7df] bg-white"><div className="border-b border-[#e2e7df] p-6"><div className="flex items-end justify-between gap-4"><div><p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#b18143]">Location</p><h2 className="mt-2 font-serif text-[30px] text-[#183a31]">Easy to find, hard to leave</h2></div><a href={`https://www.google.com/maps/dir/?api=1&destination=${hotel.lat},${hotel.lng}`} target="_blank" rel="noreferrer" className="hidden items-center gap-2 text-xs font-bold text-[#2b6755] sm:flex">Get directions <ExternalLink size={13} /></a></div></div><MapView className="h-[300px]" initialCenter={{ lat: hotel.lat, lng: hotel.lng }} initialZoom={14} onMapReady={(map) => { new google.maps.marker.AdvancedMarkerElement({ map, position: { lat: hotel.lat, lng: hotel.lng }, title: hotel.name }); nearbyLandmarks.forEach((landmark) => new google.maps.marker.AdvancedMarkerElement({ map, position: { lat: landmark.lat, lng: landmark.lng }, title: landmark.name })); }} /></div></div>
-        <aside className="lg:sticky lg:top-28 lg:self-start"><Card className="overflow-hidden rounded-[24px] border-[#dce4dc] bg-white shadow-[0_20px_60px_rgba(24,58,49,.10)]"><CardHeader className="border-b border-[#edf0eb] p-6"><div className="flex items-center justify-between"><div><p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#b18143]">Reserve your stay</p><CardTitle className="mt-2 font-serif text-[27px] text-[#183a31]">Choose your dates</CardTitle></div><div className="flex items-center gap-1 rounded-xl bg-[#f3f5f0] p-1"><button className={`rounded-lg px-2 py-1 text-[10px] font-bold ${currency === "GHS" ? "bg-white text-[#183a31] shadow-sm" : "text-[#718078]"}`} onClick={() => setCurrency("GHS")}>GHS</button><button className={`rounded-lg px-2 py-1 text-[10px] font-bold ${currency === "USD" ? "bg-white text-[#183a31] shadow-sm" : "text-[#718078]"}`} onClick={() => setCurrency("USD")}>USD</button></div></div></CardHeader><CardContent className="space-y-5 p-6"><div className="grid grid-cols-2 gap-3"><div><Label className="text-[10px] font-bold uppercase tracking-[0.13em] text-[#718078]">Check in</Label><Input type="date" value={checkInDate} onChange={(event) => setCheckInDate(event.target.value)} className="mt-2 h-10 rounded-xl border-[#dfe4dc] text-xs font-semibold" /></div><div><Label className="text-[10px] font-bold uppercase tracking-[0.13em] text-[#718078]">Check out</Label><Input type="date" value={checkOutDate} onChange={(event) => setCheckOutDate(event.target.value)} className="mt-2 h-10 rounded-xl border-[#dfe4dc] text-xs font-semibold" /></div></div><div><Label className="text-[10px] font-bold uppercase tracking-[0.13em] text-[#718078]">Guests</Label><select value={guestsCount} onChange={(event) => setGuestsCount(Number(event.target.value))} className="mt-2 h-10 w-full rounded-xl border border-[#dfe4dc] bg-white px-3 text-xs font-semibold outline-none"><option value={1}>1 guest</option><option value={2}>2 guests</option><option value={3}>3 guests</option><option value={4}>4 guests</option></select></div><Separator /><div role="table" aria-label="Room availability" className="overflow-hidden rounded-xl border border-[#dfe4dc]"><div role="row" className="grid grid-cols-[1fr_auto] gap-3 bg-[#f3f5f0] px-3 py-2 text-[10px] font-bold uppercase tracking-[0.11em] text-[#718078]"><span>Room type</span><span>Price / night</span></div><div className="divide-y divide-[#edf0eb]">{hotel.rooms.map((room: any) => { const roomPrice = selectedRoomId === room.id ? (currency === "GHS" ? live.data?.livePricing?.ghs ?? room.priceGhs : live.data?.livePricing?.usd ?? room.priceUsd) : (currency === "GHS" ? room.priceGhs : room.priceUsd); const roomAvailability = live.data?.availableRooms ?? room.availableRooms; return <button role="row" key={room.id} onClick={() => chooseRoom(room)} className={`w-full px-3 py-3 text-left transition ${selectedRoomId === room.id ? "bg-[#f2f7f1]" : "bg-white hover:bg-[#f7faf6]"}`}><div className="grid grid-cols-[1fr_auto] items-center gap-3"><div className="flex min-w-0 items-center gap-2.5"><img src={room.images?.[0] ?? image.room} alt="" className="h-12 w-14 shrink-0 rounded-lg object-cover" /><div className="min-w-0"><div className="flex items-center gap-1.5"><span className="truncate font-serif text-[16px] leading-tight text-[#183a31]">{room.name}</span>{selectedRoomId === room.id && <CheckCircle2 size={14} className="shrink-0 text-[#2b6755]" />}</div><p className="mt-1 truncate text-[10px] text-[#718078]">Sleeps {room.capacity} · {room.amenities.slice(0, 2).join(" · ")}</p><p className="mt-1 text-[10px] font-semibold text-[#2b6755]">{roomAvailability ? `${roomAvailability} available` : "Availability checked at booking"}</p></div></div><div className="text-right"><div className="font-semibold text-[#183a31]">{formatMoney(roomPrice, currency)}</div><div className="mt-1 text-[10px] text-[#718078]">per night</div></div></div>{selectedRoomId === room.id && <div className="mt-2 flex items-center justify-between rounded-md bg-white/80 px-2 py-1.5 text-[10px] font-semibold text-[#2b6755]"><span className="flex items-center gap-1"><Clock3 size={11} /> Live re-check enabled</span><span>{live.isFetching ? "Refreshing…" : "Selected"}</span></div>}</button>; })}</div></div><Button onClick={beginBooking} disabled={!selectedRoom} className="h-12 w-full rounded-xl bg-[#183a31] text-sm font-bold text-white hover:bg-[#245448]">Continue to guest details <ArrowRight size={16} /></Button><p className="flex items-center justify-center gap-2 text-center text-[10px] leading-4 text-[#8a9890]"><LockKeyhole size={12} /> Payment is verified before a booking is confirmed.</p></CardContent></Card></aside></div>
-      <div className="mt-16">
-        <PropertyReviewsSection hotelId={hotelId} />
-      </div>
-    </main>
-  </Shell>;
+  return (
+    <Shell>
+      <main className="mx-auto max-w-[1240px] px-5 pb-24 pt-8 lg:px-8">
+        <Link
+          href="/"
+          className="mb-7 inline-flex items-center gap-2 text-xs font-bold text-[#718078] transition hover:text-[#183a31]"
+        >
+          <ArrowLeft size={14} /> Back to stays
+        </Link>
+        <div className="grid gap-2 overflow-hidden rounded-[26px] md:grid-cols-[1.35fr_.65fr] md:grid-rows-2 md:h-[480px]">
+          <button
+            onClick={() => setActiveImage(0)}
+            className="group relative h-[320px] overflow-hidden md:row-span-2 md:h-full"
+          >
+            <img
+              src={hotel.images[activeImage] ?? image.city}
+              alt={hotel.name}
+              className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.02]"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/35 to-transparent" />
+            <span className="absolute bottom-5 left-5 rounded-full bg-black/25 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-white backdrop-blur">
+              Photo gallery
+            </span>
+          </button>
+          <button
+            onClick={() => setActiveImage(1)}
+            className="hidden overflow-hidden md:block"
+          >
+            <img
+              src={hotel.images[1] ?? image.room}
+              alt={`${hotel.name} room`}
+              className="h-full w-full object-cover transition duration-700 hover:scale-[1.03]"
+            />
+          </button>
+          <button
+            onClick={() => setActiveImage(2)}
+            className="relative hidden overflow-hidden md:block"
+          >
+            <img
+              src={hotel.images[2] ?? image.coast}
+              alt={`${hotel.name} exterior`}
+              className="h-full w-full object-cover transition duration-700 hover:scale-[1.03]"
+            />
+            <span className="absolute bottom-4 right-4 rounded-full bg-white/90 px-3 py-2 text-[11px] font-bold text-[#183a31]">
+              View all photos
+            </span>
+          </button>
+        </div>
+        <div className="mt-9 grid gap-10 lg:grid-cols-[1fr_380px]">
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge className="border-0 bg-[#e8efe7] text-[#2b6755]">
+                {hotel.isBillflowConnected ? (
+                  <>
+                    <CheckCircle2 size={13} /> Live availability
+                  </>
+                ) : (
+                  "Curated stay"
+                )}
+              </Badge>
+              <span className="text-xs font-semibold text-[#718078]">
+                {hotel.location}
+              </span>
+            </div>
+            <h1 className="mt-4 max-w-[680px] font-serif text-[54px] leading-[.93] tracking-[-0.045em] text-[#183a31]">
+              {hotel.name}
+            </h1>
+            <p className="mt-4 flex items-center gap-2 text-sm text-[#607269]">
+              <MapPin size={15} className="text-[#b18143]" /> {hotel.address}
+            </p>
+            <div className="mt-7 flex flex-wrap gap-3 text-xs font-semibold text-[#607269]">
+              <span className="flex items-center gap-2 rounded-full bg-[#f3f5f0] px-3 py-2">
+                <Star size={14} className="fill-[#c9954a] text-[#c9954a]" />{" "}
+                {hotel.rating ? hotel.rating.toFixed(1) : "New"} ·{" "}
+                {hotel.reviewCount
+                  ? `${hotel.reviewCount} reviews`
+                  : "No reviews yet"}
+              </span>
+              <span className="flex items-center gap-2 rounded-full bg-[#f3f5f0] px-3 py-2">
+                <ShieldCheck size={14} className="text-[#2b6755]" /> Verified
+                property
+              </span>
+            </div>
+            <p className="mt-8 max-w-[680px] text-[16px] leading-8 text-[#52655b]">
+              {hotel.description}
+            </p>
+            <div className="mt-10">
+              <h2 className="font-serif text-[30px] text-[#183a31]">
+                At the property
+              </h2>
+              <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {hotel.amenities.map((amenity: string) => (
+                  <div
+                    key={amenity}
+                    className="flex items-center gap-3 rounded-xl border border-[#e2e7df] bg-white px-4 py-3 text-sm font-semibold text-[#52655b]"
+                  >
+                    <Check size={15} className="text-[#b18143]" /> {amenity}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="mt-12 overflow-hidden rounded-[24px] border border-[#e2e7df] bg-white">
+              <div className="border-b border-[#e2e7df] p-6">
+                <div className="flex items-end justify-between gap-4">
+                  <div>
+                    <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#b18143]">
+                      Location
+                    </p>
+                    <h2 className="mt-2 font-serif text-[30px] text-[#183a31]">
+                      Easy to find, hard to leave
+                    </h2>
+                  </div>
+                  <a
+                    href={`https://www.google.com/maps/dir/?api=1&destination=${hotel.lat},${hotel.lng}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="hidden items-center gap-2 text-xs font-bold text-[#2b6755] sm:flex"
+                  >
+                    Get directions <ExternalLink size={13} />
+                  </a>
+                </div>
+              </div>
+              <MapView
+                className="h-[300px]"
+                initialCenter={{ lat: hotel.lat, lng: hotel.lng }}
+                initialZoom={14}
+                onMapReady={map => {
+                  new google.maps.marker.AdvancedMarkerElement({
+                    map,
+                    position: { lat: hotel.lat, lng: hotel.lng },
+                    title: hotel.name,
+                  });
+                  nearbyLandmarks.forEach(
+                    landmark =>
+                      new google.maps.marker.AdvancedMarkerElement({
+                        map,
+                        position: { lat: landmark.lat, lng: landmark.lng },
+                        title: landmark.name,
+                      })
+                  );
+                }}
+              />
+            </div>
+          </div>
+          <aside className="lg:sticky lg:top-28 lg:self-start">
+            <Card className="overflow-hidden rounded-[24px] border-[#dce4dc] bg-white shadow-[0_20px_60px_rgba(24,58,49,.10)]">
+              <CardHeader className="border-b border-[#edf0eb] p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#b18143]">
+                      Reserve your stay
+                    </p>
+                    <CardTitle className="mt-2 font-serif text-[27px] text-[#183a31]">
+                      Choose your dates
+                    </CardTitle>
+                  </div>
+                  <div className="flex items-center gap-1 rounded-xl bg-[#f3f5f0] p-1">
+                    <button
+                      className={`rounded-lg px-2 py-1 text-[10px] font-bold ${currency === "GHS" ? "bg-white text-[#183a31] shadow-sm" : "text-[#718078]"}`}
+                      onClick={() => setCurrency("GHS")}
+                    >
+                      GHS
+                    </button>
+                    <button
+                      className={`rounded-lg px-2 py-1 text-[10px] font-bold ${currency === "USD" ? "bg-white text-[#183a31] shadow-sm" : "text-[#718078]"}`}
+                      onClick={() => setCurrency("USD")}
+                    >
+                      USD
+                    </button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-5 p-6">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-[10px] font-bold uppercase tracking-[0.13em] text-[#718078]">
+                      Check in
+                    </Label>
+                    <Input
+                      type="date"
+                      value={checkInDate}
+                      onChange={event => setCheckInDate(event.target.value)}
+                      className="mt-2 h-10 rounded-xl border-[#dfe4dc] text-xs font-semibold"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-[10px] font-bold uppercase tracking-[0.13em] text-[#718078]">
+                      Check out
+                    </Label>
+                    <Input
+                      type="date"
+                      value={checkOutDate}
+                      onChange={event => setCheckOutDate(event.target.value)}
+                      className="mt-2 h-10 rounded-xl border-[#dfe4dc] text-xs font-semibold"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-[10px] font-bold uppercase tracking-[0.13em] text-[#718078]">
+                    Guests
+                  </Label>
+                  <select
+                    value={guestsCount}
+                    onChange={event =>
+                      setGuestsCount(Number(event.target.value))
+                    }
+                    className="mt-2 h-10 w-full rounded-xl border border-[#dfe4dc] bg-white px-3 text-xs font-semibold outline-none"
+                  >
+                    <option value={1}>1 guest</option>
+                    <option value={2}>2 guests</option>
+                    <option value={3}>3 guests</option>
+                    <option value={4}>4 guests</option>
+                  </select>
+                </div>
+                <Separator />
+                <div
+                  role="table"
+                  aria-label="Room availability"
+                  className="overflow-hidden rounded-xl border border-[#dfe4dc]"
+                >
+                  <div
+                    role="row"
+                    className="grid grid-cols-[1fr_auto] gap-3 bg-[#f3f5f0] px-3 py-2 text-[10px] font-bold uppercase tracking-[0.11em] text-[#718078]"
+                  >
+                    <span>Room type</span>
+                    <span>Price / night</span>
+                  </div>
+                  <div className="divide-y divide-[#edf0eb]">
+                    {hotel.rooms.map((room: any) => {
+                      const roomPrice =
+                        selectedRoomId === room.id
+                          ? currency === "GHS"
+                            ? (live.data?.livePricing?.ghs ?? room.priceGhs)
+                            : (live.data?.livePricing?.usd ?? room.priceUsd)
+                          : currency === "GHS"
+                            ? room.priceGhs
+                            : room.priceUsd;
+                      const roomAvailability =
+                        live.data?.availableRooms ?? room.availableRooms;
+                      return (
+                        <button
+                          role="row"
+                          key={room.id}
+                          onClick={() => chooseRoom(room)}
+                          className={`w-full px-3 py-3 text-left transition ${selectedRoomId === room.id ? "bg-[#f2f7f1]" : "bg-white hover:bg-[#f7faf6]"}`}
+                        >
+                          <div className="grid grid-cols-[1fr_auto] items-center gap-3">
+                            <div className="flex min-w-0 items-center gap-2.5">
+                              <img
+                                src={room.images?.[0] ?? image.room}
+                                alt=""
+                                className="h-12 w-14 shrink-0 rounded-lg object-cover"
+                              />
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-1.5">
+                                  <span className="truncate font-serif text-[16px] leading-tight text-[#183a31]">
+                                    {room.name}
+                                  </span>
+                                  {selectedRoomId === room.id && (
+                                    <CheckCircle2
+                                      size={14}
+                                      className="shrink-0 text-[#2b6755]"
+                                    />
+                                  )}
+                                </div>
+                                <p className="mt-1 truncate text-[10px] text-[#718078]">
+                                  Sleeps {room.capacity} ·{" "}
+                                  {room.amenities.slice(0, 2).join(" · ")}
+                                </p>
+                                <p className="mt-1 text-[10px] font-semibold text-[#2b6755]">
+                                  {roomAvailability
+                                    ? `${roomAvailability} available`
+                                    : "Availability checked at booking"}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="font-semibold text-[#183a31]">
+                                {formatMoney(roomPrice, currency)}
+                              </div>
+                              <div className="mt-1 text-[10px] text-[#718078]">
+                                per night
+                              </div>
+                            </div>
+                          </div>
+                          {selectedRoomId === room.id && (
+                            <div className="mt-2 flex items-center justify-between rounded-md bg-white/80 px-2 py-1.5 text-[10px] font-semibold text-[#2b6755]">
+                              <span className="flex items-center gap-1">
+                                <Clock3 size={11} /> Live re-check enabled
+                              </span>
+                              <span>
+                                {live.isFetching ? "Refreshing…" : "Selected"}
+                              </span>
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                <Button
+                  onClick={beginBooking}
+                  disabled={!selectedRoom}
+                  className="h-12 w-full rounded-xl bg-[#183a31] text-sm font-bold text-white hover:bg-[#245448]"
+                >
+                  Continue to guest details <ArrowRight size={16} />
+                </Button>
+                <p className="flex items-center justify-center gap-2 text-center text-[10px] leading-4 text-[#8a9890]">
+                  <LockKeyhole size={12} /> Payment is verified before a booking
+                  is confirmed.
+                </p>
+              </CardContent>
+            </Card>
+          </aside>
+        </div>
+        <div className="mt-16">
+          <PropertyReviewsSection hotelId={hotelId} />
+        </div>
+      </main>
+    </Shell>
+  );
 }
 
 export function BookingPage() {
   const [, navigate] = useLocation();
   const { isAuthenticated, user } = useAuth();
   const [step, setStep] = useState(1);
-  const [gateway, setGateway] = useState<"paystack" | "flutterwave">("paystack");
+  const [gateway, setGateway] = useState<"paystack" | "flutterwave">(
+    "paystack"
+  );
   const [guestName, setGuestName] = useState(user?.name ?? "");
   const [guestEmail, setGuestEmail] = useState(user?.email ?? "");
   const [guestPhone, setGuestPhone] = useState("");
   const [specialRequests, setSpecialRequests] = useState("");
-  const [booking, setBooking] = useState<any>(() => { try { return JSON.parse(sessionStorage.getItem("staynest_booking") ?? "null"); } catch { return null; } });
+  const [booking, setBooking] = useState<any>(() => {
+    try {
+      return JSON.parse(sessionStorage.getItem("staynest_booking") ?? "null");
+    } catch {
+      return null;
+    }
+  });
   const initialize = trpc.payments.initialize.useMutation();
   const createBooking = trpc.bookings.createAfterVerifiedPayment.useMutation();
-  if (!booking) return <Shell><div className="mx-auto max-w-[700px] px-5 py-24 text-center"><div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-[#e8efe7] text-[#2b6755]"><BedDouble size={26} /></div><h1 className="mt-5 font-serif text-4xl text-[#183a31]">Your stay is waiting</h1><p className="mt-3 text-sm text-[#718078]">Choose a property before starting a booking.</p><Link href="/" className="mt-7 inline-flex items-center gap-2 rounded-xl bg-[#183a31] px-5 py-3 text-sm font-bold text-white">Explore stays <ArrowRight size={15} /></Link></div></Shell>;
+  if (!booking)
+    return (
+      <Shell>
+        <div className="mx-auto max-w-[700px] px-5 py-24 text-center">
+          <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-[#e8efe7] text-[#2b6755]">
+            <BedDouble size={26} />
+          </div>
+          <h1 className="mt-5 font-serif text-4xl text-[#183a31]">
+            Your stay is waiting
+          </h1>
+          <p className="mt-3 text-sm text-[#718078]">
+            Choose a property before starting a booking.
+          </p>
+          <Link
+            href="/"
+            className="mt-7 inline-flex items-center gap-2 rounded-xl bg-[#183a31] px-5 py-3 text-sm font-bold text-white"
+          >
+            Explore stays <ArrowRight size={15} />
+          </Link>
+        </div>
+      </Shell>
+    );
   const room = booking.room;
   const hotel = booking.hotel;
   const nights = nightsBetween(booking.checkInDate, booking.checkOutDate);
   const nightly = booking.currency === "GHS" ? room.priceGhs : room.priceUsd;
   const total = nightly * nights;
-  const { commission, hotelPayout } = { commission: total * 0.15, hotelPayout: total * 0.85 };
+  const { commission, hotelPayout } = {
+    commission: total * 0.15,
+    hotelPayout: total * 0.85,
+  };
   const onPay = async () => {
     if (!isAuthenticated) return startLogin();
-    if (booking.paymentStatus === "success") return toast.info("This booking is already paid", { description: "No second charge was created." });
-    if (!guestName || !guestEmail || !guestPhone) return toast.error("Add your guest details", { description: "Name, email, and phone are required for the reservation." });
+    if (booking.paymentStatus === "success")
+      return toast.info("This booking is already paid", {
+        description: "No second charge was created.",
+      });
+    if (!guestName || !guestEmail || !guestPhone)
+      return toast.error("Add your guest details", {
+        description: "Name, email, and phone are required for the reservation.",
+      });
     try {
       const decision = await startHostedCheckout({
         paymentStatus: booking.paymentStatus,
         gatewayLabel: gateway === "paystack" ? "Paystack" : "Flutterwave",
-        session: { booking, guestName, guestEmail, guestPhone, specialRequests, gateway, expectedAmount: total, currency: booking.currency },
-        initialize: () => initialize.mutateAsync({ email: guestEmail, amount: total, currency: booking.currency, gateway, hotelId: hotel.id, roomId: room.id, checkInDate: booking.checkInDate, checkOutDate: booking.checkOutDate, guestsCount: booking.guestsCount }),
+        session: {
+          booking,
+          guestName,
+          guestEmail,
+          guestPhone,
+          specialRequests,
+          gateway,
+          expectedAmount: total,
+          currency: booking.currency,
+        },
+        initialize: () =>
+          initialize.mutateAsync({
+            email: guestEmail,
+            amount: total,
+            currency: booking.currency,
+            gateway,
+            hotelId: hotel.id,
+            roomId: room.id,
+            checkInDate: booking.checkInDate,
+            checkOutDate: booking.checkOutDate,
+            guestsCount: booking.guestsCount,
+          }),
         storage: sessionStorage,
         redirect: redirectToCheckout,
       });
-      if (decision.state !== "redirect") return toast.error(decision.state === "unconfigured" ? "Payment setup is pending" : "Payment unavailable", { description: decision.message });
-    } catch (error) { toast.error(error instanceof Error ? error.message : "Payment could not start"); }
+      if (decision.state !== "redirect")
+        return toast.error(
+          decision.state === "unconfigured"
+            ? "Payment setup is pending"
+            : "Payment unavailable",
+          { description: decision.message }
+        );
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Payment could not start"
+      );
+    }
   };
-  const confirmDemo = async () => { toast.error("Payment verification required", { description: "Return from Paystack or Flutterwave before StayNest can confirm this reservation." }); };
-  return <Shell><main className="mx-auto max-w-[1180px] px-5 pb-24 pt-10 lg:px-8"><div className="mb-8 flex flex-wrap items-center justify-between gap-4"><Link href={`/hotel/${hotel.id}`} className="inline-flex items-center gap-2 text-xs font-bold text-[#718078]"><ArrowLeft size={14} /> Back to property</Link><div className="flex items-center gap-2 text-[11px] font-bold text-[#718078]"><span className={step >= 1 ? "text-[#183a31]" : ""}>01 Details</span><ChevronRight size={13} /><span className={step >= 2 ? "text-[#183a31]" : ""}>02 Payment</span><ChevronRight size={13} /><span className={step >= 3 ? "text-[#183a31]" : ""}>03 Confirmation</span></div></div><div className="grid gap-10 lg:grid-cols-[1fr_360px]"><div><p className="mb-2 text-[11px] font-bold uppercase tracking-[0.18em] text-[#b18143]">Your reservation</p><h1 className="font-serif text-[48px] leading-[.95] tracking-[-0.04em] text-[#183a31]">Make it yours.</h1><p className="mt-4 max-w-[550px] text-sm leading-6 text-[#718078]">A few details, a verified payment, and this beautiful room will be ready for you.</p>{step === 1 && <Card className="mt-8 rounded-[23px] border-[#dfe4dc] bg-white shadow-none"><CardHeader className="p-6 pb-3"><CardTitle className="font-serif text-[26px] text-[#183a31]">Guest details</CardTitle></CardHeader><CardContent className="grid gap-5 p-6 pt-3 sm:grid-cols-2"><div className="sm:col-span-2"><Label className="text-xs font-bold text-[#50605a]">Full name</Label><Input value={guestName} onChange={(event) => setGuestName(event.target.value)} placeholder="Your full name" className="mt-2 h-11 rounded-xl border-[#dfe4dc]" /></div><div><Label className="text-xs font-bold text-[#50605a]">Email address</Label><Input type="email" value={guestEmail} onChange={(event) => setGuestEmail(event.target.value)} placeholder="you@example.com" className="mt-2 h-11 rounded-xl border-[#dfe4dc]" /></div><div><Label className="text-xs font-bold text-[#50605a]">Phone number</Label><Input value={guestPhone} onChange={(event) => setGuestPhone(event.target.value)} placeholder="+233 …" className="mt-2 h-11 rounded-xl border-[#dfe4dc]" /></div><div className="sm:col-span-2"><Label className="text-xs font-bold text-[#50605a]">Special requests <span className="font-normal text-[#8a9890]">(optional)</span></Label><Textarea value={specialRequests} onChange={(event) => setSpecialRequests(event.target.value)} placeholder="Arrival time, dietary preferences, or anything we should know" className="mt-2 min-h-[100px] rounded-xl border-[#dfe4dc]" /></div><div className="sm:col-span-2 flex items-start gap-3 rounded-xl bg-[#f3f5f0] p-4 text-xs leading-5 text-[#607269]"><ShieldCheck size={16} className="mt-0.5 shrink-0 text-[#2b6755]" /><span>We only use these details to complete and support your reservation. You will review the full total before payment.</span></div><Button onClick={() => { if (!guestName || !guestEmail || !guestPhone) return toast.error("Complete your guest details"); setStep(2); }} className="sm:col-span-2 h-12 rounded-xl bg-[#183a31] text-sm font-bold text-white hover:bg-[#245448]">Review payment <ArrowRight size={16} /></Button></CardContent></Card>}
-      {step === 2 && <Card className="mt-8 rounded-[23px] border-[#dfe4dc] bg-white shadow-none"><CardHeader className="p-6 pb-3"><CardTitle className="font-serif text-[26px] text-[#183a31]">Secure payment</CardTitle></CardHeader><CardContent className="space-y-5 p-6 pt-3"><div className="rounded-xl border border-[#dfe4dc] bg-[#f7f9f5] p-4 text-sm text-[#607269]"><div className="flex items-center gap-2 font-bold text-[#183a31]"><LockKeyhole size={15} className="text-[#2b6755]" /> Payment is verified before confirmation</div><p className="mt-2 text-xs leading-5">Choose your preferred processor. You will be redirected to complete payment securely, then returned to StayNest for final verification.</p></div><div><Label className="text-xs font-bold text-[#50605a]">Payment processor</Label><div className="mt-2 grid gap-3 sm:grid-cols-2"><button onClick={() => setGateway("paystack")} className={`rounded-xl border p-4 text-left ${gateway === "paystack" ? "border-[#2b6755] bg-[#eef5ed]" : "border-[#dfe4dc]"}`}><span className="block text-sm font-bold text-[#183a31]">Paystack</span><span className="mt-1 block text-[11px] text-[#718078]">Cards, mobile money & more</span></button><button onClick={() => setGateway("flutterwave")} className={`rounded-xl border p-4 text-left ${gateway === "flutterwave" ? "border-[#2b6755] bg-[#eef5ed]" : "border-[#dfe4dc]"}`}><span className="block text-sm font-bold text-[#183a31]">Flutterwave</span><span className="mt-1 block text-[11px] text-[#718078]">Hosted checkout for Ghana</span></button></div></div><div className="flex gap-3"><Button variant="outline" onClick={() => setStep(1)} className="h-12 flex-1 rounded-xl border-[#dfe4dc] text-sm font-bold text-[#183a31]">Back</Button><Button onClick={onPay} disabled={initialize.isPending} className="h-12 flex-[2] rounded-xl bg-[#183a31] text-sm font-bold text-white hover:bg-[#245448]">{initialize.isPending ? "Preparing checkout…" : `Pay ${formatMoney(total, booking.currency)}`} <CreditCard size={16} /></Button></div><p className="text-center text-[11px] leading-5 text-[#8a9890]">Your confirmation appears after the payment processor and BillFlow both return success.</p></CardContent></Card>}
-      <div className="mt-7 flex items-center gap-3 text-xs text-[#8a9890]"><CheckCircle2 size={15} className="text-[#2b6755]" /> Free cancellation policies are shown on each property's rate plan.</div></div><aside className="lg:sticky lg:top-28 lg:self-start"><Card className="overflow-hidden rounded-[23px] border-[#dfe4dc] bg-white shadow-[0_18px_50px_rgba(24,58,49,.08)]"><img src={room.images?.[0] ?? image.room} alt={room.name} className="h-48 w-full object-cover" /><CardContent className="p-6"><p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#b18143]">{hotel.name}</p><h2 className="mt-2 font-serif text-[27px] leading-tight text-[#183a31]">{room.name}</h2><div className="mt-4 space-y-3 text-xs text-[#607269]"><div className="flex items-center justify-between"><span className="flex items-center gap-2"><CalendarDays size={14} /> {booking.checkInDate}</span><ArrowRight size={13} /><span>{booking.checkOutDate}</span></div><div className="flex items-center justify-between"><span className="flex items-center gap-2"><UsersRound size={14} /> {booking.guestsCount} guests</span><span>{nights} nights</span></div></div><Separator className="my-5" /><div className="space-y-2 text-sm"><div className="flex justify-between text-[#718078]"><span>{formatMoney(nightly, booking.currency)} × {nights} nights</span><span>{formatMoney(total, booking.currency)}</span></div><div className="flex justify-between text-[#718078]"><span>Taxes & fees</span><span>Included</span></div><div className="mt-4 flex items-end justify-between"><span className="font-bold text-[#183a31]">Total</span><span className="font-serif text-[26px] text-[#183a31]">{formatMoney(total, booking.currency)}</span></div></div><div className="mt-5 rounded-xl bg-[#f3f5f0] p-3 text-[10px] leading-4 text-[#718078]">Platform service fee: 15% commission is included in the room total and settled transparently with the hotel.</div><div className="mt-5 space-y-2"><Button onClick={() => step === 1 ? setStep(2) : onPay()} disabled={initialize.isPending} className="h-12 w-full rounded-xl bg-[#183a31] text-sm font-bold text-white hover:bg-[#245448]">{step === 1 ? <>Review payment <ArrowRight size={16} /></> : initialize.isPending ? "Preparing checkout…" : <>Pay now · {formatMoney(total, booking.currency)} <CreditCard size={16} /></>}</Button><p className="text-center text-[10px] leading-4 text-[#8a9890]">{step === 1 ? "Review your guest details before paying securely." : "You’ll be redirected to the selected payment processor."}</p></div></CardContent></Card></aside></div></main></Shell>;
+  const confirmDemo = async () => {
+    toast.error("Payment verification required", {
+      description:
+        "Return from Paystack or Flutterwave before StayNest can confirm this reservation.",
+    });
+  };
+  return (
+    <Shell>
+      <main className="mx-auto max-w-[1180px] px-5 pb-24 pt-10 lg:px-8">
+        <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
+          <Link
+            href={`/hotel/${hotel.id}`}
+            className="inline-flex items-center gap-2 text-xs font-bold text-[#718078]"
+          >
+            <ArrowLeft size={14} /> Back to property
+          </Link>
+          <div className="flex items-center gap-2 text-[11px] font-bold text-[#718078]">
+            <span className={step >= 1 ? "text-[#183a31]" : ""}>
+              01 Details
+            </span>
+            <ChevronRight size={13} />
+            <span className={step >= 2 ? "text-[#183a31]" : ""}>
+              02 Payment
+            </span>
+            <ChevronRight size={13} />
+            <span className={step >= 3 ? "text-[#183a31]" : ""}>
+              03 Confirmation
+            </span>
+          </div>
+        </div>
+        <div className="grid gap-10 lg:grid-cols-[1fr_360px]">
+          <div>
+            <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.18em] text-[#b18143]">
+              Your reservation
+            </p>
+            <h1 className="font-serif text-[48px] leading-[.95] tracking-[-0.04em] text-[#183a31]">
+              Make it yours.
+            </h1>
+            <p className="mt-4 max-w-[550px] text-sm leading-6 text-[#718078]">
+              A few details, a verified payment, and this beautiful room will be
+              ready for you.
+            </p>
+            {step === 1 && (
+              <Card className="mt-8 rounded-[23px] border-[#dfe4dc] bg-white shadow-none">
+                <CardHeader className="p-6 pb-3">
+                  <CardTitle className="font-serif text-[26px] text-[#183a31]">
+                    Guest details
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="grid gap-5 p-6 pt-3 sm:grid-cols-2">
+                  <div className="sm:col-span-2">
+                    <Label className="text-xs font-bold text-[#50605a]">
+                      Full name
+                    </Label>
+                    <Input
+                      value={guestName}
+                      onChange={event => setGuestName(event.target.value)}
+                      placeholder="Your full name"
+                      className="mt-2 h-11 rounded-xl border-[#dfe4dc]"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs font-bold text-[#50605a]">
+                      Email address
+                    </Label>
+                    <Input
+                      type="email"
+                      value={guestEmail}
+                      onChange={event => setGuestEmail(event.target.value)}
+                      placeholder="you@example.com"
+                      className="mt-2 h-11 rounded-xl border-[#dfe4dc]"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs font-bold text-[#50605a]">
+                      Phone number
+                    </Label>
+                    <Input
+                      value={guestPhone}
+                      onChange={event => setGuestPhone(event.target.value)}
+                      placeholder="+233 …"
+                      className="mt-2 h-11 rounded-xl border-[#dfe4dc]"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <Label className="text-xs font-bold text-[#50605a]">
+                      Special requests{" "}
+                      <span className="font-normal text-[#8a9890]">
+                        (optional)
+                      </span>
+                    </Label>
+                    <Textarea
+                      value={specialRequests}
+                      onChange={event => setSpecialRequests(event.target.value)}
+                      placeholder="Arrival time, dietary preferences, or anything we should know"
+                      className="mt-2 min-h-[100px] rounded-xl border-[#dfe4dc]"
+                    />
+                  </div>
+                  <div className="sm:col-span-2 flex items-start gap-3 rounded-xl bg-[#f3f5f0] p-4 text-xs leading-5 text-[#607269]">
+                    <ShieldCheck
+                      size={16}
+                      className="mt-0.5 shrink-0 text-[#2b6755]"
+                    />
+                    <span>
+                      We only use these details to complete and support your
+                      reservation. You will review the full total before
+                      payment.
+                    </span>
+                  </div>
+                  <Button
+                    onClick={() => {
+                      if (!guestName || !guestEmail || !guestPhone)
+                        return toast.error("Complete your guest details");
+                      setStep(2);
+                    }}
+                    className="sm:col-span-2 h-12 rounded-xl bg-[#183a31] text-sm font-bold text-white hover:bg-[#245448]"
+                  >
+                    Review payment <ArrowRight size={16} />
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+            {step === 2 && (
+              <Card className="mt-8 rounded-[23px] border-[#dfe4dc] bg-white shadow-none">
+                <CardHeader className="p-6 pb-3">
+                  <CardTitle className="font-serif text-[26px] text-[#183a31]">
+                    Secure payment
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-5 p-6 pt-3">
+                  <div className="rounded-xl border border-[#dfe4dc] bg-[#f7f9f5] p-4 text-sm text-[#607269]">
+                    <div className="flex items-center gap-2 font-bold text-[#183a31]">
+                      <LockKeyhole size={15} className="text-[#2b6755]" />{" "}
+                      Payment is verified before confirmation
+                    </div>
+                    <p className="mt-2 text-xs leading-5">
+                      Choose your preferred processor. You will be redirected to
+                      complete payment securely, then returned to StayNest for
+                      final verification.
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-xs font-bold text-[#50605a]">
+                      Payment processor
+                    </Label>
+                    <div className="mt-2 grid gap-3 sm:grid-cols-2">
+                      <button
+                        onClick={() => setGateway("paystack")}
+                        className={`rounded-xl border p-4 text-left ${gateway === "paystack" ? "border-[#2b6755] bg-[#eef5ed]" : "border-[#dfe4dc]"}`}
+                      >
+                        <span className="block text-sm font-bold text-[#183a31]">
+                          Paystack
+                        </span>
+                        <span className="mt-1 block text-[11px] text-[#718078]">
+                          Cards, mobile money & more
+                        </span>
+                      </button>
+                      <button
+                        onClick={() => setGateway("flutterwave")}
+                        className={`rounded-xl border p-4 text-left ${gateway === "flutterwave" ? "border-[#2b6755] bg-[#eef5ed]" : "border-[#dfe4dc]"}`}
+                      >
+                        <span className="block text-sm font-bold text-[#183a31]">
+                          Flutterwave
+                        </span>
+                        <span className="mt-1 block text-[11px] text-[#718078]">
+                          Hosted checkout for Ghana
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <Button
+                      variant="outline"
+                      onClick={() => setStep(1)}
+                      className="h-12 flex-1 rounded-xl border-[#dfe4dc] text-sm font-bold text-[#183a31]"
+                    >
+                      Back
+                    </Button>
+                    <Button
+                      onClick={onPay}
+                      disabled={initialize.isPending}
+                      className="h-12 flex-[2] rounded-xl bg-[#183a31] text-sm font-bold text-white hover:bg-[#245448]"
+                    >
+                      {initialize.isPending
+                        ? "Preparing checkout…"
+                        : `Pay ${formatMoney(total, booking.currency)}`}{" "}
+                      <CreditCard size={16} />
+                    </Button>
+                  </div>
+                  <p className="text-center text-[11px] leading-5 text-[#8a9890]">
+                    Your confirmation appears after the payment processor and
+                    BillFlow both return success.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+            <div className="mt-7 flex items-center gap-3 text-xs text-[#8a9890]">
+              <CheckCircle2 size={15} className="text-[#2b6755]" /> Free
+              cancellation policies are shown on each property's rate plan.
+            </div>
+          </div>
+          <aside className="lg:sticky lg:top-28 lg:self-start">
+            <Card className="overflow-hidden rounded-[23px] border-[#dfe4dc] bg-white shadow-[0_18px_50px_rgba(24,58,49,.08)]">
+              <img
+                src={room.images?.[0] ?? image.room}
+                alt={room.name}
+                className="h-48 w-full object-cover"
+              />
+              <CardContent className="p-6">
+                <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#b18143]">
+                  {hotel.name}
+                </p>
+                <h2 className="mt-2 font-serif text-[27px] leading-tight text-[#183a31]">
+                  {room.name}
+                </h2>
+                <div className="mt-4 space-y-3 text-xs text-[#607269]">
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center gap-2">
+                      <CalendarDays size={14} /> {booking.checkInDate}
+                    </span>
+                    <ArrowRight size={13} />
+                    <span>{booking.checkOutDate}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center gap-2">
+                      <UsersRound size={14} /> {booking.guestsCount} guests
+                    </span>
+                    <span>{nights} nights</span>
+                  </div>
+                </div>
+                <Separator className="my-5" />
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between text-[#718078]">
+                    <span>
+                      {formatMoney(nightly, booking.currency)} × {nights} nights
+                    </span>
+                    <span>{formatMoney(total, booking.currency)}</span>
+                  </div>
+                  <div className="flex justify-between text-[#718078]">
+                    <span>Taxes & fees</span>
+                    <span>Included</span>
+                  </div>
+                  <div className="mt-4 flex items-end justify-between">
+                    <span className="font-bold text-[#183a31]">Total</span>
+                    <span className="font-serif text-[26px] text-[#183a31]">
+                      {formatMoney(total, booking.currency)}
+                    </span>
+                  </div>
+                </div>
+                <div className="mt-5 rounded-xl bg-[#f3f5f0] p-3 text-[10px] leading-4 text-[#718078]">
+                  Platform service fee: 15% commission is included in the room
+                  total and settled transparently with the hotel.
+                </div>
+                <div className="mt-5 space-y-2">
+                  <Button
+                    onClick={() => (step === 1 ? setStep(2) : onPay())}
+                    disabled={initialize.isPending}
+                    className="h-12 w-full rounded-xl bg-[#183a31] text-sm font-bold text-white hover:bg-[#245448]"
+                  >
+                    {step === 1 ? (
+                      <>
+                        Review payment <ArrowRight size={16} />
+                      </>
+                    ) : initialize.isPending ? (
+                      "Preparing checkout…"
+                    ) : (
+                      <>
+                        Pay now · {formatMoney(total, booking.currency)}{" "}
+                        <CreditCard size={16} />
+                      </>
+                    )}
+                  </Button>
+                  <p className="text-center text-[10px] leading-4 text-[#8a9890]">
+                    {step === 1
+                      ? "Review your guest details before paying securely."
+                      : "You’ll be redirected to the selected payment processor."}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </aside>
+        </div>
+      </main>
+    </Shell>
+  );
 }
 
 export function AccountPage() {
   const { isAuthenticated, user } = useAuth();
-  const { data: bookings = [], isLoading } = trpc.bookings.mine.useQuery(undefined, { enabled: isAuthenticated });
-  const { data: onboardingProfile } = trpc.auth.onboardingProfile.useQuery(undefined, { enabled: isAuthenticated });
+  const { data: bookings = [], isLoading } = trpc.bookings.mine.useQuery(
+    undefined,
+    { enabled: isAuthenticated }
+  );
+  const { data: onboardingProfile } = trpc.auth.onboardingProfile.useQuery(
+    undefined,
+    { enabled: isAuthenticated }
+  );
   const cancelBooking = trpc.bookings.cancel.useMutation();
-  const resendVerification = trpc.auth.resendVerification.useMutation({ onSuccess: (result) => { if (result.welcomeEmail.sent) toast.success("Verification email sent"); else toast.error("Email delivery is not configured yet. Add RESEND_API_KEY and APP_URL in production."); }, onError: (error) => toast.error(error.message || "Could not resend verification email") });
-  const confirmation = (() => { try { return JSON.parse(sessionStorage.getItem("staynest_confirmation") ?? "null"); } catch { return null; } })();
-  if (!isAuthenticated) return <Shell><div className="mx-auto max-w-[580px] px-5 py-24 text-center"><div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-[#e8efe7] text-[#2b6755]"><LogIn size={25} /></div><h1 className="mt-5 font-serif text-4xl text-[#183a31]">Your stays, all in one place.</h1><p className="mt-3 text-sm leading-6 text-[#718078]">Sign in to view booking history, manage upcoming stays, and keep everything close.</p><Button onClick={() => startLogin()} className="mt-7 rounded-xl bg-[#183a31] px-6 text-sm font-bold text-white hover:bg-[#245448]">Sign in to StayNest <ArrowRight size={15} /></Button></div></Shell>;
-  return <Shell><main className="mx-auto max-w-[1100px] px-5 pb-24 pt-12 lg:px-8"><div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end"><div><p className="mb-2 text-[11px] font-bold uppercase tracking-[0.18em] text-[#b18143]">Guest account</p><h1 className="font-serif text-[50px] leading-none tracking-[-0.04em] text-[#183a31]">Welcome back{user?.name ? `, ${user.name.split(" ")[0]}` : ""}.</h1><p className="mt-3 text-sm text-[#718078]">Your confirmed stays and booking details.</p></div><Link href="/" className="inline-flex items-center gap-2 text-xs font-bold text-[#2b6755]">Find another stay <ArrowRight size={14} /></Link></div>{onboardingProfile && onboardingProfile.emailVerificationStatus !== "verified" && <div className="mt-8 flex flex-col gap-4 rounded-[20px] border border-[#ead9a7] bg-[#fffaf0] p-5 sm:flex-row sm:items-center sm:justify-between"><div className="flex items-start gap-3"><MailCheck size={20} className="mt-0.5 text-[#b18143]" /><div><p className="font-bold text-[#183a31]">Verify your email</p><p className="mt-1 text-sm leading-5 text-[#718078]">We sent a verification link to {onboardingProfile.email}. It expires in 24 hours.</p></div></div><Button onClick={() => resendVerification.mutate()} disabled={resendVerification.isPending} variant="outline" className="rounded-xl border-[#d8c88f] text-xs font-bold text-[#795b1d]">{resendVerification.isPending ? "Sending…" : "Resend email"}</Button></div>}{confirmation && <div className="mt-8 flex items-start gap-4 rounded-[20px] border border-[#c6dcc7] bg-[#edf7ed] p-5"><CheckCircle2 size={22} className="mt-0.5 text-[#2b6755]" /><div><p className="font-bold text-[#183a31]">Booking request received</p><p className="mt-1 text-sm leading-5 text-[#607269]">Your development confirmation state is visible here. In production this panel appears only after the payment gateway and BillFlow reservation both return success.</p></div></div>}<div className="mt-10"><div className="mb-4 flex items-center justify-between"><h2 className="font-serif text-[29px] text-[#183a31]">Upcoming & past stays</h2><Badge className="border-0 bg-[#f3f5f0] text-[#607269]">{bookings.length} bookings</Badge></div>{isLoading ? <div className="h-36 animate-pulse rounded-[20px] bg-[#edf1eb]" /> : bookings.length === 0 ? <div className="rounded-[22px] border border-dashed border-[#cfd9cf] bg-white px-6 py-16 text-center"><BedDouble size={28} className="mx-auto text-[#9caf9f]" /><h3 className="mt-4 font-serif text-[25px] text-[#183a31]">No bookings yet</h3><p className="mt-2 text-sm text-[#718078]">Your next great stay is a few clicks away.</p><Link href="/" className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#183a31] px-5 py-3 text-sm font-bold text-white">Explore stays <ArrowRight size={15} /></Link></div> : <div className="space-y-4">{bookings.map((item: any) => <Card key={item.id} className="rounded-[20px] border-[#dfe4dc] bg-white shadow-none"><CardContent className="grid gap-5 p-5 md:grid-cols-[1fr_auto] md:items-center"><div><div className="flex flex-wrap items-center gap-2"><Badge className={item.bookingStatus === "conflict_flagged" ? "border-0 bg-[#fff1e7] text-[#a35c29]" : "border-0 bg-[#e8efe7] text-[#2b6755]"}>{item.bookingStatus === "conflict_flagged" ? "Conflict flagged" : item.bookingStatus}</Badge><Badge className={item.paymentStatus === "success" ? "border-0 bg-[#e8efe7] text-[#2b6755]" : "border-0 bg-[#fffaf0] text-[#8a632c]"}>{item.paymentStatus === "success" ? "Paid" : "Payment pending"}</Badge><span className="text-[11px] font-semibold text-[#8a9890]">{item.bookingReference}</span></div><h3 className="mt-3 font-serif text-[25px] text-[#183a31]">Stay at {item.hotelId === 1 ? "The Gold Coast House" : item.hotelId === 3 ? "Ada Palm Retreat" : "Cantonments House"}</h3><p className="mt-1 text-sm text-[#718078]">{item.checkInDate} → {item.checkOutDate} · {item.guestsCount} guests</p>{item.conflictDetails && <p className="mt-3 flex items-center gap-2 text-xs font-semibold text-[#a35c29]"><AlertTriangle size={14} /> {item.conflictDetails}</p>}</div><div className="flex items-center gap-5 md:justify-end"><div className="text-right"><p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#8a9890]">Total</p><p className="font-serif text-[24px] text-[#183a31]">{formatMoney(Number(item.totalAmount), item.currency)}</p></div>{item.bookingStatus === "booked" && <Button variant="outline" disabled={cancelBooking.isPending} onClick={() => cancelBooking.mutate({ id: item.id }, { onSuccess: () => toast.success("Cancellation requested") })} className="rounded-xl border-[#dfe4dc] text-xs font-bold text-[#183a31]">Cancel</Button>}
-{item.paymentStatus === "success" && <ReviewModal booking={item} />}</div></CardContent></Card>)}</div>}</div></main></Shell>;
+  const resendVerification = trpc.auth.resendVerification.useMutation({
+    onSuccess: result => {
+      if (result.welcomeEmail.sent) toast.success("Verification email sent");
+      else
+        toast.error(
+          "Email delivery is not configured yet. Add RESEND_API_KEY and APP_URL in production."
+        );
+    },
+    onError: error =>
+      toast.error(error.message || "Could not resend verification email"),
+  });
+  const confirmation = (() => {
+    try {
+      return JSON.parse(
+        sessionStorage.getItem("staynest_confirmation") ?? "null"
+      );
+    } catch {
+      return null;
+    }
+  })();
+  if (!isAuthenticated)
+    return (
+      <Shell>
+        <div className="mx-auto max-w-[580px] px-5 py-24 text-center">
+          <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-[#e8efe7] text-[#2b6755]">
+            <LogIn size={25} />
+          </div>
+          <h1 className="mt-5 font-serif text-4xl text-[#183a31]">
+            Your stays, all in one place.
+          </h1>
+          <p className="mt-3 text-sm leading-6 text-[#718078]">
+            Sign in to view booking history, manage upcoming stays, and keep
+            everything close.
+          </p>
+          <Button
+            onClick={() => startLogin()}
+            className="mt-7 rounded-xl bg-[#183a31] px-6 text-sm font-bold text-white hover:bg-[#245448]"
+          >
+            Sign in to StayNest <ArrowRight size={15} />
+          </Button>
+        </div>
+      </Shell>
+    );
+  return (
+    <Shell>
+      <main className="mx-auto max-w-[1100px] px-5 pb-24 pt-12 lg:px-8">
+        <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
+          <div>
+            <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.18em] text-[#b18143]">
+              Guest account
+            </p>
+            <h1 className="font-serif text-[50px] leading-none tracking-[-0.04em] text-[#183a31]">
+              Welcome back{user?.name ? `, ${user.name.split(" ")[0]}` : ""}.
+            </h1>
+            <p className="mt-3 text-sm text-[#718078]">
+              Your confirmed stays and booking details.
+            </p>
+          </div>
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 text-xs font-bold text-[#2b6755]"
+          >
+            Find another stay <ArrowRight size={14} />
+          </Link>
+        </div>
+        {onboardingProfile &&
+          onboardingProfile.emailVerificationStatus !== "verified" && (
+            <div className="mt-8 flex flex-col gap-4 rounded-[20px] border border-[#ead9a7] bg-[#fffaf0] p-5 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3">
+                <MailCheck size={20} className="mt-0.5 text-[#b18143]" />
+                <div>
+                  <p className="font-bold text-[#183a31]">Verify your email</p>
+                  <p className="mt-1 text-sm leading-5 text-[#718078]">
+                    We sent a verification link to {onboardingProfile.email}. It
+                    expires in 24 hours.
+                  </p>
+                </div>
+              </div>
+              <Button
+                onClick={() => resendVerification.mutate()}
+                disabled={resendVerification.isPending}
+                variant="outline"
+                className="rounded-xl border-[#d8c88f] text-xs font-bold text-[#795b1d]"
+              >
+                {resendVerification.isPending ? "Sending…" : "Resend email"}
+              </Button>
+            </div>
+          )}
+        {confirmation && (
+          <div className="mt-8 flex items-start gap-4 rounded-[20px] border border-[#c6dcc7] bg-[#edf7ed] p-5">
+            <CheckCircle2 size={22} className="mt-0.5 text-[#2b6755]" />
+            <div>
+              <p className="font-bold text-[#183a31]">
+                Booking request received
+              </p>
+              <p className="mt-1 text-sm leading-5 text-[#607269]">
+                Your development confirmation state is visible here. In
+                production this panel appears only after the payment gateway and
+                BillFlow reservation both return success.
+              </p>
+            </div>
+          </div>
+        )}
+        <div className="mt-10">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="font-serif text-[29px] text-[#183a31]">
+              Upcoming & past stays
+            </h2>
+            <Badge className="border-0 bg-[#f3f5f0] text-[#607269]">
+              {bookings.length} bookings
+            </Badge>
+          </div>
+          {isLoading ? (
+            <div className="h-36 animate-pulse rounded-[20px] bg-[#edf1eb]" />
+          ) : bookings.length === 0 ? (
+            <div className="rounded-[22px] border border-dashed border-[#cfd9cf] bg-white px-6 py-16 text-center">
+              <BedDouble size={28} className="mx-auto text-[#9caf9f]" />
+              <h3 className="mt-4 font-serif text-[25px] text-[#183a31]">
+                No bookings yet
+              </h3>
+              <p className="mt-2 text-sm text-[#718078]">
+                Your next great stay is a few clicks away.
+              </p>
+              <Link
+                href="/"
+                className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#183a31] px-5 py-3 text-sm font-bold text-white"
+              >
+                Explore stays <ArrowRight size={15} />
+              </Link>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {bookings.map((item: any) => (
+                <Card
+                  key={item.id}
+                  className="rounded-[20px] border-[#dfe4dc] bg-white shadow-none"
+                >
+                  <CardContent className="grid gap-5 p-5 md:grid-cols-[1fr_auto] md:items-center">
+                    <div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge
+                          className={
+                            item.bookingStatus === "conflict_flagged"
+                              ? "border-0 bg-[#fff1e7] text-[#a35c29]"
+                              : "border-0 bg-[#e8efe7] text-[#2b6755]"
+                          }
+                        >
+                          {item.bookingStatus === "conflict_flagged"
+                            ? "Conflict flagged"
+                            : item.bookingStatus}
+                        </Badge>
+                        <Badge
+                          className={
+                            item.paymentStatus === "success"
+                              ? "border-0 bg-[#e8efe7] text-[#2b6755]"
+                              : "border-0 bg-[#fffaf0] text-[#8a632c]"
+                          }
+                        >
+                          {item.paymentStatus === "success"
+                            ? "Paid"
+                            : "Payment pending"}
+                        </Badge>
+                        <span className="text-[11px] font-semibold text-[#8a9890]">
+                          {item.bookingReference}
+                        </span>
+                      </div>
+                      <h3 className="mt-3 font-serif text-[25px] text-[#183a31]">
+                        Stay at{" "}
+                        {item.hotelId === 1
+                          ? "The Gold Coast House"
+                          : item.hotelId === 3
+                            ? "Ada Palm Retreat"
+                            : "Cantonments House"}
+                      </h3>
+                      <p className="mt-1 text-sm text-[#718078]">
+                        {item.checkInDate} → {item.checkOutDate} ·{" "}
+                        {item.guestsCount} guests
+                      </p>
+                      {item.conflictDetails && (
+                        <p className="mt-3 flex items-center gap-2 text-xs font-semibold text-[#a35c29]">
+                          <AlertTriangle size={14} /> {item.conflictDetails}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-5 md:justify-end">
+                      <div className="text-right">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#8a9890]">
+                          Total
+                        </p>
+                        <p className="font-serif text-[24px] text-[#183a31]">
+                          {formatMoney(Number(item.totalAmount), item.currency)}
+                        </p>
+                      </div>
+                      {item.bookingStatus === "booked" && (
+                        <Button
+                          variant="outline"
+                          disabled={cancelBooking.isPending}
+                          onClick={() =>
+                            cancelBooking.mutate(
+                              { id: item.id },
+                              {
+                                onSuccess: () =>
+                                  toast.success("Cancellation requested"),
+                              }
+                            )
+                          }
+                          className="rounded-xl border-[#dfe4dc] text-xs font-bold text-[#183a31]"
+                        >
+                          Cancel
+                        </Button>
+                      )}
+                      {item.paymentStatus === "success" && (
+                        <ReviewModal booking={item} />
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
+      </main>
+    </Shell>
+  );
 }
 
 function LegacyHotelDashboard() {
   const { isAuthenticated } = useAuth();
-  const { data: hotels = [] } = trpc.hotel.mine.useQuery(undefined, { enabled: isAuthenticated });
-  const { data: summary } = trpc.admin.summary.useQuery(undefined, { enabled: isAuthenticated });
-  if (!isAuthenticated) return <Shell variant="cream"><div className="mx-auto max-w-[580px] px-5 py-24 text-center"><div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-[#e8efe7] text-[#2b6755]"><Hotel size={25} /></div><h1 className="mt-5 font-serif text-4xl text-[#183a31]">A calmer way to run your stay.</h1><p className="mt-3 text-sm leading-6 text-[#718078]">Sign in to access the hotel partner workspace, live sync status, and booking operations.</p><Button onClick={() => startLogin()} className="mt-7 rounded-xl bg-[#183a31] px-6 text-sm font-bold text-white hover:bg-[#245448]">Sign in as a partner <ArrowRight size={15} /></Button></div></Shell>;
-  return <Shell variant="cream"><main className="mx-auto max-w-[1240px] px-5 pb-24 pt-10 lg:px-8"><div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-end"><div><p className="mb-2 text-[11px] font-bold uppercase tracking-[0.18em] text-[#b18143]">Partner workspace</p><h1 className="font-serif text-[49px] leading-none tracking-[-0.04em] text-[#183a31]">Good morning, operator.</h1><p className="mt-3 text-sm text-[#718078]">Manage your property, stay close to your reservations, and keep inventory healthy.</p></div><div className="flex gap-3"><Button variant="outline" className="rounded-xl border-[#cfd9cf] text-xs font-bold text-[#183a31]"><Bell size={14} /> Alerts</Button><Button className="rounded-xl bg-[#183a31] text-xs font-bold text-white hover:bg-[#245448]"><UploadCloud size={14} /> Add property</Button></div></div><div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4"><Metric label="Live bookings" value={summary?.bookingCount ?? "—"} icon={<ClipboardCheck size={17} />} /><Metric label="Gross revenue" value={summary ? formatMoney(summary.gross, "GHS") : "—"} icon={<DollarSign size={17} />} /><Metric label="StayNest commission" value={summary ? formatMoney(summary.commission, "GHS") : "15%"} icon={<BarChart3 size={17} />} /><Metric label="Conflict flags" value={summary?.conflictCount ?? 0} icon={<AlertTriangle size={17} />} alert={Boolean(summary?.conflictCount)} /></div><div className="mt-10 grid gap-6 lg:grid-cols-[1.1fr_.9fr]"><Card className="rounded-[22px] border-[#dfe4dc] bg-white shadow-none"><CardHeader className="flex-row items-center justify-between p-6"><div><p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#b18143]">Your portfolio</p><CardTitle className="mt-2 font-serif text-[28px] text-[#183a31]">Properties</CardTitle></div><Button variant="ghost" className="text-xs font-bold text-[#2b6755]">View all <ArrowRight size={14} /></Button></CardHeader><CardContent className="space-y-3 p-6 pt-0">{hotels.length === 0 ? <div className="rounded-xl bg-[#f3f5f0] p-5 text-sm leading-6 text-[#718078]">No manually managed properties yet. Your BillFlow-connected hotels will appear here once the integration credentials are added.</div> : hotels.map((hotel: any) => <div key={hotel.id} className="flex items-center justify-between rounded-xl border border-[#e5ebe4] p-4"><div><p className="font-serif text-[20px] text-[#183a31]">{hotel.name}</p><p className="mt-1 text-xs text-[#718078]">{hotel.location}</p></div><Badge className={hotel.approvalStatus === "approved" ? "border-0 bg-[#e8efe7] text-[#2b6755]" : "border-0 bg-[#fff1e7] text-[#a35c29]"}>{hotel.approvalStatus}</Badge></div>)}</CardContent></Card><Card className="rounded-[22px] border-[#dfe4dc] bg-[#183a31] text-white shadow-none"><CardContent className="p-7"><div className="flex items-center gap-2 text-[#e7c77b]"><Wifi size={16} /><span className="text-[10px] font-bold uppercase tracking-[0.16em]">BillFlow connection</span></div><h2 className="mt-4 font-serif text-[32px] leading-none">One source of truth.</h2><p className="mt-4 text-sm leading-6 text-[#c9d8cc]">When your property is connected, live rate and availability checks go directly to BillFlow. A booking writes back to the reservation engine before StayNest confirms the guest.</p><div className="mt-7 space-y-3 text-xs text-[#d8e4d9]"><div className="flex items-center gap-3"><CheckCircle2 size={15} className="text-[#e7c77b]" /> Live availability reads</div><div className="flex items-center gap-3"><CheckCircle2 size={15} className="text-[#e7c77b]" /> Two-way reservation sync</div><div className="flex items-center gap-3"><AlertTriangle size={15} className="text-[#e7c77b]" /> Conflicts surfaced, never hidden</div></div><Button variant="outline" className="mt-8 w-full rounded-xl border-[#557469] bg-transparent text-xs font-bold text-white hover:bg-white/10">Review integration contract <ExternalLink size={14} /></Button></CardContent></Card></div><div className="mt-6 grid gap-4 md:grid-cols-3"><QuickAction icon={<BedDouble size={17} />} title="Room inventory" copy="Manage room types, rates, and photos" /><QuickAction icon={<CalendarDays size={17} />} title="Availability calendar" copy="Block dates and inspect live inventory" /><QuickAction icon={<ClipboardCheck size={17} />} title="Bookings" copy="Confirm, reject, and follow up" /></div></main></Shell>;
+  const { data: hotels = [] } = trpc.hotel.mine.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
+  const { data: summary } = trpc.admin.summary.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
+  if (!isAuthenticated)
+    return (
+      <Shell variant="cream">
+        <div className="mx-auto max-w-[580px] px-5 py-24 text-center">
+          <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-[#e8efe7] text-[#2b6755]">
+            <Hotel size={25} />
+          </div>
+          <h1 className="mt-5 font-serif text-4xl text-[#183a31]">
+            A calmer way to run your stay.
+          </h1>
+          <p className="mt-3 text-sm leading-6 text-[#718078]">
+            Sign in to access the hotel partner workspace, live sync status, and
+            booking operations.
+          </p>
+          <Button
+            onClick={() => startLogin()}
+            className="mt-7 rounded-xl bg-[#183a31] px-6 text-sm font-bold text-white hover:bg-[#245448]"
+          >
+            Sign in as a partner <ArrowRight size={15} />
+          </Button>
+        </div>
+      </Shell>
+    );
+  return (
+    <Shell variant="cream">
+      <main className="mx-auto max-w-[1240px] px-5 pb-24 pt-10 lg:px-8">
+        <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
+          <div>
+            <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.18em] text-[#b18143]">
+              Partner workspace
+            </p>
+            <h1 className="font-serif text-[49px] leading-none tracking-[-0.04em] text-[#183a31]">
+              Good morning, operator.
+            </h1>
+            <p className="mt-3 text-sm text-[#718078]">
+              Manage your property, stay close to your reservations, and keep
+              inventory healthy.
+            </p>
+          </div>
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              className="rounded-xl border-[#cfd9cf] text-xs font-bold text-[#183a31]"
+            >
+              <Bell size={14} /> Alerts
+            </Button>
+            <Button className="rounded-xl bg-[#183a31] text-xs font-bold text-white hover:bg-[#245448]">
+              <UploadCloud size={14} /> Add property
+            </Button>
+          </div>
+        </div>
+        <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <Metric
+            label="Live bookings"
+            value={summary?.bookingCount ?? "—"}
+            icon={<ClipboardCheck size={17} />}
+          />
+          <Metric
+            label="Gross revenue"
+            value={summary ? formatMoney(summary.gross, "GHS") : "—"}
+            icon={<DollarSign size={17} />}
+          />
+          <Metric
+            label="StayNest commission"
+            value={summary ? formatMoney(summary.commission, "GHS") : "15%"}
+            icon={<BarChart3 size={17} />}
+          />
+          <Metric
+            label="Conflict flags"
+            value={summary?.conflictCount ?? 0}
+            icon={<AlertTriangle size={17} />}
+            alert={Boolean(summary?.conflictCount)}
+          />
+        </div>
+        <div className="mt-10 grid gap-6 lg:grid-cols-[1.1fr_.9fr]">
+          <Card className="rounded-[22px] border-[#dfe4dc] bg-white shadow-none">
+            <CardHeader className="flex-row items-center justify-between p-6">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#b18143]">
+                  Your portfolio
+                </p>
+                <CardTitle className="mt-2 font-serif text-[28px] text-[#183a31]">
+                  Properties
+                </CardTitle>
+              </div>
+              <Button
+                variant="ghost"
+                className="text-xs font-bold text-[#2b6755]"
+              >
+                View all <ArrowRight size={14} />
+              </Button>
+            </CardHeader>
+            <CardContent className="space-y-3 p-6 pt-0">
+              {hotels.length === 0 ? (
+                <div className="rounded-xl bg-[#f3f5f0] p-5 text-sm leading-6 text-[#718078]">
+                  No manually managed properties yet. Your BillFlow-connected
+                  hotels will appear here once the integration credentials are
+                  added.
+                </div>
+              ) : (
+                hotels.map((hotel: any) => (
+                  <div
+                    key={hotel.id}
+                    className="flex items-center justify-between rounded-xl border border-[#e5ebe4] p-4"
+                  >
+                    <div>
+                      <p className="font-serif text-[20px] text-[#183a31]">
+                        {hotel.name}
+                      </p>
+                      <p className="mt-1 text-xs text-[#718078]">
+                        {hotel.location}
+                      </p>
+                    </div>
+                    <Badge
+                      className={
+                        hotel.approvalStatus === "approved"
+                          ? "border-0 bg-[#e8efe7] text-[#2b6755]"
+                          : "border-0 bg-[#fff1e7] text-[#a35c29]"
+                      }
+                    >
+                      {hotel.approvalStatus}
+                    </Badge>
+                  </div>
+                ))
+              )}
+            </CardContent>
+          </Card>
+          <Card className="rounded-[22px] border-[#dfe4dc] bg-[#183a31] text-white shadow-none">
+            <CardContent className="p-7">
+              <div className="flex items-center gap-2 text-[#e7c77b]">
+                <Wifi size={16} />
+                <span className="text-[10px] font-bold uppercase tracking-[0.16em]">
+                  BillFlow connection
+                </span>
+              </div>
+              <h2 className="mt-4 font-serif text-[32px] leading-none">
+                One source of truth.
+              </h2>
+              <p className="mt-4 text-sm leading-6 text-[#c9d8cc]">
+                When your property is connected, live rate and availability
+                checks go directly to BillFlow. A booking writes back to the
+                reservation engine before StayNest confirms the guest.
+              </p>
+              <div className="mt-7 space-y-3 text-xs text-[#d8e4d9]">
+                <div className="flex items-center gap-3">
+                  <CheckCircle2 size={15} className="text-[#e7c77b]" /> Live
+                  availability reads
+                </div>
+                <div className="flex items-center gap-3">
+                  <CheckCircle2 size={15} className="text-[#e7c77b]" /> Two-way
+                  reservation sync
+                </div>
+                <div className="flex items-center gap-3">
+                  <AlertTriangle size={15} className="text-[#e7c77b]" />{" "}
+                  Conflicts surfaced, never hidden
+                </div>
+              </div>
+              <Button
+                variant="outline"
+                className="mt-8 w-full rounded-xl border-[#557469] bg-transparent text-xs font-bold text-white hover:bg-white/10"
+              >
+                Review integration contract <ExternalLink size={14} />
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+        <div className="mt-6 grid gap-4 md:grid-cols-3">
+          <QuickAction
+            icon={<BedDouble size={17} />}
+            title="Room inventory"
+            copy="Manage room types, rates, and photos"
+          />
+          <QuickAction
+            icon={<CalendarDays size={17} />}
+            title="Availability calendar"
+            copy="Block dates and inspect live inventory"
+          />
+          <QuickAction
+            icon={<ClipboardCheck size={17} />}
+            title="Bookings"
+            copy="Confirm, reject, and follow up"
+          />
+        </div>
+      </main>
+    </Shell>
+  );
 }
 
-function PartnerSetupWizard({ onCreated, verificationEmail, onResend, resendPending }: { onCreated?: () => void; verificationEmail?: string; onResend?: () => void; resendPending?: boolean }) {
+function PartnerSetupWizard({
+  onCreated,
+  verificationEmail,
+  onResend,
+  resendPending,
+}: {
+  onCreated?: () => void;
+  verificationEmail?: string;
+  onResend?: () => void;
+  resendPending?: boolean;
+}) {
   const [step, setStep] = useState<1 | 2 | 3>(1);
-  const [form, setForm] = useState({ name: "", location: "", address: "", description: "" });
+  const [form, setForm] = useState({
+    name: "",
+    location: "",
+    address: "",
+    description: "",
+  });
   const createHotel = trpc.hotel.create.useMutation({
     onSuccess: () => {
       toast.success("Property submitted for review");
       onCreated?.();
       setStep(3);
     },
-    onError: (error) => toast.error(error.message || "Could not submit the property"),
+    onError: error =>
+      toast.error(error.message || "Could not submit the property"),
   });
   const submit = () => {
-    if (!form.name.trim() || !form.location.trim()) return toast.error("Add your property name and location");
+    if (!form.name.trim() || !form.location.trim())
+      return toast.error("Add your property name and location");
     createHotel.mutate(form);
   };
-  if (step === 3) return <div className="mx-auto max-w-[760px] px-5 py-24 text-center"><div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-[#e8efe7] text-[#2b6755]"><CheckCircle2 size={25} /></div><p className="mt-6 text-[11px] font-bold uppercase tracking-[0.18em] text-[#b18143]">Application received</p><h1 className="mt-3 font-serif text-5xl text-[#183a31]">Your property is in good hands.</h1><p className="mx-auto mt-4 max-w-[520px] text-sm leading-6 text-[#718078]">A StayNest admin will review the property before it appears to guests. You can continue by adding rooms, rates, and images from the partner workspace.</p><Link href="/hotel-dashboard" className="mt-7 inline-flex items-center gap-2 rounded-xl bg-[#183a31] px-5 py-3 text-sm font-bold text-white">Open partner workspace <ArrowRight size={15} /></Link></div>;
-  return <main className="mx-auto max-w-[980px] px-5 pb-24 pt-10 lg:px-8"><div className="mx-auto max-w-[760px]">{verificationEmail && <Card className="mb-6 rounded-[22px] border-[#ead9a7] bg-[#fffaf0] shadow-none"><CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between"><div className="flex items-start gap-3"><MailCheck size={19} className="mt-0.5 text-[#b18143]" /><div><p className="text-sm font-bold text-[#183a31]">Verify your partner email</p><p className="mt-1 text-xs leading-5 text-[#718078]">Confirm {verificationEmail} to receive application and booking updates.</p></div></div><Button onClick={onResend} disabled={resendPending} variant="outline" className="rounded-lg border-[#d8c88f] text-xs font-bold text-[#795b1d]">{resendPending ? "Sending…" : "Resend email"}</Button></CardContent></Card>}<div className="mb-8 flex items-center gap-3 text-[11px] font-bold uppercase tracking-[0.16em] text-[#8a9890]"><span className={step >= 1 ? "text-[#183a31]" : ""}>01 Property</span><ChevronRight size={13} /><span className={step >= 2 ? "text-[#183a31]" : ""}>02 Story</span><ChevronRight size={13} /><span>03 Review</span></div><Card className="rounded-[28px] border-[#dfe4dc] bg-white shadow-[0_18px_70px_rgba(24,58,49,.08)]"><CardHeader className="p-7 pb-4 sm:p-10 sm:pb-5"><p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#b18143]">First property setup</p><CardTitle className="mt-3 font-serif text-[38px] leading-none text-[#183a31]">Bring the place to life.</CardTitle><p className="mt-4 max-w-[580px] text-sm leading-6 text-[#718078]">Start with the essentials. You can add rooms, rates, photographs, and BillFlow connection details after submission.</p></CardHeader><CardContent className="space-y-5 p-7 pt-2 sm:p-10 sm:pt-3">{step === 1 && <><div className="space-y-2"><Label htmlFor="property-name" className="text-xs font-bold text-[#50605a]">Property name</Label><Input id="property-name" value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} placeholder="Akwaba House" className="h-12 rounded-xl border-[#dfe4dc]" /></div><div className="grid gap-5 sm:grid-cols-2"><div className="space-y-2"><Label htmlFor="property-location" className="text-xs font-bold text-[#50605a]">City or neighborhood</Label><Input id="property-location" value={form.location} onChange={(event) => setForm({ ...form, location: event.target.value })} placeholder="East Legon, Accra" className="h-12 rounded-xl border-[#dfe4dc]" /></div><div className="space-y-2"><Label htmlFor="property-address" className="text-xs font-bold text-[#50605a]">Street address <span className="font-normal text-[#8a9890]">(optional)</span></Label><Input id="property-address" value={form.address} onChange={(event) => setForm({ ...form, address: event.target.value })} placeholder="12 Wawa Street" className="h-12 rounded-xl border-[#dfe4dc]" /></div></div><Button onClick={() => { if (!form.name.trim() || !form.location.trim()) return toast.error("Add your property name and location"); setStep(2); }} className="h-12 w-full rounded-xl bg-[#183a31] text-sm font-bold text-white">Continue to your story <ArrowRight size={16} /></Button></>}{step === 2 && <><div className="space-y-2"><Label htmlFor="property-description" className="text-xs font-bold text-[#50605a]">What should guests know?</Label><Textarea id="property-description" value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} placeholder="Tell guests what makes this stay special…" className="min-h-[150px] rounded-xl border-[#dfe4dc]" /><p className="text-xs leading-5 text-[#8a9890]">A short description helps the admin understand the property and gives you a head start on your public listing.</p></div><div className="flex gap-3"><Button variant="outline" onClick={() => setStep(1)} className="h-12 flex-1 rounded-xl border-[#dfe4dc] text-sm font-bold text-[#183a31]">Back</Button><Button onClick={submit} disabled={createHotel.isPending} className="h-12 flex-[2] rounded-xl bg-[#183a31] text-sm font-bold text-white">{createHotel.isPending ? "Submitting…" : "Submit for review"} <ClipboardCheck size={16} /></Button></div></>}</CardContent></Card><div className="mt-5 flex items-start gap-3 rounded-2xl border border-[#dfe4dc] bg-[#f3f5f0] p-4 text-xs leading-5 text-[#607269]"><ShieldCheck size={16} className="mt-0.5 shrink-0 text-[#2b6755]" /><span>Your application stays private until a StayNest admin approves it. BillFlow remains the authority for rates and availability when you connect it later.</span></div></div></main>;
+  if (step === 3)
+    return (
+      <div className="mx-auto max-w-[760px] px-5 py-24 text-center">
+        <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-[#e8efe7] text-[#2b6755]">
+          <CheckCircle2 size={25} />
+        </div>
+        <p className="mt-6 text-[11px] font-bold uppercase tracking-[0.18em] text-[#b18143]">
+          Application received
+        </p>
+        <h1 className="mt-3 font-serif text-5xl text-[#183a31]">
+          Your property is in good hands.
+        </h1>
+        <p className="mx-auto mt-4 max-w-[520px] text-sm leading-6 text-[#718078]">
+          A StayNest admin will review the property before it appears to guests.
+          You can continue by adding rooms, rates, and images from the partner
+          workspace.
+        </p>
+        <Link
+          href="/hotel-dashboard"
+          className="mt-7 inline-flex items-center gap-2 rounded-xl bg-[#183a31] px-5 py-3 text-sm font-bold text-white"
+        >
+          Open partner workspace <ArrowRight size={15} />
+        </Link>
+      </div>
+    );
+  return (
+    <main className="mx-auto max-w-[980px] px-5 pb-24 pt-10 lg:px-8">
+      <div className="mx-auto max-w-[760px]">
+        {verificationEmail && (
+          <Card className="mb-6 rounded-[22px] border-[#ead9a7] bg-[#fffaf0] shadow-none">
+            <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3">
+                <MailCheck size={19} className="mt-0.5 text-[#b18143]" />
+                <div>
+                  <p className="text-sm font-bold text-[#183a31]">
+                    Verify your partner email
+                  </p>
+                  <p className="mt-1 text-xs leading-5 text-[#718078]">
+                    Confirm {verificationEmail} to receive application and
+                    booking updates.
+                  </p>
+                </div>
+              </div>
+              <Button
+                onClick={onResend}
+                disabled={resendPending}
+                variant="outline"
+                className="rounded-lg border-[#d8c88f] text-xs font-bold text-[#795b1d]"
+              >
+                {resendPending ? "Sending…" : "Resend email"}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+        <div className="mb-8 flex items-center gap-3 text-[11px] font-bold uppercase tracking-[0.16em] text-[#8a9890]">
+          <span className={step >= 1 ? "text-[#183a31]" : ""}>01 Property</span>
+          <ChevronRight size={13} />
+          <span className={step >= 2 ? "text-[#183a31]" : ""}>02 Story</span>
+          <ChevronRight size={13} />
+          <span>03 Review</span>
+        </div>
+        <Card className="rounded-[28px] border-[#dfe4dc] bg-white shadow-[0_18px_70px_rgba(24,58,49,.08)]">
+          <CardHeader className="p-7 pb-4 sm:p-10 sm:pb-5">
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#b18143]">
+              First property setup
+            </p>
+            <CardTitle className="mt-3 font-serif text-[38px] leading-none text-[#183a31]">
+              Bring the place to life.
+            </CardTitle>
+            <p className="mt-4 max-w-[580px] text-sm leading-6 text-[#718078]">
+              Start with the essentials. You can add rooms, rates, photographs,
+              and BillFlow connection details after submission.
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-5 p-7 pt-2 sm:p-10 sm:pt-3">
+            {step === 1 && (
+              <>
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="property-name"
+                    className="text-xs font-bold text-[#50605a]"
+                  >
+                    Property name
+                  </Label>
+                  <Input
+                    id="property-name"
+                    value={form.name}
+                    onChange={event =>
+                      setForm({ ...form, name: event.target.value })
+                    }
+                    placeholder="Akwaba House"
+                    className="h-12 rounded-xl border-[#dfe4dc]"
+                  />
+                </div>
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="property-location"
+                      className="text-xs font-bold text-[#50605a]"
+                    >
+                      City or neighborhood
+                    </Label>
+                    <Input
+                      id="property-location"
+                      value={form.location}
+                      onChange={event =>
+                        setForm({ ...form, location: event.target.value })
+                      }
+                      placeholder="East Legon, Accra"
+                      className="h-12 rounded-xl border-[#dfe4dc]"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="property-address"
+                      className="text-xs font-bold text-[#50605a]"
+                    >
+                      Street address{" "}
+                      <span className="font-normal text-[#8a9890]">
+                        (optional)
+                      </span>
+                    </Label>
+                    <Input
+                      id="property-address"
+                      value={form.address}
+                      onChange={event =>
+                        setForm({ ...form, address: event.target.value })
+                      }
+                      placeholder="12 Wawa Street"
+                      className="h-12 rounded-xl border-[#dfe4dc]"
+                    />
+                  </div>
+                </div>
+                <Button
+                  onClick={() => {
+                    if (!form.name.trim() || !form.location.trim())
+                      return toast.error("Add your property name and location");
+                    setStep(2);
+                  }}
+                  className="h-12 w-full rounded-xl bg-[#183a31] text-sm font-bold text-white"
+                >
+                  Continue to your story <ArrowRight size={16} />
+                </Button>
+              </>
+            )}
+            {step === 2 && (
+              <>
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="property-description"
+                    className="text-xs font-bold text-[#50605a]"
+                  >
+                    What should guests know?
+                  </Label>
+                  <Textarea
+                    id="property-description"
+                    value={form.description}
+                    onChange={event =>
+                      setForm({ ...form, description: event.target.value })
+                    }
+                    placeholder="Tell guests what makes this stay special…"
+                    className="min-h-[150px] rounded-xl border-[#dfe4dc]"
+                  />
+                  <p className="text-xs leading-5 text-[#8a9890]">
+                    A short description helps the admin understand the property
+                    and gives you a head start on your public listing.
+                  </p>
+                </div>
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => setStep(1)}
+                    className="h-12 flex-1 rounded-xl border-[#dfe4dc] text-sm font-bold text-[#183a31]"
+                  >
+                    Back
+                  </Button>
+                  <Button
+                    onClick={submit}
+                    disabled={createHotel.isPending}
+                    className="h-12 flex-[2] rounded-xl bg-[#183a31] text-sm font-bold text-white"
+                  >
+                    {createHotel.isPending
+                      ? "Submitting…"
+                      : "Submit for review"}{" "}
+                    <ClipboardCheck size={16} />
+                  </Button>
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+        <div className="mt-5 flex items-start gap-3 rounded-2xl border border-[#dfe4dc] bg-[#f3f5f0] p-4 text-xs leading-5 text-[#607269]">
+          <ShieldCheck size={16} className="mt-0.5 shrink-0 text-[#2b6755]" />
+          <span>
+            Your application stays private until a StayNest admin approves it.
+            BillFlow remains the authority for rates and availability when you
+            connect it later.
+          </span>
+        </div>
+      </div>
+    </main>
+  );
 }
 
 export function HotelDashboard() {
-  const { isAuthenticated } = useAuth();
-  const { data: hotels = [], isLoading: hotelsLoading } = trpc.hotel.mine.useQuery(undefined, { enabled: isAuthenticated });
+  const { isAuthenticated, user } = useAuth();
+  const { data: hotels = [], isLoading: hotelsLoading } =
+    trpc.hotel.mine.useQuery(undefined, { enabled: isAuthenticated });
   const [selectedHotelId, setSelectedHotelId] = useState<number | null>(null);
   const activeHotelId = selectedHotelId ?? hotels[0]?.id ?? 0;
-  const hotelInput = useMemo(() => ({ hotelId: activeHotelId }), [activeHotelId]);
-  const { data: rooms = [] } = trpc.hotel.rooms.useQuery(hotelInput, { enabled: isAuthenticated && activeHotelId > 0 });
-  const { data: hotelBookings = [] } = trpc.hotel.bookings.useQuery(hotelInput, { enabled: isAuthenticated && activeHotelId > 0 });
-  const { data: partnerProfile } = trpc.auth.onboardingProfile.useQuery(undefined, { enabled: isAuthenticated });
-  const resendPartnerVerification = trpc.auth.resendVerification.useMutation({ onSuccess: (result) => { if (result.welcomeEmail.sent) toast.success("Verification email sent"); else toast.error("Email delivery is not configured yet. Add RESEND_API_KEY and APP_URL in production."); }, onError: (error) => toast.error(error.message || "Could not resend verification email") });
-  const { data: conflicts = [] } = trpc.hotel.conflicts.useQuery(hotelInput, { enabled: isAuthenticated && activeHotelId > 0 });
-  const { data: blockedDates = [] } = trpc.hotel.blockedDates.useQuery(hotelInput, { enabled: isAuthenticated && activeHotelId > 0 });
+  const hotelInput = useMemo(
+    () => ({ hotelId: activeHotelId }),
+    [activeHotelId]
+  );
+  const { data: rooms = [] } = trpc.hotel.rooms.useQuery(hotelInput, {
+    enabled: isAuthenticated && activeHotelId > 0,
+  });
+  const { data: hotelBookings = [] } = trpc.hotel.bookings.useQuery(
+    hotelInput,
+    { enabled: isAuthenticated && activeHotelId > 0 }
+  );
+  const { data: partnerProfile } = trpc.auth.onboardingProfile.useQuery(
+    undefined,
+    { enabled: isAuthenticated }
+  );
+  const { data: payoutAccount } = trpc.hotel.getPayoutAccount.useQuery(
+    hotelInput,
+    { enabled: isAuthenticated && activeHotelId > 0 }
+  );
+  const [messageBookingId, setMessageBookingId] = useState<number | null>(null);
+  const messageInput = useMemo(
+    () => ({ bookingId: messageBookingId ?? 0 }),
+    [messageBookingId]
+  );
+  const { data: messages = [], isLoading: messagesLoading } =
+    trpc.bookings.listMessages.useQuery(messageInput, {
+      enabled: isAuthenticated && messageBookingId !== null,
+    });
+  const [messageText, setMessageText] = useState("");
+  const [payoutForm, setPayoutForm] = useState({
+    payoutMethod: "mobile_money",
+    accountName: "",
+    accountNumber: "",
+    bankName: "",
+    networkProvider: "",
+  });
+  const resendPartnerVerification = trpc.auth.resendVerification.useMutation({
+    onSuccess: result => {
+      if (result.welcomeEmail.sent) toast.success("Verification email sent");
+      else
+        toast.error(
+          "Email delivery is not configured yet. Add RESEND_API_KEY and APP_URL in production."
+        );
+    },
+    onError: error =>
+      toast.error(error.message || "Could not resend verification email"),
+  });
+  const { data: conflicts = [] } = trpc.hotel.conflicts.useQuery(hotelInput, {
+    enabled: isAuthenticated && activeHotelId > 0,
+  });
+  const { data: blockedDates = [] } = trpc.hotel.blockedDates.useQuery(
+    hotelInput,
+    { enabled: isAuthenticated && activeHotelId > 0 }
+  );
   const utils = trpc.useUtils();
-  const createRoom = trpc.hotel.createRoom.useMutation({ onSuccess: () => { toast.success("Room added to inventory"); void utils.hotel.rooms.invalidate(hotelInput); } });
-  const updateRoom = trpc.hotel.updateRoom.useMutation({ onSuccess: () => { toast.success("Room inventory updated"); void utils.hotel.rooms.invalidate(hotelInput); } });
-  const updateBooking = trpc.hotel.updateBookingStatus.useMutation({ onSuccess: () => { toast.success("Booking status updated"); void utils.hotel.bookings.invalidate(hotelInput); void utils.hotel.conflicts.invalidate(hotelInput); } });
-  const block = trpc.hotel.blockDates.useMutation({ onSuccess: () => { toast.success("Dates blocked"); void utils.hotel.blockedDates.invalidate(hotelInput); } });
-  const unblock = trpc.hotel.deleteBlockedDate.useMutation({ onSuccess: () => { toast.success("Date block removed"); void utils.hotel.blockedDates.invalidate(hotelInput); } });
-  const [tab, setTab] = useState<"overview" | "rooms" | "bookings" | "availability">("overview");
-  const [roomForm, setRoomForm] = useState({ name: "", roomType: "standard", capacity: "2", priceGhs: "", priceUsd: "", totalRooms: "1" });
-  const [blockForm, setBlockForm] = useState({ startDate: datePlus(20), endDate: datePlus(21), reason: "Maintenance" });
-  const [completionBannerVisible, setCompletionBannerVisible] = useState(() => new URLSearchParams(window.location.search).get("onboarding") === "complete");
-  if (!isAuthenticated) return <Shell variant="cream"><div className="mx-auto max-w-[580px] px-5 py-24 text-center"><div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-[#e8efe7] text-[#2b6755]"><Hotel size={25} /></div><h1 className="mt-5 font-serif text-4xl text-[#183a31]">A calmer way to run your stay.</h1><p className="mt-3 text-sm leading-6 text-[#718078]">Sign in to access the hotel partner workspace, live sync status, and booking operations.</p><Button onClick={() => startLogin()} className="mt-7 rounded-xl bg-[#183a31] px-6 text-sm font-bold text-white hover:bg-[#245448]">Sign in as a partner <ArrowRight size={15} /></Button></div></Shell>;
-  if (hotelsLoading) return <Shell variant="cream"><main className="mx-auto max-w-[1240px] px-5 py-16 lg:px-8"><div className="h-72 animate-pulse rounded-[24px] bg-[#e9eee8]" /></main></Shell>;
-  if (!activeHotelId) return <Shell variant="cream"><PartnerSetupWizard onCreated={() => void utils.hotel.mine.invalidate()} verificationEmail={verificationPromptEmail(partnerProfile?.emailVerificationStatus, partnerProfile?.email)} onResend={() => resendPartnerVerification.mutate()} resendPending={resendPartnerVerification.isPending} /></Shell>;
-  const activeHotel = hotels.find((hotel: any) => hotel.id === activeHotelId) ?? hotels[0];
+  const createRoom = trpc.hotel.createRoom.useMutation({
+    onSuccess: () => {
+      toast.success("Room added to inventory");
+      void utils.hotel.rooms.invalidate(hotelInput);
+    },
+  });
+  const updateRoom = trpc.hotel.updateRoom.useMutation({
+    onSuccess: () => {
+      toast.success("Room inventory updated");
+      void utils.hotel.rooms.invalidate(hotelInput);
+    },
+  });
+  const updateBooking = trpc.hotel.updateBookingStatus.useMutation({
+    onSuccess: () => {
+      toast.success("Booking status updated");
+      void utils.hotel.bookings.invalidate(hotelInput);
+      void utils.hotel.conflicts.invalidate(hotelInput);
+    },
+  });
+  const block = trpc.hotel.blockDates.useMutation({
+    onSuccess: () => {
+      toast.success("Dates blocked");
+      void utils.hotel.blockedDates.invalidate(hotelInput);
+    },
+  });
+  const unblock = trpc.hotel.deleteBlockedDate.useMutation({
+    onSuccess: () => {
+      toast.success("Date block removed");
+      void utils.hotel.blockedDates.invalidate(hotelInput);
+    },
+  });
+  const sendMessage = trpc.bookings.sendMessage.useMutation({
+    onSuccess: () => {
+      setMessageText("");
+      toast.success("Message sent to guest");
+      void utils.bookings.listMessages.invalidate(messageInput);
+    },
+    onError: error => toast.error(error.message || "Could not send message"),
+  });
+  const savePayout = trpc.hotel.savePayoutAccount.useMutation({
+    onSuccess: () => {
+      toast.success("Payout details saved");
+      void utils.hotel.getPayoutAccount.invalidate(hotelInput);
+    },
+    onError: error =>
+      toast.error(error.message || "Could not save payout details"),
+  });
+  useEffect(() => {
+    if (payoutAccount)
+      setPayoutForm({
+        payoutMethod: payoutAccount.payoutMethod ?? "mobile_money",
+        accountName: payoutAccount.accountName ?? "",
+        accountNumber: payoutAccount.accountNumber ?? "",
+        bankName: payoutAccount.bankName ?? "",
+        networkProvider: payoutAccount.networkProvider ?? "",
+      });
+  }, [payoutAccount]);
+  const [tab, setTab] = useState<OwnerDashboardTab>("overview");
+  const [roomForm, setRoomForm] = useState({
+    name: "",
+    roomType: "standard",
+    capacity: "2",
+    priceGhs: "",
+    priceUsd: "",
+    totalRooms: "1",
+  });
+  const [blockForm, setBlockForm] = useState({
+    startDate: datePlus(20),
+    endDate: datePlus(21),
+    reason: "Maintenance",
+  });
+  const [completionBannerVisible, setCompletionBannerVisible] = useState(
+    () =>
+      new URLSearchParams(window.location.search).get("onboarding") ===
+      "complete"
+  );
+  if (!isAuthenticated)
+    return (
+      <Shell variant="cream">
+        <div className="mx-auto max-w-[580px] px-5 py-24 text-center">
+          <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-[#e8efe7] text-[#2b6755]">
+            <Hotel size={25} />
+          </div>
+          <h1 className="mt-5 font-serif text-4xl text-[#183a31]">
+            A calmer way to run your stay.
+          </h1>
+          <p className="mt-3 text-sm leading-6 text-[#718078]">
+            Sign in to access the hotel partner workspace, live sync status, and
+            booking operations.
+          </p>
+          <Button
+            onClick={() => startLogin()}
+            className="mt-7 rounded-xl bg-[#183a31] px-6 text-sm font-bold text-white hover:bg-[#245448]"
+          >
+            Sign in as a partner <ArrowRight size={15} />
+          </Button>
+        </div>
+      </Shell>
+    );
+  if (hotelsLoading)
+    return (
+      <Shell variant="cream">
+        <main className="mx-auto max-w-[1240px] px-5 py-16 lg:px-8">
+          <div className="h-72 animate-pulse rounded-[24px] bg-[#e9eee8]" />
+        </main>
+      </Shell>
+    );
+  if (!activeHotelId)
+    return (
+      <Shell variant="cream">
+        <PartnerSetupWizard
+          onCreated={() => void utils.hotel.mine.invalidate()}
+          verificationEmail={verificationPromptEmail(
+            partnerProfile?.emailVerificationStatus,
+            partnerProfile?.email
+          )}
+          onResend={() => resendPartnerVerification.mutate()}
+          resendPending={resendPartnerVerification.isPending}
+        />
+      </Shell>
+    );
+  const activeHotel =
+    hotels.find((hotel: any) => hotel.id === activeHotelId) ?? hotels[0];
   const submitRoom = () => {
-    if (!roomForm.name || !roomForm.priceGhs || !roomForm.priceUsd) return toast.error("Add the room name and both currency rates");
-    createRoom.mutate({ hotelId: activeHotelId, name: roomForm.name, roomType: roomForm.roomType, capacity: Number(roomForm.capacity), priceGhs: Number(roomForm.priceGhs), priceUsd: Number(roomForm.priceUsd), totalRooms: Number(roomForm.totalRooms), description: "", amenities: [], images: [] });
-    setRoomForm({ name: "", roomType: "standard", capacity: "2", priceGhs: "", priceUsd: "", totalRooms: "1" });
+    if (!roomForm.name || !roomForm.priceGhs || !roomForm.priceUsd)
+      return toast.error("Add the room name and both currency rates");
+    createRoom.mutate({
+      hotelId: activeHotelId,
+      name: roomForm.name,
+      roomType: roomForm.roomType,
+      capacity: Number(roomForm.capacity),
+      priceGhs: Number(roomForm.priceGhs),
+      priceUsd: Number(roomForm.priceUsd),
+      totalRooms: Number(roomForm.totalRooms),
+      description: "",
+      amenities: [],
+      images: [],
+    });
+    setRoomForm({
+      name: "",
+      roomType: "standard",
+      capacity: "2",
+      priceGhs: "",
+      priceUsd: "",
+      totalRooms: "1",
+    });
   };
-  const tabButton = (value: typeof tab, label: string, icon: React.ReactNode) => <button onClick={() => setTab(value)} className={`flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold transition ${tab === value ? "bg-[#183a31] text-white" : "text-[#607269] hover:bg-[#e8efe7]"}`}>{icon}{label}</button>;
-  return <Shell variant="cream"><main className="mx-auto max-w-[1240px] px-5 pb-24 pt-10 lg:px-8"><div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-end"><div><p className="mb-2 text-[11px] font-bold uppercase tracking-[0.18em] text-[#b18143]">Partner workspace</p><h1 className="font-serif text-[49px] leading-none tracking-[-0.04em] text-[#183a31]">Run the stay well.</h1><p className="mt-3 text-sm text-[#718078]">Rates, rooms, dates, and reservations in one calm workspace.</p></div><div className="flex flex-wrap items-center gap-3"><select value={activeHotelId} onChange={(event) => setSelectedHotelId(Number(event.target.value))} className="h-10 rounded-xl border border-[#cfd9cf] bg-white px-3 text-xs font-bold text-[#183a31] outline-none">{hotels.map((hotel: any) => <option key={hotel.id} value={hotel.id}>{hotel.name}</option>)}</select><Badge className={activeHotel?.approvalStatus === "approved" ? "border-0 bg-[#e8efe7] text-[#2b6755]" : "border-0 bg-[#fff1e7] text-[#a35c29]"}>{activeHotel?.approvalStatus}</Badge></div></div>{partnerProfile && partnerProfile.emailVerificationStatus !== "verified" && <Card className="mt-7 rounded-[22px] border-[#ead9a7] bg-[#fffaf0] shadow-none"><CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between"><div className="flex items-start gap-3"><MailCheck size={19} className="mt-0.5 text-[#b18143]" /><div><p className="text-sm font-bold text-[#183a31]">Verify your partner email</p><p className="mt-1 text-xs leading-5 text-[#718078]">Confirm {partnerProfile.email} to receive application and booking updates.</p></div></div><Button onClick={() => resendPartnerVerification.mutate()} disabled={resendPartnerVerification.isPending} variant="outline" className="rounded-lg border-[#d8c88f] text-xs font-bold text-[#795b1d]">{resendPartnerVerification.isPending ? "Sending…" : "Resend email"}</Button></CardContent></Card>}{completionBannerVisible && <Card className="mt-7 rounded-[22px] border-[#b9d1bd] bg-[#e8efe7] shadow-none"><CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between"><div className="flex items-start gap-3"><div className="mt-0.5 text-[#2b6755]"><CheckCircle2 size={19} /></div><div><p className="text-sm font-bold text-[#183a31]">Your property application is in review.</p><p className="mt-1 text-xs leading-5 text-[#607269]">Next, add rooms, nightly rates, and photographs. We’ll keep the listing private until an admin approves it.</p></div></div><Button onClick={() => setCompletionBannerVisible(false)} variant="outline" className="rounded-lg border-[#a9c3ae] bg-transparent text-xs font-bold text-[#2b6755]">Dismiss</Button></CardContent></Card>}<div className="mt-8 flex flex-wrap gap-2 rounded-[17px] border border-[#dfe4dc] bg-white p-2">{tabButton("overview", "Overview", <LayoutDashboard size={14} />)}{tabButton("rooms", "Rooms & rates", <BedDouble size={14} />)}{tabButton("bookings", "Bookings", <ClipboardCheck size={14} />)}{tabButton("availability", "Availability", <CalendarDays size={14} />)}</div>{tab === "overview" && <><PartnerInventoryPanel hotel={activeHotel} hotelId={activeHotelId} rooms={rooms as any} /><div className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-4"><Metric label="Live bookings" value={hotelBookings.length} icon={<ClipboardCheck size={17} />} /><Metric label="Room types" value={rooms.length} icon={<BedDouble size={17} />} /><Metric label="Conflict flags" value={conflicts.length} icon={<AlertTriangle size={17} />} alert={conflicts.length > 0} /><Metric label="Blocked periods" value={blockedDates.length} icon={<CalendarDays size={17} />} /></div><div className="mt-7 grid gap-6 lg:grid-cols-[1.1fr_.9fr]"><Card className="rounded-[22px] border-[#dfe4dc] bg-white shadow-none"><CardHeader className="p-6"><p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#b18143]">Live connection</p><CardTitle className="mt-2 font-serif text-[28px] text-[#183a31]">{activeHotel?.isBillflowConnected ? "BillFlow is the source of truth." : "Manual inventory is active."}</CardTitle></CardHeader><CardContent className="space-y-4 p-6 pt-0"><p className="text-sm leading-6 text-[#607269]">{activeHotel?.isBillflowConnected ? "Room availability and rates are checked against BillFlow before a guest can complete payment. Incoming conflicts remain visible for your team." : "Your team controls room rates and blocked dates here. When you connect BillFlow, its availability and rates take precedence."}</p><div className="grid gap-3 sm:grid-cols-3"><div className="rounded-xl bg-[#f3f5f0] p-4"><p className="text-[10px] font-bold uppercase tracking-[0.13em] text-[#8a9890]">Location</p><p className="mt-2 text-sm font-bold text-[#183a31]">{activeHotel?.location}</p></div><div className="rounded-xl bg-[#f3f5f0] p-4"><p className="text-[10px] font-bold uppercase tracking-[0.13em] text-[#8a9890]">Commission</p><p className="mt-2 text-sm font-bold text-[#183a31]">15% flat</p></div><div className="rounded-xl bg-[#f3f5f0] p-4"><p className="text-[10px] font-bold uppercase tracking-[0.13em] text-[#8a9890]">Guests</p><p className="mt-2 text-sm font-bold text-[#183a31]">{new Set(hotelBookings.map((booking: any) => booking.userId)).size}</p></div></div></CardContent></Card><Card className="rounded-[22px] border-[#dfe4dc] bg-[#183a31] text-white shadow-none"><CardContent className="p-7"><div className="flex items-center gap-2 text-[#e7c77b]"><AlertTriangle size={16} /><span className="text-[10px] font-bold uppercase tracking-[0.16em]">Needs attention</span></div><h2 className="mt-4 font-serif text-[32px] leading-none">{conflicts.length ? `${conflicts.length} conflict${conflicts.length === 1 ? "" : "s"} to review.` : "Everything looks steady."}</h2><p className="mt-4 text-sm leading-6 text-[#c9d8cc]">{conflicts.length ? "Review the reservation details and choose a clear outcome with the guest. StayNest never silently resolves double-bookings." : "Keep your rates current and use blocked dates when a room or property is unavailable."}</p><Button onClick={() => setTab(conflicts.length ? "bookings" : "availability")} variant="outline" className="mt-7 rounded-xl border-[#557469] bg-transparent text-xs font-bold text-white hover:bg-white/10">{conflicts.length ? "Review conflicts" : "Manage availability"} <ArrowRight size={14} /></Button></CardContent></Card></div></>}{tab === "rooms" && <div className="mt-7 grid gap-6 lg:grid-cols-[1fr_360px]"><Card className="rounded-[22px] border-[#dfe4dc] bg-white shadow-none"><CardHeader className="p-6"><p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#b18143]">Inventory</p><CardTitle className="mt-2 font-serif text-[28px] text-[#183a31]">Rooms & rates</CardTitle></CardHeader><CardContent className="space-y-3 p-6 pt-0">{rooms.length === 0 ? <p className="rounded-xl bg-[#f3f5f0] p-5 text-sm text-[#718078]">No rooms have been added yet.</p> : rooms.map((room: any) => <div key={room.id} className="grid gap-3 rounded-xl border border-[#e5ebe4] p-4 sm:grid-cols-[1fr_auto] sm:items-center"><div><p className="font-serif text-[22px] text-[#183a31]">{room.name}</p><p className="mt-1 text-xs text-[#718078]">{room.roomType} · sleeps {room.capacity} · {room.totalRooms} rooms</p></div><div className="flex items-center gap-3 sm:justify-end"><div className="text-right"><p className="text-xs font-bold text-[#183a31]">{formatMoney(Number(room.priceGhs), "GHS")}</p><p className="text-[10px] text-[#8a9890]">{formatMoney(Number(room.priceUsd), "USD")} · per night</p></div><Button variant="outline" onClick={() => { const next = window.prompt("Update GHS nightly rate", String(room.priceGhs)); if (next) updateRoom.mutate({ id: room.id, hotelId: activeHotelId, priceGhs: Number(next) }); }} className="rounded-lg border-[#dfe4dc] text-xs font-bold text-[#183a31]">Edit rate</Button></div></div>)}</CardContent></Card><Card className="rounded-[22px] border-[#dfe4dc] bg-white shadow-none"><CardHeader className="p-6"><p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#b18143]">Add inventory</p><CardTitle className="mt-2 font-serif text-[28px] text-[#183a31]">New room type</CardTitle></CardHeader><CardContent className="space-y-4 p-6 pt-0"><Input value={roomForm.name} onChange={(event) => setRoomForm({ ...roomForm, name: event.target.value })} placeholder="Room name" className="h-10 rounded-xl border-[#dfe4dc]" /><div className="grid grid-cols-2 gap-3"><Input value={roomForm.roomType} onChange={(event) => setRoomForm({ ...roomForm, roomType: event.target.value })} placeholder="Type" className="h-10 rounded-xl border-[#dfe4dc]" /><Input type="number" value={roomForm.capacity} onChange={(event) => setRoomForm({ ...roomForm, capacity: event.target.value })} placeholder="Sleeps" className="h-10 rounded-xl border-[#dfe4dc]" /></div><div className="grid grid-cols-2 gap-3"><Input type="number" value={roomForm.priceGhs} onChange={(event) => setRoomForm({ ...roomForm, priceGhs: event.target.value })} placeholder="GHS / night" className="h-10 rounded-xl border-[#dfe4dc]" /><Input type="number" value={roomForm.priceUsd} onChange={(event) => setRoomForm({ ...roomForm, priceUsd: event.target.value })} placeholder="USD / night" className="h-10 rounded-xl border-[#dfe4dc]" /></div><Input type="number" value={roomForm.totalRooms} onChange={(event) => setRoomForm({ ...roomForm, totalRooms: event.target.value })} placeholder="Number of rooms" className="h-10 rounded-xl border-[#dfe4dc]" /><Button onClick={submitRoom} disabled={createRoom.isPending} className="h-11 w-full rounded-xl bg-[#183a31] text-sm font-bold text-white">{createRoom.isPending ? "Adding…" : "Add room type"} <PlusIcon /></Button></CardContent></Card></div>}{tab === "bookings" && <div className="mt-7 grid gap-6 lg:grid-cols-[1fr_360px]"><Card className="rounded-[22px] border-[#dfe4dc] bg-white shadow-none"><CardHeader className="p-6"><p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#b18143]">Reservation desk</p><CardTitle className="mt-2 font-serif text-[28px] text-[#183a31]">Bookings</CardTitle></CardHeader><CardContent className="space-y-3 p-6 pt-0">{hotelBookings.length === 0 ? <p className="rounded-xl bg-[#f3f5f0] p-5 text-sm text-[#718078]">New reservations will appear here after payment verification and BillFlow confirmation.</p> : hotelBookings.map((booking: any) => <div key={booking.id} className={`rounded-xl border p-4 ${booking.bookingStatus === "conflict_flagged" ? "border-[#f1c5a8] bg-[#fffaf5]" : "border-[#e5ebe4]"}`}><div className="flex flex-wrap items-start justify-between gap-3"><div><div className="flex items-center gap-2"><Badge className={booking.bookingStatus === "conflict_flagged" ? "border-0 bg-[#fff1e7] text-[#a35c29]" : "border-0 bg-[#e8efe7] text-[#2b6755]"}>{booking.bookingStatus}</Badge><span className="font-mono text-[10px] text-[#8a9890]">{booking.bookingReference}</span></div><p className="mt-2 font-semibold text-[#183a31]">{booking.guestName}</p><p className="mt-1 text-xs text-[#718078]">{booking.checkInDate} → {booking.checkOutDate} · {booking.guestsCount} guests · {formatMoney(Number(booking.totalAmount), booking.currency)}</p>{booking.conflictDetails && <p className="mt-3 flex items-start gap-2 text-xs font-semibold leading-5 text-[#a35c29]"><AlertTriangle size={14} className="mt-0.5 shrink-0" /> {booking.conflictDetails}</p>}</div><div className="flex flex-wrap gap-2">{booking.bookingStatus === "conflict_flagged" ? <Button onClick={() => updateBooking.mutate({ hotelId: activeHotelId, id: booking.id, bookingStatus: "cancelled", conflictDetails: "Hotel reviewed the conflict and cancelled this reservation." })} className="rounded-lg bg-[#a35c29] text-xs font-bold text-white">Resolve & cancel</Button> : booking.bookingStatus === "booked" && <><Button variant="outline" onClick={() => updateBooking.mutate({ hotelId: activeHotelId, id: booking.id, bookingStatus: "checked_in" })} className="rounded-lg border-[#dfe4dc] text-xs font-bold text-[#183a31]">Check in</Button><Button variant="outline" onClick={() => updateBooking.mutate({ hotelId: activeHotelId, id: booking.id, bookingStatus: "cancelled", conflictDetails: null })} className="rounded-lg border-[#dfe4dc] text-xs font-bold text-[#a35c29]">Cancel</Button></>}</div></div></div>)}</CardContent></Card><Card className="rounded-[22px] border-[#f1c5a8] bg-[#fffaf5] shadow-none"><CardHeader className="p-6"><div className="flex items-center gap-2 text-[#a35c29]"><AlertTriangle size={16} /><span className="text-[10px] font-bold uppercase tracking-[0.16em]">Conflict inbox</span></div><CardTitle className="mt-2 font-serif text-[28px] text-[#183a31]">Review, don’t hide.</CardTitle></CardHeader><CardContent className="p-6 pt-0"><p className="text-sm leading-6 text-[#8c654c]">A conflict means BillFlow and the reservation attempt need human review. StayNest never auto-resolves a double-booking.</p><div className="mt-5 space-y-3">{conflicts.length === 0 ? <p className="text-xs font-semibold text-[#a97b5e]">No active conflicts.</p> : conflicts.map((booking: any) => <div key={booking.id} className="rounded-xl border border-[#f1c5a8] bg-white p-3"><p className="text-xs font-bold text-[#183a31]">{booking.bookingReference}</p><p className="mt-1 text-[11px] leading-5 text-[#8c654c]">{booking.conflictDetails ?? "BillFlow reported a conflict."}</p></div>)}</div></CardContent></Card></div>}{tab === "availability" && <div className="mt-7 grid gap-6 lg:grid-cols-[1fr_360px]"><Card className="rounded-[22px] border-[#dfe4dc] bg-white shadow-none"><CardHeader className="p-6"><p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#b18143]">Manual controls</p><CardTitle className="mt-2 font-serif text-[28px] text-[#183a31]">Blocked dates</CardTitle></CardHeader><CardContent className="space-y-3 p-6 pt-0">{blockedDates.length === 0 ? <p className="rounded-xl bg-[#f3f5f0] p-5 text-sm text-[#718078]">No blocked periods. BillFlow-connected properties should still treat BillFlow as authoritative.</p> : blockedDates.map((period: any) => <div key={period.id} className="flex items-center justify-between rounded-xl border border-[#e5ebe4] p-4"><div><p className="font-semibold text-[#183a31]">{period.startDate} → {period.endDate}</p><p className="mt-1 text-xs text-[#718078]">{period.reason ?? "No reason provided"}</p></div><Button variant="outline" onClick={() => unblock.mutate({ id: period.id, hotelId: activeHotelId })} className="rounded-lg border-[#dfe4dc] text-xs font-bold text-[#a35c29]">Remove</Button></div>)}</CardContent></Card><Card className="rounded-[22px] border-[#dfe4dc] bg-white shadow-none"><CardHeader className="p-6"><p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#b18143]">Block inventory</p><CardTitle className="mt-2 font-serif text-[28px] text-[#183a31]">Hold a period</CardTitle></CardHeader><CardContent className="space-y-4 p-6 pt-0"><div><Label className="text-xs font-bold text-[#607269]">Start date</Label><Input type="date" value={blockForm.startDate} onChange={(event) => setBlockForm({ ...blockForm, startDate: event.target.value })} className="mt-2 h-10 rounded-xl border-[#dfe4dc]" /></div><div><Label className="text-xs font-bold text-[#607269]">End date</Label><Input type="date" value={blockForm.endDate} onChange={(event) => setBlockForm({ ...blockForm, endDate: event.target.value })} className="mt-2 h-10 rounded-xl border-[#dfe4dc]" /></div><Input value={blockForm.reason} onChange={(event) => setBlockForm({ ...blockForm, reason: event.target.value })} placeholder="Reason" className="h-10 rounded-xl border-[#dfe4dc]" /><Button onClick={() => block.mutate({ hotelId: activeHotelId, startDate: blockForm.startDate, endDate: blockForm.endDate, reason: blockForm.reason })} className="h-11 w-full rounded-xl bg-[#183a31] text-sm font-bold text-white">Block dates <CalendarDays size={15} /></Button></CardContent></Card></div>}</main></Shell>;
+  const handleBlockDates = () => {
+    if (!blockForm.startDate || !blockForm.endDate)
+      return toast.error("Choose a start and end date");
+    block.mutate({
+      hotelId: activeHotelId,
+      startDate: blockForm.startDate,
+      endDate: blockForm.endDate,
+      reason: blockForm.reason,
+    });
+  };
+  const workspace = (
+    <OwnerDashboardWorkspace
+      userName={user?.name}
+      activeHotel={activeHotel}
+      hotels={hotels as any[]}
+      rooms={rooms as any[]}
+      bookings={hotelBookings as any[]}
+      conflicts={conflicts as any[]}
+      blockedDates={blockedDates as any[]}
+      payoutAccount={payoutAccount}
+      activeHotelId={activeHotelId}
+      onSelectHotel={hotelId => setSelectedHotelId(hotelId)}
+      tab={tab}
+      onTabChange={setTab}
+      inventoryPanel={
+        <PartnerInventoryPanel
+          hotel={activeHotel}
+          hotelId={activeHotelId}
+          rooms={rooms as any}
+        />
+      }
+      roomForm={roomForm}
+      setRoomForm={value => setRoomForm(value)}
+      onSubmitRoom={submitRoom}
+      roomSubmitPending={createRoom.isPending}
+      onEditRoomRate={room => {
+        const next = window.prompt(
+          "Update GHS nightly rate",
+          String(room.priceGhs)
+        );
+        if (next)
+          updateRoom.mutate({
+            id: room.id,
+            hotelId: activeHotelId,
+            priceGhs: Number(next),
+          });
+      }}
+      onUpdateBooking={(booking, status) =>
+        updateBooking.mutate({
+          id: booking.id,
+          hotelId: activeHotelId,
+          bookingStatus: status,
+        })
+      }
+      bookingUpdatePending={updateBooking.isPending}
+      blockForm={blockForm}
+      setBlockForm={value => setBlockForm(value)}
+      onBlockDates={handleBlockDates}
+      onUnblockDate={id => unblock.mutate({ id, hotelId: activeHotelId })}
+      blockPending={block.isPending}
+      messageBookingId={messageBookingId}
+      messages={messages as any[]}
+      messagesLoading={messagesLoading}
+      messageText={messageText}
+      setMessageText={setMessageText}
+      onOpenConversation={bookingId => {
+        setMessageBookingId(bookingId);
+        setTab("messages");
+      }}
+      onSendMessage={() => {
+        if (messageBookingId && messageText.trim())
+          sendMessage.mutate({
+            bookingId: messageBookingId,
+            messageText: messageText.trim(),
+          });
+      }}
+      messageSending={sendMessage.isPending}
+      payoutForm={payoutForm}
+      setPayoutForm={setPayoutForm}
+      onSavePayout={() => {
+        if (payoutForm.accountName.trim() && payoutForm.accountNumber.trim())
+          savePayout.mutate({ hotelId: activeHotelId, ...payoutForm });
+      }}
+      payoutSavePending={savePayout.isPending}
+    />
+  );
+  return (
+    <Shell variant="cream">
+      <div className="relative">
+        {partnerProfile &&
+          partnerProfile.emailVerificationStatus !== "verified" && (
+            <Card className="mx-auto max-w-[1420px] rounded-none border-x-0 border-t-0 border-[#ead9a7] bg-[#fffaf0] shadow-none">
+              <CardContent className="flex flex-col gap-4 px-5 py-4 sm:flex-row sm:items-center sm:justify-between lg:px-8">
+                <div className="flex items-start gap-3">
+                  <MailCheck size={19} className="mt-0.5 text-[#b18143]" />
+                  <div>
+                    <p className="text-sm font-bold text-[#183a31]">
+                      Verify your partner email
+                    </p>
+                    <p className="mt-1 text-xs leading-5 text-[#718078]">
+                      Confirm {partnerProfile.email} to receive application and
+                      booking updates.
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  onClick={() => resendPartnerVerification.mutate()}
+                  disabled={resendPartnerVerification.isPending}
+                  variant="outline"
+                  className="rounded-lg border-[#d8c88f] text-xs font-bold text-[#795b1d]"
+                >
+                  {resendPartnerVerification.isPending
+                    ? "Sending…"
+                    : "Resend email"}
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+        {completionBannerVisible && (
+          <Card className="mx-auto max-w-[1420px] rounded-none border-x-0 border-t-0 border-[#b9d1bd] bg-[#e8efe7] shadow-none">
+            <CardContent className="flex flex-col gap-4 px-5 py-4 sm:flex-row sm:items-center sm:justify-between lg:px-8">
+              <div className="flex items-start gap-3">
+                <CheckCircle2 size={19} className="mt-0.5 text-[#2b6755]" />
+                <div>
+                  <p className="text-sm font-bold text-[#183a31]">
+                    Your property application is in review.
+                  </p>
+                  <p className="mt-1 text-xs leading-5 text-[#607269]">
+                    Next, add rooms, nightly rates, and photographs. We’ll keep
+                    the listing private until an admin approves it.
+                  </p>
+                </div>
+              </div>
+              <Button
+                onClick={() => setCompletionBannerVisible(false)}
+                variant="outline"
+                className="rounded-lg border-[#a9c3ae] bg-transparent text-xs font-bold text-[#2b6755]"
+              >
+                Dismiss
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+        {workspace}
+      </div>
+    </Shell>
+  );
 }
 
-function PlusIcon() { return <span className="ml-1 text-base leading-none">+</span>; }
+export function HotelDashboardLegacy() {
+  const { isAuthenticated } = useAuth();
+  const { data: hotels = [], isLoading: hotelsLoading } =
+    trpc.hotel.mine.useQuery(undefined, { enabled: isAuthenticated });
+  const [selectedHotelId, setSelectedHotelId] = useState<number | null>(null);
+  const activeHotelId = selectedHotelId ?? hotels[0]?.id ?? 0;
+  const hotelInput = useMemo(
+    () => ({ hotelId: activeHotelId }),
+    [activeHotelId]
+  );
+  const { data: rooms = [] } = trpc.hotel.rooms.useQuery(hotelInput, {
+    enabled: isAuthenticated && activeHotelId > 0,
+  });
+  const { data: hotelBookings = [] } = trpc.hotel.bookings.useQuery(
+    hotelInput,
+    { enabled: isAuthenticated && activeHotelId > 0 }
+  );
+  const { data: partnerProfile } = trpc.auth.onboardingProfile.useQuery(
+    undefined,
+    { enabled: isAuthenticated }
+  );
+  const resendPartnerVerification = trpc.auth.resendVerification.useMutation({
+    onSuccess: result => {
+      if (result.welcomeEmail.sent) toast.success("Verification email sent");
+      else
+        toast.error(
+          "Email delivery is not configured yet. Add RESEND_API_KEY and APP_URL in production."
+        );
+    },
+    onError: error =>
+      toast.error(error.message || "Could not resend verification email"),
+  });
+  const { data: conflicts = [] } = trpc.hotel.conflicts.useQuery(hotelInput, {
+    enabled: isAuthenticated && activeHotelId > 0,
+  });
+  const { data: blockedDates = [] } = trpc.hotel.blockedDates.useQuery(
+    hotelInput,
+    { enabled: isAuthenticated && activeHotelId > 0 }
+  );
+  const utils = trpc.useUtils();
+  const createRoom = trpc.hotel.createRoom.useMutation({
+    onSuccess: () => {
+      toast.success("Room added to inventory");
+      void utils.hotel.rooms.invalidate(hotelInput);
+    },
+  });
+  const updateRoom = trpc.hotel.updateRoom.useMutation({
+    onSuccess: () => {
+      toast.success("Room inventory updated");
+      void utils.hotel.rooms.invalidate(hotelInput);
+    },
+  });
+  const updateBooking = trpc.hotel.updateBookingStatus.useMutation({
+    onSuccess: () => {
+      toast.success("Booking status updated");
+      void utils.hotel.bookings.invalidate(hotelInput);
+      void utils.hotel.conflicts.invalidate(hotelInput);
+    },
+  });
+  const block = trpc.hotel.blockDates.useMutation({
+    onSuccess: () => {
+      toast.success("Dates blocked");
+      void utils.hotel.blockedDates.invalidate(hotelInput);
+    },
+  });
+  const unblock = trpc.hotel.deleteBlockedDate.useMutation({
+    onSuccess: () => {
+      toast.success("Date block removed");
+      void utils.hotel.blockedDates.invalidate(hotelInput);
+    },
+  });
+  const [tab, setTab] = useState<
+    "overview" | "rooms" | "bookings" | "availability"
+  >("overview");
+  const [roomForm, setRoomForm] = useState({
+    name: "",
+    roomType: "standard",
+    capacity: "2",
+    priceGhs: "",
+    priceUsd: "",
+    totalRooms: "1",
+  });
+  const [blockForm, setBlockForm] = useState({
+    startDate: datePlus(20),
+    endDate: datePlus(21),
+    reason: "Maintenance",
+  });
+  const [completionBannerVisible, setCompletionBannerVisible] = useState(
+    () =>
+      new URLSearchParams(window.location.search).get("onboarding") ===
+      "complete"
+  );
+  if (!isAuthenticated)
+    return (
+      <Shell variant="cream">
+        <div className="mx-auto max-w-[580px] px-5 py-24 text-center">
+          <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-[#e8efe7] text-[#2b6755]">
+            <Hotel size={25} />
+          </div>
+          <h1 className="mt-5 font-serif text-4xl text-[#183a31]">
+            A calmer way to run your stay.
+          </h1>
+          <p className="mt-3 text-sm leading-6 text-[#718078]">
+            Sign in to access the hotel partner workspace, live sync status, and
+            booking operations.
+          </p>
+          <Button
+            onClick={() => startLogin()}
+            className="mt-7 rounded-xl bg-[#183a31] px-6 text-sm font-bold text-white hover:bg-[#245448]"
+          >
+            Sign in as a partner <ArrowRight size={15} />
+          </Button>
+        </div>
+      </Shell>
+    );
+  if (hotelsLoading)
+    return (
+      <Shell variant="cream">
+        <main className="mx-auto max-w-[1240px] px-5 py-16 lg:px-8">
+          <div className="h-72 animate-pulse rounded-[24px] bg-[#e9eee8]" />
+        </main>
+      </Shell>
+    );
+  if (!activeHotelId)
+    return (
+      <Shell variant="cream">
+        <PartnerSetupWizard
+          onCreated={() => void utils.hotel.mine.invalidate()}
+          verificationEmail={verificationPromptEmail(
+            partnerProfile?.emailVerificationStatus,
+            partnerProfile?.email
+          )}
+          onResend={() => resendPartnerVerification.mutate()}
+          resendPending={resendPartnerVerification.isPending}
+        />
+      </Shell>
+    );
+  const activeHotel =
+    hotels.find((hotel: any) => hotel.id === activeHotelId) ?? hotels[0];
+  const submitRoom = () => {
+    if (!roomForm.name || !roomForm.priceGhs || !roomForm.priceUsd)
+      return toast.error("Add the room name and both currency rates");
+    createRoom.mutate({
+      hotelId: activeHotelId,
+      name: roomForm.name,
+      roomType: roomForm.roomType,
+      capacity: Number(roomForm.capacity),
+      priceGhs: Number(roomForm.priceGhs),
+      priceUsd: Number(roomForm.priceUsd),
+      totalRooms: Number(roomForm.totalRooms),
+      description: "",
+      amenities: [],
+      images: [],
+    });
+    setRoomForm({
+      name: "",
+      roomType: "standard",
+      capacity: "2",
+      priceGhs: "",
+      priceUsd: "",
+      totalRooms: "1",
+    });
+  };
+  const tabButton = (
+    value: typeof tab,
+    label: string,
+    icon: React.ReactNode
+  ) => (
+    <button
+      onClick={() => setTab(value)}
+      className={`flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold transition ${tab === value ? "bg-[#183a31] text-white" : "text-[#607269] hover:bg-[#e8efe7]"}`}
+    >
+      {icon}
+      {label}
+    </button>
+  );
+  return (
+    <Shell variant="cream">
+      <main className="mx-auto max-w-[1240px] px-5 pb-24 pt-10 lg:px-8">
+        <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
+          <div>
+            <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.18em] text-[#b18143]">
+              Partner workspace
+            </p>
+            <h1 className="font-serif text-[49px] leading-none tracking-[-0.04em] text-[#183a31]">
+              Run the stay well.
+            </h1>
+            <p className="mt-3 text-sm text-[#718078]">
+              Rates, rooms, dates, and reservations in one calm workspace.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <select
+              value={activeHotelId}
+              onChange={event => setSelectedHotelId(Number(event.target.value))}
+              className="h-10 rounded-xl border border-[#cfd9cf] bg-white px-3 text-xs font-bold text-[#183a31] outline-none"
+            >
+              {hotels.map((hotel: any) => (
+                <option key={hotel.id} value={hotel.id}>
+                  {hotel.name}
+                </option>
+              ))}
+            </select>
+            <Badge
+              className={
+                activeHotel?.approvalStatus === "approved"
+                  ? "border-0 bg-[#e8efe7] text-[#2b6755]"
+                  : "border-0 bg-[#fff1e7] text-[#a35c29]"
+              }
+            >
+              {activeHotel?.approvalStatus}
+            </Badge>
+          </div>
+        </div>
+        {partnerProfile &&
+          partnerProfile.emailVerificationStatus !== "verified" && (
+            <Card className="mt-7 rounded-[22px] border-[#ead9a7] bg-[#fffaf0] shadow-none">
+              <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-start gap-3">
+                  <MailCheck size={19} className="mt-0.5 text-[#b18143]" />
+                  <div>
+                    <p className="text-sm font-bold text-[#183a31]">
+                      Verify your partner email
+                    </p>
+                    <p className="mt-1 text-xs leading-5 text-[#718078]">
+                      Confirm {partnerProfile.email} to receive application and
+                      booking updates.
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  onClick={() => resendPartnerVerification.mutate()}
+                  disabled={resendPartnerVerification.isPending}
+                  variant="outline"
+                  className="rounded-lg border-[#d8c88f] text-xs font-bold text-[#795b1d]"
+                >
+                  {resendPartnerVerification.isPending
+                    ? "Sending…"
+                    : "Resend email"}
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+        {completionBannerVisible && (
+          <Card className="mt-7 rounded-[22px] border-[#b9d1bd] bg-[#e8efe7] shadow-none">
+            <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 text-[#2b6755]">
+                  <CheckCircle2 size={19} />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-[#183a31]">
+                    Your property application is in review.
+                  </p>
+                  <p className="mt-1 text-xs leading-5 text-[#607269]">
+                    Next, add rooms, nightly rates, and photographs. We’ll keep
+                    the listing private until an admin approves it.
+                  </p>
+                </div>
+              </div>
+              <Button
+                onClick={() => setCompletionBannerVisible(false)}
+                variant="outline"
+                className="rounded-lg border-[#a9c3ae] bg-transparent text-xs font-bold text-[#2b6755]"
+              >
+                Dismiss
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+        <div className="mt-8 flex flex-wrap gap-2 rounded-[17px] border border-[#dfe4dc] bg-white p-2">
+          {tabButton("overview", "Overview", <LayoutDashboard size={14} />)}
+          {tabButton("rooms", "Rooms & rates", <BedDouble size={14} />)}
+          {tabButton("bookings", "Bookings", <ClipboardCheck size={14} />)}
+          {tabButton(
+            "availability",
+            "Availability",
+            <CalendarDays size={14} />
+          )}
+        </div>
+        {tab === "overview" && (
+          <>
+            <PartnerInventoryPanel
+              hotel={activeHotel}
+              hotelId={activeHotelId}
+              rooms={rooms as any}
+            />
+            <div className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <Metric
+                label="Live bookings"
+                value={hotelBookings.length}
+                icon={<ClipboardCheck size={17} />}
+              />
+              <Metric
+                label="Room types"
+                value={rooms.length}
+                icon={<BedDouble size={17} />}
+              />
+              <Metric
+                label="Conflict flags"
+                value={conflicts.length}
+                icon={<AlertTriangle size={17} />}
+                alert={conflicts.length > 0}
+              />
+              <Metric
+                label="Blocked periods"
+                value={blockedDates.length}
+                icon={<CalendarDays size={17} />}
+              />
+            </div>
+            <div className="mt-7 grid gap-6 lg:grid-cols-[1.1fr_.9fr]">
+              <Card className="rounded-[22px] border-[#dfe4dc] bg-white shadow-none">
+                <CardHeader className="p-6">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#b18143]">
+                    Live connection
+                  </p>
+                  <CardTitle className="mt-2 font-serif text-[28px] text-[#183a31]">
+                    {activeHotel?.isBillflowConnected
+                      ? "BillFlow is the source of truth."
+                      : "Manual inventory is active."}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4 p-6 pt-0">
+                  <p className="text-sm leading-6 text-[#607269]">
+                    {activeHotel?.isBillflowConnected
+                      ? "Room availability and rates are checked against BillFlow before a guest can complete payment. Incoming conflicts remain visible for your team."
+                      : "Your team controls room rates and blocked dates here. When you connect BillFlow, its availability and rates take precedence."}
+                  </p>
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    <div className="rounded-xl bg-[#f3f5f0] p-4">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.13em] text-[#8a9890]">
+                        Location
+                      </p>
+                      <p className="mt-2 text-sm font-bold text-[#183a31]">
+                        {activeHotel?.location}
+                      </p>
+                    </div>
+                    <div className="rounded-xl bg-[#f3f5f0] p-4">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.13em] text-[#8a9890]">
+                        Commission
+                      </p>
+                      <p className="mt-2 text-sm font-bold text-[#183a31]">
+                        15% flat
+                      </p>
+                    </div>
+                    <div className="rounded-xl bg-[#f3f5f0] p-4">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.13em] text-[#8a9890]">
+                        Guests
+                      </p>
+                      <p className="mt-2 text-sm font-bold text-[#183a31]">
+                        {
+                          new Set(
+                            hotelBookings.map((booking: any) => booking.userId)
+                          ).size
+                        }
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="rounded-[22px] border-[#dfe4dc] bg-[#183a31] text-white shadow-none">
+                <CardContent className="p-7">
+                  <div className="flex items-center gap-2 text-[#e7c77b]">
+                    <AlertTriangle size={16} />
+                    <span className="text-[10px] font-bold uppercase tracking-[0.16em]">
+                      Needs attention
+                    </span>
+                  </div>
+                  <h2 className="mt-4 font-serif text-[32px] leading-none">
+                    {conflicts.length
+                      ? `${conflicts.length} conflict${conflicts.length === 1 ? "" : "s"} to review.`
+                      : "Everything looks steady."}
+                  </h2>
+                  <p className="mt-4 text-sm leading-6 text-[#c9d8cc]">
+                    {conflicts.length
+                      ? "Review the reservation details and choose a clear outcome with the guest. StayNest never silently resolves double-bookings."
+                      : "Keep your rates current and use blocked dates when a room or property is unavailable."}
+                  </p>
+                  <Button
+                    onClick={() =>
+                      setTab(conflicts.length ? "bookings" : "availability")
+                    }
+                    variant="outline"
+                    className="mt-7 rounded-xl border-[#557469] bg-transparent text-xs font-bold text-white hover:bg-white/10"
+                  >
+                    {conflicts.length
+                      ? "Review conflicts"
+                      : "Manage availability"}{" "}
+                    <ArrowRight size={14} />
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          </>
+        )}
+        {tab === "rooms" && (
+          <div className="mt-7 grid gap-6 lg:grid-cols-[1fr_360px]">
+            <Card className="rounded-[22px] border-[#dfe4dc] bg-white shadow-none">
+              <CardHeader className="p-6">
+                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#b18143]">
+                  Inventory
+                </p>
+                <CardTitle className="mt-2 font-serif text-[28px] text-[#183a31]">
+                  Rooms & rates
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 p-6 pt-0">
+                {rooms.length === 0 ? (
+                  <p className="rounded-xl bg-[#f3f5f0] p-5 text-sm text-[#718078]">
+                    No rooms have been added yet.
+                  </p>
+                ) : (
+                  rooms.map((room: any) => (
+                    <div
+                      key={room.id}
+                      className="grid gap-3 rounded-xl border border-[#e5ebe4] p-4 sm:grid-cols-[1fr_auto] sm:items-center"
+                    >
+                      <div>
+                        <p className="font-serif text-[22px] text-[#183a31]">
+                          {room.name}
+                        </p>
+                        <p className="mt-1 text-xs text-[#718078]">
+                          {room.roomType} · sleeps {room.capacity} ·{" "}
+                          {room.totalRooms} rooms
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-3 sm:justify-end">
+                        <div className="text-right">
+                          <p className="text-xs font-bold text-[#183a31]">
+                            {formatMoney(Number(room.priceGhs), "GHS")}
+                          </p>
+                          <p className="text-[10px] text-[#8a9890]">
+                            {formatMoney(Number(room.priceUsd), "USD")} · per
+                            night
+                          </p>
+                        </div>
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            const next = window.prompt(
+                              "Update GHS nightly rate",
+                              String(room.priceGhs)
+                            );
+                            if (next)
+                              updateRoom.mutate({
+                                id: room.id,
+                                hotelId: activeHotelId,
+                                priceGhs: Number(next),
+                              });
+                          }}
+                          className="rounded-lg border-[#dfe4dc] text-xs font-bold text-[#183a31]"
+                        >
+                          Edit rate
+                        </Button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </CardContent>
+            </Card>
+            <Card className="rounded-[22px] border-[#dfe4dc] bg-white shadow-none">
+              <CardHeader className="p-6">
+                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#b18143]">
+                  Add inventory
+                </p>
+                <CardTitle className="mt-2 font-serif text-[28px] text-[#183a31]">
+                  New room type
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4 p-6 pt-0">
+                <Input
+                  value={roomForm.name}
+                  onChange={event =>
+                    setRoomForm({ ...roomForm, name: event.target.value })
+                  }
+                  placeholder="Room name"
+                  className="h-10 rounded-xl border-[#dfe4dc]"
+                />
+                <div className="grid grid-cols-2 gap-3">
+                  <Input
+                    value={roomForm.roomType}
+                    onChange={event =>
+                      setRoomForm({ ...roomForm, roomType: event.target.value })
+                    }
+                    placeholder="Type"
+                    className="h-10 rounded-xl border-[#dfe4dc]"
+                  />
+                  <Input
+                    type="number"
+                    value={roomForm.capacity}
+                    onChange={event =>
+                      setRoomForm({ ...roomForm, capacity: event.target.value })
+                    }
+                    placeholder="Sleeps"
+                    className="h-10 rounded-xl border-[#dfe4dc]"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <Input
+                    type="number"
+                    value={roomForm.priceGhs}
+                    onChange={event =>
+                      setRoomForm({ ...roomForm, priceGhs: event.target.value })
+                    }
+                    placeholder="GHS / night"
+                    className="h-10 rounded-xl border-[#dfe4dc]"
+                  />
+                  <Input
+                    type="number"
+                    value={roomForm.priceUsd}
+                    onChange={event =>
+                      setRoomForm({ ...roomForm, priceUsd: event.target.value })
+                    }
+                    placeholder="USD / night"
+                    className="h-10 rounded-xl border-[#dfe4dc]"
+                  />
+                </div>
+                <Input
+                  type="number"
+                  value={roomForm.totalRooms}
+                  onChange={event =>
+                    setRoomForm({ ...roomForm, totalRooms: event.target.value })
+                  }
+                  placeholder="Number of rooms"
+                  className="h-10 rounded-xl border-[#dfe4dc]"
+                />
+                <Button
+                  onClick={submitRoom}
+                  disabled={createRoom.isPending}
+                  className="h-11 w-full rounded-xl bg-[#183a31] text-sm font-bold text-white"
+                >
+                  {createRoom.isPending ? "Adding…" : "Add room type"}{" "}
+                  <PlusIcon />
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+        {tab === "bookings" && (
+          <div className="mt-7 grid gap-6 lg:grid-cols-[1fr_360px]">
+            <Card className="rounded-[22px] border-[#dfe4dc] bg-white shadow-none">
+              <CardHeader className="p-6">
+                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#b18143]">
+                  Reservation desk
+                </p>
+                <CardTitle className="mt-2 font-serif text-[28px] text-[#183a31]">
+                  Bookings
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 p-6 pt-0">
+                {hotelBookings.length === 0 ? (
+                  <p className="rounded-xl bg-[#f3f5f0] p-5 text-sm text-[#718078]">
+                    New reservations will appear here after payment verification
+                    and BillFlow confirmation.
+                  </p>
+                ) : (
+                  hotelBookings.map((booking: any) => (
+                    <div
+                      key={booking.id}
+                      className={`rounded-xl border p-4 ${booking.bookingStatus === "conflict_flagged" ? "border-[#f1c5a8] bg-[#fffaf5]" : "border-[#e5ebe4]"}`}
+                    >
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <Badge
+                              className={
+                                booking.bookingStatus === "conflict_flagged"
+                                  ? "border-0 bg-[#fff1e7] text-[#a35c29]"
+                                  : "border-0 bg-[#e8efe7] text-[#2b6755]"
+                              }
+                            >
+                              {booking.bookingStatus}
+                            </Badge>
+                            <span className="font-mono text-[10px] text-[#8a9890]">
+                              {booking.bookingReference}
+                            </span>
+                          </div>
+                          <p className="mt-2 font-semibold text-[#183a31]">
+                            {booking.guestName}
+                          </p>
+                          <p className="mt-1 text-xs text-[#718078]">
+                            {booking.checkInDate} → {booking.checkOutDate} ·{" "}
+                            {booking.guestsCount} guests ·{" "}
+                            {formatMoney(
+                              Number(booking.totalAmount),
+                              booking.currency
+                            )}
+                          </p>
+                          {booking.conflictDetails && (
+                            <p className="mt-3 flex items-start gap-2 text-xs font-semibold leading-5 text-[#a35c29]">
+                              <AlertTriangle
+                                size={14}
+                                className="mt-0.5 shrink-0"
+                              />{" "}
+                              {booking.conflictDetails}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {booking.bookingStatus === "conflict_flagged" ? (
+                            <Button
+                              onClick={() =>
+                                updateBooking.mutate({
+                                  hotelId: activeHotelId,
+                                  id: booking.id,
+                                  bookingStatus: "cancelled",
+                                  conflictDetails:
+                                    "Hotel reviewed the conflict and cancelled this reservation.",
+                                })
+                              }
+                              className="rounded-lg bg-[#a35c29] text-xs font-bold text-white"
+                            >
+                              Resolve & cancel
+                            </Button>
+                          ) : (
+                            booking.bookingStatus === "booked" && (
+                              <>
+                                <Button
+                                  variant="outline"
+                                  onClick={() =>
+                                    updateBooking.mutate({
+                                      hotelId: activeHotelId,
+                                      id: booking.id,
+                                      bookingStatus: "checked_in",
+                                    })
+                                  }
+                                  className="rounded-lg border-[#dfe4dc] text-xs font-bold text-[#183a31]"
+                                >
+                                  Check in
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  onClick={() =>
+                                    updateBooking.mutate({
+                                      hotelId: activeHotelId,
+                                      id: booking.id,
+                                      bookingStatus: "cancelled",
+                                      conflictDetails: null,
+                                    })
+                                  }
+                                  className="rounded-lg border-[#dfe4dc] text-xs font-bold text-[#a35c29]"
+                                >
+                                  Cancel
+                                </Button>
+                              </>
+                            )
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </CardContent>
+            </Card>
+            <Card className="rounded-[22px] border-[#f1c5a8] bg-[#fffaf5] shadow-none">
+              <CardHeader className="p-6">
+                <div className="flex items-center gap-2 text-[#a35c29]">
+                  <AlertTriangle size={16} />
+                  <span className="text-[10px] font-bold uppercase tracking-[0.16em]">
+                    Conflict inbox
+                  </span>
+                </div>
+                <CardTitle className="mt-2 font-serif text-[28px] text-[#183a31]">
+                  Review, don’t hide.
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6 pt-0">
+                <p className="text-sm leading-6 text-[#8c654c]">
+                  A conflict means BillFlow and the reservation attempt need
+                  human review. StayNest never auto-resolves a double-booking.
+                </p>
+                <div className="mt-5 space-y-3">
+                  {conflicts.length === 0 ? (
+                    <p className="text-xs font-semibold text-[#a97b5e]">
+                      No active conflicts.
+                    </p>
+                  ) : (
+                    conflicts.map((booking: any) => (
+                      <div
+                        key={booking.id}
+                        className="rounded-xl border border-[#f1c5a8] bg-white p-3"
+                      >
+                        <p className="text-xs font-bold text-[#183a31]">
+                          {booking.bookingReference}
+                        </p>
+                        <p className="mt-1 text-[11px] leading-5 text-[#8c654c]">
+                          {booking.conflictDetails ??
+                            "BillFlow reported a conflict."}
+                        </p>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+        {tab === "availability" && (
+          <div className="mt-7 grid gap-6 lg:grid-cols-[1fr_360px]">
+            <Card className="rounded-[22px] border-[#dfe4dc] bg-white shadow-none">
+              <CardHeader className="p-6">
+                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#b18143]">
+                  Manual controls
+                </p>
+                <CardTitle className="mt-2 font-serif text-[28px] text-[#183a31]">
+                  Blocked dates
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 p-6 pt-0">
+                {blockedDates.length === 0 ? (
+                  <p className="rounded-xl bg-[#f3f5f0] p-5 text-sm text-[#718078]">
+                    No blocked periods. BillFlow-connected properties should
+                    still treat BillFlow as authoritative.
+                  </p>
+                ) : (
+                  blockedDates.map((period: any) => (
+                    <div
+                      key={period.id}
+                      className="flex items-center justify-between rounded-xl border border-[#e5ebe4] p-4"
+                    >
+                      <div>
+                        <p className="font-semibold text-[#183a31]">
+                          {period.startDate} → {period.endDate}
+                        </p>
+                        <p className="mt-1 text-xs text-[#718078]">
+                          {period.reason ?? "No reason provided"}
+                        </p>
+                      </div>
+                      <Button
+                        variant="outline"
+                        onClick={() =>
+                          unblock.mutate({
+                            id: period.id,
+                            hotelId: activeHotelId,
+                          })
+                        }
+                        className="rounded-lg border-[#dfe4dc] text-xs font-bold text-[#a35c29]"
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  ))
+                )}
+              </CardContent>
+            </Card>
+            <Card className="rounded-[22px] border-[#dfe4dc] bg-white shadow-none">
+              <CardHeader className="p-6">
+                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#b18143]">
+                  Block inventory
+                </p>
+                <CardTitle className="mt-2 font-serif text-[28px] text-[#183a31]">
+                  Hold a period
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4 p-6 pt-0">
+                <div>
+                  <Label className="text-xs font-bold text-[#607269]">
+                    Start date
+                  </Label>
+                  <Input
+                    type="date"
+                    value={blockForm.startDate}
+                    onChange={event =>
+                      setBlockForm({
+                        ...blockForm,
+                        startDate: event.target.value,
+                      })
+                    }
+                    className="mt-2 h-10 rounded-xl border-[#dfe4dc]"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs font-bold text-[#607269]">
+                    End date
+                  </Label>
+                  <Input
+                    type="date"
+                    value={blockForm.endDate}
+                    onChange={event =>
+                      setBlockForm({
+                        ...blockForm,
+                        endDate: event.target.value,
+                      })
+                    }
+                    className="mt-2 h-10 rounded-xl border-[#dfe4dc]"
+                  />
+                </div>
+                <Input
+                  value={blockForm.reason}
+                  onChange={event =>
+                    setBlockForm({ ...blockForm, reason: event.target.value })
+                  }
+                  placeholder="Reason"
+                  className="h-10 rounded-xl border-[#dfe4dc]"
+                />
+                <Button
+                  onClick={() =>
+                    block.mutate({
+                      hotelId: activeHotelId,
+                      startDate: blockForm.startDate,
+                      endDate: blockForm.endDate,
+                      reason: blockForm.reason,
+                    })
+                  }
+                  className="h-11 w-full rounded-xl bg-[#183a31] text-sm font-bold text-white"
+                >
+                  Block dates <CalendarDays size={15} />
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+      </main>
+    </Shell>
+  );
+}
 
-function Metric({ label, value, icon, alert }: { label: string; value: React.ReactNode; icon: React.ReactNode; alert?: boolean }) { return <div className="rounded-[19px] border border-[#dfe4dc] bg-white p-5"><div className={`mb-5 grid h-9 w-9 place-items-center rounded-xl ${alert ? "bg-[#fff1e7] text-[#a35c29]" : "bg-[#e8efe7] text-[#2b6755]"}`}>{icon}</div><p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#8a9890]">{label}</p><p className="mt-2 font-serif text-[27px] text-[#183a31]">{value}</p></div>; }
-function QuickAction({ icon, title, copy }: { icon: React.ReactNode; title: string; copy: string }) { return <button className="flex items-start gap-3 rounded-[19px] border border-[#dfe4dc] bg-white p-5 text-left transition hover:-translate-y-0.5 hover:shadow-md"><span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#f3f5f0] text-[#2b6755]">{icon}</span><span><span className="block font-semibold text-[#183a31]">{title}</span><span className="mt-1 block text-xs leading-5 text-[#718078]">{copy}</span></span><ChevronRight size={15} className="ml-auto mt-1 text-[#a4b1a7]" /></button>; }
+function PlusIcon() {
+  return <span className="ml-1 text-base leading-none">+</span>;
+}
+
+function Metric({
+  label,
+  value,
+  icon,
+  alert,
+}: {
+  label: string;
+  value: React.ReactNode;
+  icon: React.ReactNode;
+  alert?: boolean;
+}) {
+  return (
+    <div className="rounded-[19px] border border-[#dfe4dc] bg-white p-5">
+      <div
+        className={`mb-5 grid h-9 w-9 place-items-center rounded-xl ${alert ? "bg-[#fff1e7] text-[#a35c29]" : "bg-[#e8efe7] text-[#2b6755]"}`}
+      >
+        {icon}
+      </div>
+      <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#8a9890]">
+        {label}
+      </p>
+      <p className="mt-2 font-serif text-[27px] text-[#183a31]">{value}</p>
+    </div>
+  );
+}
+function QuickAction({
+  icon,
+  title,
+  copy,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  copy: string;
+}) {
+  return (
+    <button className="flex items-start gap-3 rounded-[19px] border border-[#dfe4dc] bg-white p-5 text-left transition hover:-translate-y-0.5 hover:shadow-md">
+      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#f3f5f0] text-[#2b6755]">
+        {icon}
+      </span>
+      <span>
+        <span className="block font-semibold text-[#183a31]">{title}</span>
+        <span className="mt-1 block text-xs leading-5 text-[#718078]">
+          {copy}
+        </span>
+      </span>
+      <ChevronRight size={15} className="ml-auto mt-1 text-[#a4b1a7]" />
+    </button>
+  );
+}
 
 function LegacyAdminDashboard() {
   const { isAuthenticated } = useAuth();
-  const { data: summary } = trpc.admin.summary.useQuery(undefined, { enabled: isAuthenticated });
-  const { data: hotels = [] } = trpc.admin.hotels.useQuery(undefined, { enabled: isAuthenticated });
+  const { data: summary } = trpc.admin.summary.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
+  const { data: hotels = [] } = trpc.admin.hotels.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
   const approve = trpc.admin.approveHotel.useMutation();
-  if (!isAuthenticated) return <Shell variant="cream"><div className="mx-auto max-w-[580px] px-5 py-24 text-center"><div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-[#e8efe7] text-[#2b6755]"><LayoutDashboard size={25} /></div><h1 className="mt-5 font-serif text-4xl text-[#183a31]">Platform operations, clearly laid out.</h1><p className="mt-3 text-sm leading-6 text-[#718078]">Sign in with your platform admin account to manage approvals, bookings, and revenue.</p><Button onClick={() => startLogin()} className="mt-7 rounded-xl bg-[#183a31] px-6 text-sm font-bold text-white hover:bg-[#245448]">Sign in as admin <ArrowRight size={15} /></Button></div></Shell>;
-  return <Shell variant="cream"><main className="mx-auto max-w-[1240px] px-5 pb-24 pt-10 lg:px-8"><div><p className="mb-2 text-[11px] font-bold uppercase tracking-[0.18em] text-[#b18143]">Platform admin</p><h1 className="font-serif text-[49px] leading-none tracking-[-0.04em] text-[#183a31]">The StayNest overview.</h1><p className="mt-3 text-sm text-[#718078]">Approve properties, monitor bookings, and keep the marketplace healthy.</p></div><div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4"><Metric label="Hotels" value={summary?.hotelCount ?? "—"} icon={<Hotel size={17} />} /><Metric label="Bookings" value={summary?.bookingCount ?? "—"} icon={<ClipboardCheck size={17} />} /><Metric label="Commission" value={summary ? formatMoney(summary.commission, "GHS") : "—"} icon={<DollarSign size={17} />} /><Metric label="Conflicts" value={summary?.conflictCount ?? 0} icon={<AlertTriangle size={17} />} alert={Boolean(summary?.conflictCount)} /></div><Card className="mt-8 rounded-[22px] border-[#dfe4dc] bg-white shadow-none"><CardHeader className="p-6"><div className="flex items-center justify-between"><div><p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#b18143]">Marketplace governance</p><CardTitle className="mt-2 font-serif text-[28px] text-[#183a31]">Hotel approvals</CardTitle></div><Badge className="border-0 bg-[#f3f5f0] text-[#607269]">{hotels.filter((hotel: any) => hotel.approvalStatus === "pending").length} pending</Badge></div></CardHeader><CardContent className="p-6 pt-0"><div className="overflow-x-auto"><table className="w-full min-w-[720px] text-left text-sm"><thead className="border-b border-[#e5ebe4] text-[10px] font-bold uppercase tracking-[0.14em] text-[#8a9890]"><tr><th className="pb-3">Property</th><th className="pb-3">Connection</th><th className="pb-3">Status</th><th className="pb-3 text-right">Action</th></tr></thead><tbody className="divide-y divide-[#eef1ed]">{hotels.map((hotel: any) => <tr key={hotel.id}><td className="py-4"><p className="font-semibold text-[#183a31]">{hotel.name}</p><p className="mt-1 text-xs text-[#718078]">{hotel.location}</p></td><td className="py-4">{hotel.isBillflowConnected ? <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#2b6755]"><Wifi size={13} /> BillFlow</span> : <span className="text-xs text-[#718078]">Manual</span>}</td><td className="py-4"><Badge className={hotel.approvalStatus === "approved" ? "border-0 bg-[#e8efe7] text-[#2b6755]" : hotel.approvalStatus === "rejected" ? "border-0 bg-[#fff1e7] text-[#a35c29]" : "border-0 bg-[#f3f5f0] text-[#607269]"}>{hotel.approvalStatus}</Badge></td><td className="py-4 text-right">{hotel.approvalStatus === "pending" && <div className="flex justify-end gap-2"><Button size="sm" onClick={() => approve.mutate({ id: hotel.id, status: "approved" }, { onSuccess: () => toast.success("Hotel approved") })} className="rounded-lg bg-[#183a31] text-xs font-bold text-white">Approve</Button><Button size="sm" variant="outline" onClick={() => approve.mutate({ id: hotel.id, status: "rejected" }, { onSuccess: () => toast.success("Hotel rejected") })} className="rounded-lg border-[#dfe4dc] text-xs font-bold text-[#a35c29]">Reject</Button></div>}</td></tr>)}</tbody></table>{hotels.length === 0 && <div className="py-10 text-center text-sm text-[#718078]">Connected and submitted hotels will appear here.</div>}</div></CardContent></Card></main></Shell>;
+  if (!isAuthenticated)
+    return (
+      <Shell variant="cream">
+        <div className="mx-auto max-w-[580px] px-5 py-24 text-center">
+          <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-[#e8efe7] text-[#2b6755]">
+            <LayoutDashboard size={25} />
+          </div>
+          <h1 className="mt-5 font-serif text-4xl text-[#183a31]">
+            Platform operations, clearly laid out.
+          </h1>
+          <p className="mt-3 text-sm leading-6 text-[#718078]">
+            Sign in with your platform admin account to manage approvals,
+            bookings, and revenue.
+          </p>
+          <Button
+            onClick={() => startLogin()}
+            className="mt-7 rounded-xl bg-[#183a31] px-6 text-sm font-bold text-white hover:bg-[#245448]"
+          >
+            Sign in as admin <ArrowRight size={15} />
+          </Button>
+        </div>
+      </Shell>
+    );
+  return (
+    <Shell variant="cream">
+      <main className="mx-auto max-w-[1240px] px-5 pb-24 pt-10 lg:px-8">
+        <div>
+          <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.18em] text-[#b18143]">
+            Platform admin
+          </p>
+          <h1 className="font-serif text-[49px] leading-none tracking-[-0.04em] text-[#183a31]">
+            The StayNest overview.
+          </h1>
+          <p className="mt-3 text-sm text-[#718078]">
+            Approve properties, monitor bookings, and keep the marketplace
+            healthy.
+          </p>
+        </div>
+        <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <Metric
+            label="Hotels"
+            value={summary?.hotelCount ?? "—"}
+            icon={<Hotel size={17} />}
+          />
+          <Metric
+            label="Bookings"
+            value={summary?.bookingCount ?? "—"}
+            icon={<ClipboardCheck size={17} />}
+          />
+          <Metric
+            label="Commission"
+            value={summary ? formatMoney(summary.commission, "GHS") : "—"}
+            icon={<DollarSign size={17} />}
+          />
+          <Metric
+            label="Conflicts"
+            value={summary?.conflictCount ?? 0}
+            icon={<AlertTriangle size={17} />}
+            alert={Boolean(summary?.conflictCount)}
+          />
+        </div>
+        <Card className="mt-8 rounded-[22px] border-[#dfe4dc] bg-white shadow-none">
+          <CardHeader className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#b18143]">
+                  Marketplace governance
+                </p>
+                <CardTitle className="mt-2 font-serif text-[28px] text-[#183a31]">
+                  Hotel approvals
+                </CardTitle>
+              </div>
+              <Badge className="border-0 bg-[#f3f5f0] text-[#607269]">
+                {
+                  hotels.filter(
+                    (hotel: any) => hotel.approvalStatus === "pending"
+                  ).length
+                }{" "}
+                pending
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="p-6 pt-0">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[720px] text-left text-sm">
+                <thead className="border-b border-[#e5ebe4] text-[10px] font-bold uppercase tracking-[0.14em] text-[#8a9890]">
+                  <tr>
+                    <th className="pb-3">Property</th>
+                    <th className="pb-3">Connection</th>
+                    <th className="pb-3">Status</th>
+                    <th className="pb-3 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#eef1ed]">
+                  {hotels.map((hotel: any) => (
+                    <tr key={hotel.id}>
+                      <td className="py-4">
+                        <p className="font-semibold text-[#183a31]">
+                          {hotel.name}
+                        </p>
+                        <p className="mt-1 text-xs text-[#718078]">
+                          {hotel.location}
+                        </p>
+                      </td>
+                      <td className="py-4">
+                        {hotel.isBillflowConnected ? (
+                          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#2b6755]">
+                            <Wifi size={13} /> BillFlow
+                          </span>
+                        ) : (
+                          <span className="text-xs text-[#718078]">Manual</span>
+                        )}
+                      </td>
+                      <td className="py-4">
+                        <Badge
+                          className={
+                            hotel.approvalStatus === "approved"
+                              ? "border-0 bg-[#e8efe7] text-[#2b6755]"
+                              : hotel.approvalStatus === "rejected"
+                                ? "border-0 bg-[#fff1e7] text-[#a35c29]"
+                                : "border-0 bg-[#f3f5f0] text-[#607269]"
+                          }
+                        >
+                          {hotel.approvalStatus}
+                        </Badge>
+                      </td>
+                      <td className="py-4 text-right">
+                        {hotel.approvalStatus === "pending" && (
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              size="sm"
+                              onClick={() =>
+                                approve.mutate(
+                                  { id: hotel.id, status: "approved" },
+                                  {
+                                    onSuccess: () =>
+                                      toast.success("Hotel approved"),
+                                  }
+                                )
+                              }
+                              className="rounded-lg bg-[#183a31] text-xs font-bold text-white"
+                            >
+                              Approve
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() =>
+                                approve.mutate(
+                                  { id: hotel.id, status: "rejected" },
+                                  {
+                                    onSuccess: () =>
+                                      toast.success("Hotel rejected"),
+                                  }
+                                )
+                              }
+                              className="rounded-lg border-[#dfe4dc] text-xs font-bold text-[#a35c29]"
+                            >
+                              Reject
+                            </Button>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {hotels.length === 0 && (
+                <div className="py-10 text-center text-sm text-[#718078]">
+                  Connected and submitted hotels will appear here.
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </main>
+    </Shell>
+  );
 }
 
 export function PaymentCompletePage() {
@@ -383,111 +4108,820 @@ export function PaymentCompletePage() {
     let active = true;
     const run = async () => {
       try {
-        const payment = JSON.parse(sessionStorage.getItem("staynest_payment") ?? "null");
-        if (!payment) throw new Error("Your payment session could not be found.");
+        const payment = JSON.parse(
+          sessionStorage.getItem("staynest_payment") ?? "null"
+        );
+        if (!payment)
+          throw new Error("Your payment session could not be found.");
         await completePaymentFlow({
           payment,
           search: window.location.search,
-          verify: (payload) => verify.mutateAsync(payload),
-          createBooking: (payload) => createBooking.mutateAsync(payload),
+          verify: payload => verify.mutateAsync(payload),
+          createBooking: payload => createBooking.mutateAsync(payload),
           storage: sessionStorage,
           navigate,
-          onVerified: () => { if (active) setStatus("Payment verified. Confirming your room with the property…"); },
+          onVerified: () => {
+            if (active)
+              setStatus(
+                "Payment verified. Confirming your room with the property…"
+              );
+          },
         });
       } catch (error) {
-        if (active) setStatus(error instanceof Error ? error.message : "Payment verification failed. No booking was confirmed.");
+        if (active)
+          setStatus(
+            error instanceof Error
+              ? error.message
+              : "Payment verification failed. No booking was confirmed."
+          );
       }
     };
     run();
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, []);
-  const failed = status.startsWith("The payment") || status.startsWith("Your payment");
-  return <Shell><main className="mx-auto max-w-[690px] px-5 py-24 text-center"><div className={`mx-auto grid h-20 w-20 place-items-center rounded-[24px] ${failed ? "bg-[#fff1e7] text-[#a35c29]" : "bg-[#e8efe7] text-[#2b6755]"}`}>{failed ? <AlertTriangle size={32} /> : <LockKeyhole size={30} />}</div><p className="mt-7 text-[11px] font-bold uppercase tracking-[0.18em] text-[#b18143]">{failed ? "Payment needs attention" : "Secure checkout"}</p><h1 className="mt-3 font-serif text-[46px] leading-none tracking-[-0.04em] text-[#183a31]">{failed ? "Nothing has been booked yet." : "One last careful check."}</h1><p className="mx-auto mt-5 max-w-[500px] text-sm leading-6 text-[#718078]">{status}</p>{failed && <div className="mt-8 flex justify-center gap-3"><Link href="/" className="inline-flex items-center gap-2 rounded-xl border border-[#dfe4dc] px-5 py-3 text-sm font-bold text-[#183a31]">Return to stays <ArrowRight size={15} /></Link><Button onClick={() => window.location.reload()} className="rounded-xl bg-[#183a31] px-5 text-sm font-bold text-white">Try again</Button></div>}<div className="mt-10 flex items-center justify-center gap-2 text-[11px] text-[#8a9890]"><ShieldCheck size={14} className="text-[#2b6755]" /> StayNest only confirms after payment and BillFlow reservation success.</div></main></Shell>;
+  const failed =
+    status.startsWith("The payment") || status.startsWith("Your payment");
+  return (
+    <Shell>
+      <main className="mx-auto max-w-[690px] px-5 py-24 text-center">
+        <div
+          className={`mx-auto grid h-20 w-20 place-items-center rounded-[24px] ${failed ? "bg-[#fff1e7] text-[#a35c29]" : "bg-[#e8efe7] text-[#2b6755]"}`}
+        >
+          {failed ? <AlertTriangle size={32} /> : <LockKeyhole size={30} />}
+        </div>
+        <p className="mt-7 text-[11px] font-bold uppercase tracking-[0.18em] text-[#b18143]">
+          {failed ? "Payment needs attention" : "Secure checkout"}
+        </p>
+        <h1 className="mt-3 font-serif text-[46px] leading-none tracking-[-0.04em] text-[#183a31]">
+          {failed ? "Nothing has been booked yet." : "One last careful check."}
+        </h1>
+        <p className="mx-auto mt-5 max-w-[500px] text-sm leading-6 text-[#718078]">
+          {status}
+        </p>
+        {failed && (
+          <div className="mt-8 flex justify-center gap-3">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-2 rounded-xl border border-[#dfe4dc] px-5 py-3 text-sm font-bold text-[#183a31]"
+            >
+              Return to stays <ArrowRight size={15} />
+            </Link>
+            <Button
+              onClick={() => window.location.reload()}
+              className="rounded-xl bg-[#183a31] px-5 text-sm font-bold text-white"
+            >
+              Try again
+            </Button>
+          </div>
+        )}
+        <div className="mt-10 flex items-center justify-center gap-2 text-[11px] text-[#8a9890]">
+          <ShieldCheck size={14} className="text-[#2b6755]" /> StayNest only
+          confirms after payment and BillFlow reservation success.
+        </div>
+      </main>
+    </Shell>
+  );
 }
 
 export function ConfirmationPage() {
-  const confirmation = (() => { try { return JSON.parse(sessionStorage.getItem("staynest_confirmation") ?? "null"); } catch { return null; } })();
-  if (!confirmation) return <Shell><div className="mx-auto max-w-[600px] px-5 py-24 text-center"><h1 className="font-serif text-4xl text-[#183a31]">No confirmation found.</h1><Link href="/" className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#183a31] px-5 py-3 text-sm font-bold text-white">Explore stays <ArrowRight size={15} /></Link></div></Shell>;
+  const confirmation = (() => {
+    try {
+      return JSON.parse(
+        sessionStorage.getItem("staynest_confirmation") ?? "null"
+      );
+    } catch {
+      return null;
+    }
+  })();
+  if (!confirmation)
+    return (
+      <Shell>
+        <div className="mx-auto max-w-[600px] px-5 py-24 text-center">
+          <h1 className="font-serif text-4xl text-[#183a31]">
+            No confirmation found.
+          </h1>
+          <Link
+            href="/"
+            className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#183a31] px-5 py-3 text-sm font-bold text-white"
+          >
+            Explore stays <ArrowRight size={15} />
+          </Link>
+        </div>
+      </Shell>
+    );
   const booking = confirmation.booking;
   const created = confirmation.created;
   const conflict = Boolean(created?.conflict);
-  return <Shell><main className="mx-auto max-w-[920px] px-5 pb-24 pt-14 lg:px-8"><div className="text-center"><div className={`mx-auto grid h-20 w-20 place-items-center rounded-[24px] ${conflict ? "bg-[#fff1e7] text-[#a35c29]" : "bg-[#e8efe7] text-[#2b6755]"}`}>{conflict ? <AlertTriangle size={30} /> : <Check size={34} />}</div><p className="mt-7 text-[11px] font-bold uppercase tracking-[0.18em] text-[#b18143]">{conflict ? "Payment received · hotel review required" : "Booking confirmed"}</p><h1 className="mt-3 font-serif text-[54px] leading-[.94] tracking-[-0.045em] text-[#183a31]">{conflict ? "Your stay is paid, with one detail to resolve." : "Your room is waiting."}</h1><p className="mx-auto mt-5 max-w-[570px] text-sm leading-6 text-[#718078]">{conflict ? "BillFlow surfaced a room conflict instead of silently resolving it. The property team has been alerted and will follow up with you." : `A confirmation email will be sent to ${confirmation.guestEmail} when email delivery is configured.`}</p></div><Card className="mx-auto mt-12 max-w-[720px] overflow-hidden rounded-[24px] border-[#dfe4dc] bg-white shadow-[0_18px_55px_rgba(24,58,49,.09)]"><div className="grid md:grid-cols-[.42fr_.58fr]"><img src={booking.room.images?.[0] ?? image.room} alt={booking.room.name} className="h-full min-h-[260px] w-full object-cover" /><CardContent className="p-7"><p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#b18143]">{booking.hotel.name}</p><h2 className="mt-2 font-serif text-[31px] leading-tight text-[#183a31]">{booking.room.name}</h2><div className="mt-6 space-y-4 text-sm text-[#607269]"><div className="flex items-center justify-between"><span className="flex items-center gap-2"><CalendarDays size={15} className="text-[#2b6755]" /> Dates</span><span className="font-semibold text-[#183a31]">{booking.checkInDate} → {booking.checkOutDate}</span></div><div className="flex items-center justify-between"><span className="flex items-center gap-2"><MapPin size={15} className="text-[#2b6755]" /> Location</span><span className="font-semibold text-[#183a31]">{booking.hotel.location}</span></div><div className="flex items-center justify-between"><span className="flex items-center gap-2"><UsersRound size={15} className="text-[#2b6755]" /> Guests</span><span className="font-semibold text-[#183a31]">{booking.guestsCount}</span></div></div><Separator className="my-6" /><div className="flex items-end justify-between"><div><p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#8a9890]">Booking reference</p><p className="mt-1 font-mono text-sm font-bold tracking-[0.08em] text-[#183a31]">{created?.bookingReference ?? "Pending"}</p></div><div className="text-right"><p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#8a9890]">Paid</p><p className="font-serif text-[25px] text-[#183a31]">{formatMoney(Number(booking.room[booking.currency === "GHS" ? "priceGhs" : "priceUsd"]) * nightsBetween(booking.checkInDate, booking.checkOutDate), booking.currency)}</p></div></div></CardContent></div></Card><div className="mt-8 flex flex-wrap justify-center gap-3"><Link href="/account" className="inline-flex items-center gap-2 rounded-xl bg-[#183a31] px-5 py-3 text-sm font-bold text-white">View my bookings <ArrowRight size={15} /></Link><Link href="/" className="inline-flex items-center gap-2 rounded-xl border border-[#dfe4dc] px-5 py-3 text-sm font-bold text-[#183a31]">Find another stay</Link></div></main></Shell>;
+  return (
+    <Shell>
+      <main className="mx-auto max-w-[920px] px-5 pb-24 pt-14 lg:px-8">
+        <div className="text-center">
+          <div
+            className={`mx-auto grid h-20 w-20 place-items-center rounded-[24px] ${conflict ? "bg-[#fff1e7] text-[#a35c29]" : "bg-[#e8efe7] text-[#2b6755]"}`}
+          >
+            {conflict ? <AlertTriangle size={30} /> : <Check size={34} />}
+          </div>
+          <p className="mt-7 text-[11px] font-bold uppercase tracking-[0.18em] text-[#b18143]">
+            {conflict
+              ? "Payment received · hotel review required"
+              : "Booking confirmed"}
+          </p>
+          <h1 className="mt-3 font-serif text-[54px] leading-[.94] tracking-[-0.045em] text-[#183a31]">
+            {conflict
+              ? "Your stay is paid, with one detail to resolve."
+              : "Your room is waiting."}
+          </h1>
+          <p className="mx-auto mt-5 max-w-[570px] text-sm leading-6 text-[#718078]">
+            {conflict
+              ? "BillFlow surfaced a room conflict instead of silently resolving it. The property team has been alerted and will follow up with you."
+              : `A confirmation email will be sent to ${confirmation.guestEmail} when email delivery is configured.`}
+          </p>
+        </div>
+        <Card className="mx-auto mt-12 max-w-[720px] overflow-hidden rounded-[24px] border-[#dfe4dc] bg-white shadow-[0_18px_55px_rgba(24,58,49,.09)]">
+          <div className="grid md:grid-cols-[.42fr_.58fr]">
+            <img
+              src={booking.room.images?.[0] ?? image.room}
+              alt={booking.room.name}
+              className="h-full min-h-[260px] w-full object-cover"
+            />
+            <CardContent className="p-7">
+              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#b18143]">
+                {booking.hotel.name}
+              </p>
+              <h2 className="mt-2 font-serif text-[31px] leading-tight text-[#183a31]">
+                {booking.room.name}
+              </h2>
+              <div className="mt-6 space-y-4 text-sm text-[#607269]">
+                <div className="flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <CalendarDays size={15} className="text-[#2b6755]" /> Dates
+                  </span>
+                  <span className="font-semibold text-[#183a31]">
+                    {booking.checkInDate} → {booking.checkOutDate}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <MapPin size={15} className="text-[#2b6755]" /> Location
+                  </span>
+                  <span className="font-semibold text-[#183a31]">
+                    {booking.hotel.location}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <UsersRound size={15} className="text-[#2b6755]" /> Guests
+                  </span>
+                  <span className="font-semibold text-[#183a31]">
+                    {booking.guestsCount}
+                  </span>
+                </div>
+              </div>
+              <Separator className="my-6" />
+              <div className="flex items-end justify-between">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#8a9890]">
+                    Booking reference
+                  </p>
+                  <p className="mt-1 font-mono text-sm font-bold tracking-[0.08em] text-[#183a31]">
+                    {created?.bookingReference ?? "Pending"}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#8a9890]">
+                    Paid
+                  </p>
+                  <p className="font-serif text-[25px] text-[#183a31]">
+                    {formatMoney(
+                      Number(
+                        booking.room[
+                          booking.currency === "GHS" ? "priceGhs" : "priceUsd"
+                        ]
+                      ) *
+                        nightsBetween(
+                          booking.checkInDate,
+                          booking.checkOutDate
+                        ),
+                      booking.currency
+                    )}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </div>
+        </Card>
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
+          <Link
+            href="/account"
+            className="inline-flex items-center gap-2 rounded-xl bg-[#183a31] px-5 py-3 text-sm font-bold text-white"
+          >
+            View my bookings <ArrowRight size={15} />
+          </Link>
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 rounded-xl border border-[#dfe4dc] px-5 py-3 text-sm font-bold text-[#183a31]"
+          >
+            Find another stay
+          </Link>
+        </div>
+      </main>
+    </Shell>
+  );
 }
 
 export function AdminDashboard() {
   const { isAuthenticated } = useAuth();
-  const { data: summary } = trpc.admin.summary.useQuery(undefined, { enabled: isAuthenticated });
-  const { data: hotels = [] } = trpc.admin.hotels.useQuery(undefined, { enabled: isAuthenticated });
-  const { data: bookings = [] } = trpc.admin.bookings.useQuery(undefined, { enabled: isAuthenticated });
-  const { data: payouts = [] } = trpc.admin.payouts.useQuery(undefined, { enabled: isAuthenticated });
-  const { data: notifications = [] } = trpc.notifications.mine.useQuery(undefined, { enabled: isAuthenticated });
+  const { data: summary } = trpc.admin.summary.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
+  const { data: hotels = [] } = trpc.admin.hotels.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
+  const { data: bookings = [] } = trpc.admin.bookings.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
+  const { data: payouts = [] } = trpc.admin.payouts.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
+  const { data: notifications = [] } = trpc.notifications.mine.useQuery(
+    undefined,
+    { enabled: isAuthenticated }
+  );
   const utils = trpc.useUtils();
-  const approve = trpc.admin.approveHotel.useMutation({ onSuccess: () => { toast.success("Hotel approval updated"); void utils.admin.hotels.invalidate(); void utils.admin.summary.invalidate(); } });
-  const refund = trpc.admin.refundBooking.useMutation({ onSuccess: () => { toast.success("Booking marked for refund"); void utils.admin.bookings.invalidate(); void utils.admin.summary.invalidate(); } });
-  const markNotificationRead = trpc.notifications.markRead.useMutation({ onSuccess: () => void utils.notifications.mine.invalidate() });
-  const [tab, setTab] = useState<"overview" | "hotels" | "bookings">("overview");
-  if (!isAuthenticated) return <Shell variant="cream"><div className="mx-auto max-w-[580px] px-5 py-24 text-center"><div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-[#e8efe7] text-[#2b6755]"><LayoutDashboard size={25} /></div><h1 className="mt-5 font-serif text-4xl text-[#183a31]">Platform operations, clearly laid out.</h1><p className="mt-3 text-sm leading-6 text-[#718078]">Sign in with your platform admin account to manage approvals, bookings, and revenue.</p><Button onClick={() => startLogin()} className="mt-7 rounded-xl bg-[#183a31] px-6 text-sm font-bold text-white hover:bg-[#245448]">Sign in as admin <ArrowRight size={15} /></Button></div></Shell>;
-  const pending = hotels.filter((hotel: any) => hotel.approvalStatus === "pending");
-  const conflicts = bookings.filter((booking: any) => booking.bookingStatus === "conflict_flagged");
-  const successful = bookings.filter((booking: any) => booking.paymentStatus === "success");
-  const unreadPartnerAlerts = notifications.filter((notification: any) => notification.type === "partner_application" && !notification.readAt);
-  return <Shell variant="cream"><main className="mx-auto max-w-[1240px] px-5 pb-24 pt-10 lg:px-8"><div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-end"><div><p className="mb-2 text-[11px] font-bold uppercase tracking-[0.18em] text-[#b18143]">Platform admin</p><h1 className="font-serif text-[49px] leading-none tracking-[-0.04em] text-[#183a31]">Keep the marketplace healthy.</h1><p className="mt-3 text-sm text-[#718078]">Approve properties, review every reservation, and keep money movements visible.</p></div><div className="flex items-center gap-2 rounded-xl bg-white p-1">{(["overview", "hotels", "bookings"] as const).map((value) => <button key={value} onClick={() => setTab(value)} className={`rounded-lg px-3 py-2 text-xs font-bold capitalize ${tab === value ? "bg-[#183a31] text-white" : "text-[#607269]"}`}>{value}</button>)}</div></div>{tab === "overview" && <><div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4"><Metric label="Hotels" value={summary?.hotelCount ?? "—"} icon={<Hotel size={17} />} /><Metric label="Bookings" value={summary?.bookingCount ?? "—"} icon={<ClipboardCheck size={17} />} /><Metric label="Gross volume" value={summary ? formatMoney(summary.gross, "GHS") : "—"} icon={<DollarSign size={17} />} /><Metric label="Commission" value={summary ? formatMoney(summary.commission, "GHS") : "—"} icon={<BarChart3 size={17} />} /></div><div className="mt-8 grid gap-6 lg:grid-cols-[1fr_360px]">{unreadPartnerAlerts.length > 0 && <Card className="mb-6 rounded-[22px] border-[#e7c77b] bg-[#fffaf0] shadow-none"><CardHeader className="p-6 pb-3"><div className="flex items-center justify-between gap-4"><div><p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#b18143]">New partner applications</p><CardTitle className="mt-2 font-serif text-[28px] text-[#183a31]">A human review is waiting.</CardTitle></div><Badge className="border-0 bg-[#f4e4b8] text-[#795b1d]">{unreadPartnerAlerts.length} new</Badge></div></CardHeader><CardContent className="space-y-3 p-6 pt-0">{unreadPartnerAlerts.slice(0, 3).map((notification: any) => <div key={notification.id} className="flex flex-col gap-3 rounded-xl border border-[#ead9a7] bg-white p-4 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-sm font-semibold text-[#183a31]">{notification.title}</p><p className="mt-1 text-xs leading-5 text-[#718078]">{notification.message}</p></div><Button onClick={() => markNotificationRead.mutate({ id: notification.id })} variant="outline" className="rounded-lg border-[#d8c88f] text-xs font-bold text-[#795b1d]">Mark reviewed</Button></div>)}</CardContent></Card>}<Card className="rounded-[22px] border-[#dfe4dc] bg-white shadow-none"><CardHeader className="p-6"><p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#b18143]">Operations queue</p><CardTitle className="mt-2 font-serif text-[28px] text-[#183a31]">What needs a decision</CardTitle></CardHeader><CardContent className="grid gap-3 p-6 pt-0 sm:grid-cols-3"><button onClick={() => setTab("hotels")} className="rounded-xl bg-[#f3f5f0] p-4 text-left"><p className="text-[10px] font-bold uppercase tracking-[0.13em] text-[#8a9890]">Approvals</p><p className="mt-2 font-serif text-3xl text-[#183a31]">{pending.length}</p><p className="mt-1 text-xs text-[#718078]">Properties waiting for review</p></button><button onClick={() => setTab("bookings")} className="rounded-xl bg-[#fff1e7] p-4 text-left"><p className="text-[10px] font-bold uppercase tracking-[0.13em] text-[#a35c29]">Conflicts</p><p className="mt-2 font-serif text-3xl text-[#183a31]">{conflicts.length}</p><p className="mt-1 text-xs text-[#8c654c]">Reservations needing hotel review</p></button><button onClick={() => setTab("bookings")} className="rounded-xl bg-[#e8efe7] p-4 text-left"><p className="text-[10px] font-bold uppercase tracking-[0.13em] text-[#2b6755]">Paid bookings</p><p className="mt-2 font-serif text-3xl text-[#183a31]">{successful.length}</p><p className="mt-1 text-xs text-[#607269]">Payment-verified reservations</p></button></CardContent></Card><Card className="rounded-[22px] border-[#dfe4dc] bg-[#183a31] text-white shadow-none"><CardContent className="p-7"><div className="flex items-center gap-2 text-[#e7c77b]"><ShieldCheck size={16} /><span className="text-[10px] font-bold uppercase tracking-[0.16em]">Commercial rule</span></div><h2 className="mt-4 font-serif text-[32px] leading-none">15% flat, always visible.</h2><p className="mt-4 text-sm leading-6 text-[#c9d8cc]">Every paid booking records gross amount, commission, and hotel payout math. Refunds remain an explicit admin action; they are never implied by cancellation.</p><div className="mt-7 space-y-3 text-xs text-[#d8e4d9]"><div className="flex items-center gap-3"><CheckCircle2 size={15} className="text-[#e7c77b]" /> {successful.length} paid reservations tracked</div><div className="flex items-center gap-3"><DollarSign size={15} className="text-[#e7c77b]" /> {payouts.filter((payout: any) => payout.status === "pending").length} hotel payouts pending</div></div></CardContent></Card></div></>}{tab === "hotels" && <Card className="mt-8 rounded-[22px] border-[#dfe4dc] bg-white shadow-none"><CardHeader className="p-6"><p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#b18143]">Marketplace governance</p><CardTitle className="mt-2 font-serif text-[28px] text-[#183a31]">Hotel approvals</CardTitle></CardHeader><CardContent className="p-6 pt-0"><div className="overflow-x-auto"><table className="w-full min-w-[720px] text-left text-sm"><thead className="border-b border-[#e5ebe4] text-[10px] font-bold uppercase tracking-[0.14em] text-[#8a9890]"><tr><th className="pb-3">Property</th><th className="pb-3">Connection</th><th className="pb-3">Status</th><th className="pb-3 text-right">Action</th></tr></thead><tbody className="divide-y divide-[#eef1ed]">{hotels.map((hotel: any) => <tr key={hotel.id}><td className="py-4"><p className="font-semibold text-[#183a31]">{hotel.name}</p><p className="mt-1 text-xs text-[#718078]">{hotel.location}</p></td><td className="py-4">{hotel.isBillflowConnected ? <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#2b6755]"><Wifi size={13} /> BillFlow</span> : <span className="text-xs text-[#718078]">Manual</span>}</td><td className="py-4"><Badge className={hotel.approvalStatus === "approved" ? "border-0 bg-[#e8efe7] text-[#2b6755]" : hotel.approvalStatus === "rejected" ? "border-0 bg-[#fff1e7] text-[#a35c29]" : "border-0 bg-[#f3f5f0] text-[#607269]"}>{hotel.approvalStatus}</Badge></td><td className="py-4 text-right">{hotel.approvalStatus === "pending" && <div className="flex justify-end gap-2"><Button size="sm" onClick={() => approve.mutate({ id: hotel.id, status: "approved" })} className="rounded-lg bg-[#183a31] text-xs font-bold text-white">Approve</Button><Button size="sm" variant="outline" onClick={() => approve.mutate({ id: hotel.id, status: "rejected" })} className="rounded-lg border-[#dfe4dc] text-xs font-bold text-[#a35c29]">Reject</Button></div>}</td></tr>)}</tbody></table>{hotels.length === 0 && <div className="py-10 text-center text-sm text-[#718078]">Connected and submitted hotels will appear here.</div>}</div></CardContent></Card>}{tab === "bookings" && <Card className="mt-8 rounded-[22px] border-[#dfe4dc] bg-white shadow-none"><CardHeader className="p-6"><div className="flex items-center justify-between"><div><p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#b18143]">Reservation oversight</p><CardTitle className="mt-2 font-serif text-[28px] text-[#183a31]">All bookings</CardTitle></div><Badge className="border-0 bg-[#fff1e7] text-[#a35c29]">{conflicts.length} conflicts</Badge></div></CardHeader><CardContent className="p-6 pt-0"><div className="space-y-3">{bookings.length === 0 ? <p className="rounded-xl bg-[#f3f5f0] p-5 text-sm text-[#718078]">No bookings have been recorded yet.</p> : bookings.map((booking: any) => <div key={booking.id} className={`grid gap-4 rounded-xl border p-4 lg:grid-cols-[1fr_auto] lg:items-center ${booking.bookingStatus === "conflict_flagged" ? "border-[#f1c5a8] bg-[#fffaf5]" : "border-[#e5ebe4]"}`}><div><div className="flex flex-wrap items-center gap-2"><Badge className={booking.bookingStatus === "conflict_flagged" ? "border-0 bg-[#fff1e7] text-[#a35c29]" : booking.paymentStatus === "refunded" ? "border-0 bg-[#f3f5f0] text-[#607269]" : "border-0 bg-[#e8efe7] text-[#2b6755]"}>{booking.paymentStatus === "refunded" ? "refunded" : booking.bookingStatus}</Badge><span className="font-mono text-[10px] text-[#8a9890]">{booking.bookingReference}</span></div><p className="mt-2 font-semibold text-[#183a31]">{booking.guestName} · {formatMoney(Number(booking.totalAmount), booking.currency)}</p><p className="mt-1 text-xs text-[#718078]">Hotel #{booking.hotelId} · {booking.checkInDate} → {booking.checkOutDate} · {booking.paymentGateway}</p>{booking.conflictDetails && <p className="mt-2 flex items-start gap-2 text-xs font-semibold leading-5 text-[#a35c29]"><AlertTriangle size={14} className="mt-0.5 shrink-0" /> {booking.conflictDetails}</p>}</div><div className="flex flex-wrap justify-end gap-2">{booking.paymentStatus === "success" && booking.bookingStatus !== "cancelled" && <Button onClick={() => refund.mutate({ id: booking.id })} variant="outline" className="rounded-lg border-[#f1c5a8] text-xs font-bold text-[#a35c29]">Issue refund</Button>}<Button variant="outline" onClick={() => setTab("hotels")} className="rounded-lg border-[#dfe4dc] text-xs font-bold text-[#183a31]">View hotel</Button></div></div>)}</div></CardContent></Card>}</main></Shell>;
+  const approve = trpc.admin.approveHotel.useMutation({
+    onSuccess: () => {
+      toast.success("Hotel approval updated");
+      void utils.admin.hotels.invalidate();
+      void utils.admin.summary.invalidate();
+    },
+  });
+  const refund = trpc.admin.refundBooking.useMutation({
+    onSuccess: () => {
+      toast.success("Booking marked for refund");
+      void utils.admin.bookings.invalidate();
+      void utils.admin.summary.invalidate();
+    },
+  });
+  const markNotificationRead = trpc.notifications.markRead.useMutation({
+    onSuccess: () => void utils.notifications.mine.invalidate(),
+  });
+  const [tab, setTab] = useState<"overview" | "hotels" | "bookings">(
+    "overview"
+  );
+  if (!isAuthenticated)
+    return (
+      <Shell variant="cream">
+        <div className="mx-auto max-w-[580px] px-5 py-24 text-center">
+          <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-[#e8efe7] text-[#2b6755]">
+            <LayoutDashboard size={25} />
+          </div>
+          <h1 className="mt-5 font-serif text-4xl text-[#183a31]">
+            Platform operations, clearly laid out.
+          </h1>
+          <p className="mt-3 text-sm leading-6 text-[#718078]">
+            Sign in with your platform admin account to manage approvals,
+            bookings, and revenue.
+          </p>
+          <Button
+            onClick={() => startLogin()}
+            className="mt-7 rounded-xl bg-[#183a31] px-6 text-sm font-bold text-white hover:bg-[#245448]"
+          >
+            Sign in as admin <ArrowRight size={15} />
+          </Button>
+        </div>
+      </Shell>
+    );
+  const pending = hotels.filter(
+    (hotel: any) => hotel.approvalStatus === "pending"
+  );
+  const conflicts = bookings.filter(
+    (booking: any) => booking.bookingStatus === "conflict_flagged"
+  );
+  const successful = bookings.filter(
+    (booking: any) => booking.paymentStatus === "success"
+  );
+  const unreadPartnerAlerts = notifications.filter(
+    (notification: any) =>
+      notification.type === "partner_application" && !notification.readAt
+  );
+  return (
+    <Shell variant="cream">
+      <main className="mx-auto max-w-[1240px] px-5 pb-24 pt-10 lg:px-8">
+        <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
+          <div>
+            <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.18em] text-[#b18143]">
+              Platform admin
+            </p>
+            <h1 className="font-serif text-[49px] leading-none tracking-[-0.04em] text-[#183a31]">
+              Keep the marketplace healthy.
+            </h1>
+            <p className="mt-3 text-sm text-[#718078]">
+              Approve properties, review every reservation, and keep money
+              movements visible.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 rounded-xl bg-white p-1">
+            {(["overview", "hotels", "bookings"] as const).map(value => (
+              <button
+                key={value}
+                onClick={() => setTab(value)}
+                className={`rounded-lg px-3 py-2 text-xs font-bold capitalize ${tab === value ? "bg-[#183a31] text-white" : "text-[#607269]"}`}
+              >
+                {value}
+              </button>
+            ))}
+          </div>
+        </div>
+        {tab === "overview" && (
+          <>
+            <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <Metric
+                label="Hotels"
+                value={summary?.hotelCount ?? "—"}
+                icon={<Hotel size={17} />}
+              />
+              <Metric
+                label="Bookings"
+                value={summary?.bookingCount ?? "—"}
+                icon={<ClipboardCheck size={17} />}
+              />
+              <Metric
+                label="Gross volume"
+                value={summary ? formatMoney(summary.gross, "GHS") : "—"}
+                icon={<DollarSign size={17} />}
+              />
+              <Metric
+                label="Commission"
+                value={summary ? formatMoney(summary.commission, "GHS") : "—"}
+                icon={<BarChart3 size={17} />}
+              />
+            </div>
+            <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_360px]">
+              {unreadPartnerAlerts.length > 0 && (
+                <Card className="mb-6 rounded-[22px] border-[#e7c77b] bg-[#fffaf0] shadow-none">
+                  <CardHeader className="p-6 pb-3">
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#b18143]">
+                          New partner applications
+                        </p>
+                        <CardTitle className="mt-2 font-serif text-[28px] text-[#183a31]">
+                          A human review is waiting.
+                        </CardTitle>
+                      </div>
+                      <Badge className="border-0 bg-[#f4e4b8] text-[#795b1d]">
+                        {unreadPartnerAlerts.length} new
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-3 p-6 pt-0">
+                    {unreadPartnerAlerts
+                      .slice(0, 3)
+                      .map((notification: any) => (
+                        <div
+                          key={notification.id}
+                          className="flex flex-col gap-3 rounded-xl border border-[#ead9a7] bg-white p-4 sm:flex-row sm:items-center sm:justify-between"
+                        >
+                          <div>
+                            <p className="text-sm font-semibold text-[#183a31]">
+                              {notification.title}
+                            </p>
+                            <p className="mt-1 text-xs leading-5 text-[#718078]">
+                              {notification.message}
+                            </p>
+                          </div>
+                          <Button
+                            onClick={() =>
+                              markNotificationRead.mutate({
+                                id: notification.id,
+                              })
+                            }
+                            variant="outline"
+                            className="rounded-lg border-[#d8c88f] text-xs font-bold text-[#795b1d]"
+                          >
+                            Mark reviewed
+                          </Button>
+                        </div>
+                      ))}
+                  </CardContent>
+                </Card>
+              )}
+              <Card className="rounded-[22px] border-[#dfe4dc] bg-white shadow-none">
+                <CardHeader className="p-6">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#b18143]">
+                    Operations queue
+                  </p>
+                  <CardTitle className="mt-2 font-serif text-[28px] text-[#183a31]">
+                    What needs a decision
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="grid gap-3 p-6 pt-0 sm:grid-cols-3">
+                  <button
+                    onClick={() => setTab("hotels")}
+                    className="rounded-xl bg-[#f3f5f0] p-4 text-left"
+                  >
+                    <p className="text-[10px] font-bold uppercase tracking-[0.13em] text-[#8a9890]">
+                      Approvals
+                    </p>
+                    <p className="mt-2 font-serif text-3xl text-[#183a31]">
+                      {pending.length}
+                    </p>
+                    <p className="mt-1 text-xs text-[#718078]">
+                      Properties waiting for review
+                    </p>
+                  </button>
+                  <button
+                    onClick={() => setTab("bookings")}
+                    className="rounded-xl bg-[#fff1e7] p-4 text-left"
+                  >
+                    <p className="text-[10px] font-bold uppercase tracking-[0.13em] text-[#a35c29]">
+                      Conflicts
+                    </p>
+                    <p className="mt-2 font-serif text-3xl text-[#183a31]">
+                      {conflicts.length}
+                    </p>
+                    <p className="mt-1 text-xs text-[#8c654c]">
+                      Reservations needing hotel review
+                    </p>
+                  </button>
+                  <button
+                    onClick={() => setTab("bookings")}
+                    className="rounded-xl bg-[#e8efe7] p-4 text-left"
+                  >
+                    <p className="text-[10px] font-bold uppercase tracking-[0.13em] text-[#2b6755]">
+                      Paid bookings
+                    </p>
+                    <p className="mt-2 font-serif text-3xl text-[#183a31]">
+                      {successful.length}
+                    </p>
+                    <p className="mt-1 text-xs text-[#607269]">
+                      Payment-verified reservations
+                    </p>
+                  </button>
+                </CardContent>
+              </Card>
+              <Card className="rounded-[22px] border-[#dfe4dc] bg-[#183a31] text-white shadow-none">
+                <CardContent className="p-7">
+                  <div className="flex items-center gap-2 text-[#e7c77b]">
+                    <ShieldCheck size={16} />
+                    <span className="text-[10px] font-bold uppercase tracking-[0.16em]">
+                      Commercial rule
+                    </span>
+                  </div>
+                  <h2 className="mt-4 font-serif text-[32px] leading-none">
+                    15% flat, always visible.
+                  </h2>
+                  <p className="mt-4 text-sm leading-6 text-[#c9d8cc]">
+                    Every paid booking records gross amount, commission, and
+                    hotel payout math. Refunds remain an explicit admin action;
+                    they are never implied by cancellation.
+                  </p>
+                  <div className="mt-7 space-y-3 text-xs text-[#d8e4d9]">
+                    <div className="flex items-center gap-3">
+                      <CheckCircle2 size={15} className="text-[#e7c77b]" />{" "}
+                      {successful.length} paid reservations tracked
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <DollarSign size={15} className="text-[#e7c77b]" />{" "}
+                      {
+                        payouts.filter(
+                          (payout: any) => payout.status === "pending"
+                        ).length
+                      }{" "}
+                      hotel payouts pending
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </>
+        )}
+        {tab === "hotels" && (
+          <Card className="mt-8 rounded-[22px] border-[#dfe4dc] bg-white shadow-none">
+            <CardHeader className="p-6">
+              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#b18143]">
+                Marketplace governance
+              </p>
+              <CardTitle className="mt-2 font-serif text-[28px] text-[#183a31]">
+                Hotel approvals
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6 pt-0">
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[720px] text-left text-sm">
+                  <thead className="border-b border-[#e5ebe4] text-[10px] font-bold uppercase tracking-[0.14em] text-[#8a9890]">
+                    <tr>
+                      <th className="pb-3">Property</th>
+                      <th className="pb-3">Connection</th>
+                      <th className="pb-3">Status</th>
+                      <th className="pb-3 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#eef1ed]">
+                    {hotels.map((hotel: any) => (
+                      <tr key={hotel.id}>
+                        <td className="py-4">
+                          <p className="font-semibold text-[#183a31]">
+                            {hotel.name}
+                          </p>
+                          <p className="mt-1 text-xs text-[#718078]">
+                            {hotel.location}
+                          </p>
+                        </td>
+                        <td className="py-4">
+                          {hotel.isBillflowConnected ? (
+                            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#2b6755]">
+                              <Wifi size={13} /> BillFlow
+                            </span>
+                          ) : (
+                            <span className="text-xs text-[#718078]">
+                              Manual
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-4">
+                          <Badge
+                            className={
+                              hotel.approvalStatus === "approved"
+                                ? "border-0 bg-[#e8efe7] text-[#2b6755]"
+                                : hotel.approvalStatus === "rejected"
+                                  ? "border-0 bg-[#fff1e7] text-[#a35c29]"
+                                  : "border-0 bg-[#f3f5f0] text-[#607269]"
+                            }
+                          >
+                            {hotel.approvalStatus}
+                          </Badge>
+                        </td>
+                        <td className="py-4 text-right">
+                          {hotel.approvalStatus === "pending" && (
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                size="sm"
+                                onClick={() =>
+                                  approve.mutate({
+                                    id: hotel.id,
+                                    status: "approved",
+                                  })
+                                }
+                                className="rounded-lg bg-[#183a31] text-xs font-bold text-white"
+                              >
+                                Approve
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() =>
+                                  approve.mutate({
+                                    id: hotel.id,
+                                    status: "rejected",
+                                  })
+                                }
+                                className="rounded-lg border-[#dfe4dc] text-xs font-bold text-[#a35c29]"
+                              >
+                                Reject
+                              </Button>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {hotels.length === 0 && (
+                  <div className="py-10 text-center text-sm text-[#718078]">
+                    Connected and submitted hotels will appear here.
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+        {tab === "bookings" && (
+          <Card className="mt-8 rounded-[22px] border-[#dfe4dc] bg-white shadow-none">
+            <CardHeader className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#b18143]">
+                    Reservation oversight
+                  </p>
+                  <CardTitle className="mt-2 font-serif text-[28px] text-[#183a31]">
+                    All bookings
+                  </CardTitle>
+                </div>
+                <Badge className="border-0 bg-[#fff1e7] text-[#a35c29]">
+                  {conflicts.length} conflicts
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="p-6 pt-0">
+              <div className="space-y-3">
+                {bookings.length === 0 ? (
+                  <p className="rounded-xl bg-[#f3f5f0] p-5 text-sm text-[#718078]">
+                    No bookings have been recorded yet.
+                  </p>
+                ) : (
+                  bookings.map((booking: any) => (
+                    <div
+                      key={booking.id}
+                      className={`grid gap-4 rounded-xl border p-4 lg:grid-cols-[1fr_auto] lg:items-center ${booking.bookingStatus === "conflict_flagged" ? "border-[#f1c5a8] bg-[#fffaf5]" : "border-[#e5ebe4]"}`}
+                    >
+                      <div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Badge
+                            className={
+                              booking.bookingStatus === "conflict_flagged"
+                                ? "border-0 bg-[#fff1e7] text-[#a35c29]"
+                                : booking.paymentStatus === "refunded"
+                                  ? "border-0 bg-[#f3f5f0] text-[#607269]"
+                                  : "border-0 bg-[#e8efe7] text-[#2b6755]"
+                            }
+                          >
+                            {booking.paymentStatus === "refunded"
+                              ? "refunded"
+                              : booking.bookingStatus}
+                          </Badge>
+                          <span className="font-mono text-[10px] text-[#8a9890]">
+                            {booking.bookingReference}
+                          </span>
+                        </div>
+                        <p className="mt-2 font-semibold text-[#183a31]">
+                          {booking.guestName} ·{" "}
+                          {formatMoney(
+                            Number(booking.totalAmount),
+                            booking.currency
+                          )}
+                        </p>
+                        <p className="mt-1 text-xs text-[#718078]">
+                          Hotel #{booking.hotelId} · {booking.checkInDate} →{" "}
+                          {booking.checkOutDate} · {booking.paymentGateway}
+                        </p>
+                        {booking.conflictDetails && (
+                          <p className="mt-2 flex items-start gap-2 text-xs font-semibold leading-5 text-[#a35c29]">
+                            <AlertTriangle
+                              size={14}
+                              className="mt-0.5 shrink-0"
+                            />{" "}
+                            {booking.conflictDetails}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap justify-end gap-2">
+                        {booking.paymentStatus === "success" &&
+                          booking.bookingStatus !== "cancelled" && (
+                            <Button
+                              onClick={() => refund.mutate({ id: booking.id })}
+                              variant="outline"
+                              className="rounded-lg border-[#f1c5a8] text-xs font-bold text-[#a35c29]"
+                            >
+                              Issue refund
+                            </Button>
+                          )}
+                        <Button
+                          variant="outline"
+                          onClick={() => setTab("hotels")}
+                          className="rounded-lg border-[#dfe4dc] text-xs font-bold text-[#183a31]"
+                        >
+                          View hotel
+                        </Button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </main>
+    </Shell>
+  );
 }
-
 
 export function PropertyReviewsSection({ hotelId }: { hotelId: number }) {
   const { data: reviews = [] } = trpc.catalog.reviews.useQuery({ hotelId });
-  const [activeLightboxUrl, setActiveLightboxUrl] = useState<string | null>(null);
-  const avgRating = reviews.length > 0 ? (reviews.reduce((acc: number, r: any) => acc + r.rating, 0) / reviews.length).toFixed(1) : null;
+  const [activeLightboxUrl, setActiveLightboxUrl] = useState<string | null>(
+    null
+  );
+  const avgRating =
+    reviews.length > 0
+      ? (
+          reviews.reduce((acc: number, r: any) => acc + r.rating, 0) /
+          reviews.length
+        ).toFixed(1)
+      : null;
   return (
     <>
       <div className="rounded-[28px] border border-[#e2e7df] bg-white p-8">
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#b18143]">Verified guest reviews</p>
-            <h2 className="mt-1 font-serif text-[32px] text-[#183a31]">What travelers are saying</h2>
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#b18143]">
+              Verified guest reviews
+            </p>
+            <h2 className="mt-1 font-serif text-[32px] text-[#183a31]">
+              What travelers are saying
+            </h2>
           </div>
           <div className="flex items-center gap-3 rounded-2xl bg-[#eef4ed] px-4 py-3">
-            <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#183a31] text-base font-bold text-white"><Star size={16} className="fill-[#e7c77b] text-[#e7c77b] inline mr-0.5" />{avgRating ?? "—"}</span>
+            <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#183a31] text-base font-bold text-white">
+              <Star
+                size={16}
+                className="fill-[#e7c77b] text-[#e7c77b] inline mr-0.5"
+              />
+              {avgRating ?? "—"}
+            </span>
             <div>
-              <span className="block font-bold text-[#183a31]">{reviews.length > 0 ? "Verified guest feedback" : "New property"}</span>
-              <span className="text-xs text-[#718078]">{reviews.length} verified reviews</span>
+              <span className="block font-bold text-[#183a31]">
+                {reviews.length > 0
+                  ? "Verified guest feedback"
+                  : "New property"}
+              </span>
+              <span className="text-xs text-[#718078]">
+                {reviews.length} verified reviews
+              </span>
             </div>
           </div>
         </div>
         <div className="mt-8 grid gap-4 sm:grid-cols-2">
           {reviews.length === 0 ? (
-            <p className="text-sm text-[#718078]">No reviews submitted for this property yet. Complete a verified stay to leave the first review.</p>
+            <p className="text-sm text-[#718078]">
+              No reviews submitted for this property yet. Complete a verified
+              stay to leave the first review.
+            </p>
           ) : (
             reviews.map((review: any) => (
-              <div key={review.id} className="rounded-2xl border border-[#edf0eb] bg-[#f9faf8] p-5">
+              <div
+                key={review.id}
+                className="rounded-2xl border border-[#edf0eb] bg-[#f9faf8] p-5"
+              >
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-[#183a31]">{review.guestName}</span>
-                  <span className="flex items-center gap-1 text-xs font-bold text-[#b18143]"><Star size={12} className="fill-[#e7c77b] text-[#e7c77b]" /> {review.rating}.0</span>
+                  <span className="font-bold text-[#183a31]">
+                    {review.guestName}
+                  </span>
+                  <span className="flex items-center gap-1 text-xs font-bold text-[#b18143]">
+                    <Star size={12} className="fill-[#e7c77b] text-[#e7c77b]" />{" "}
+                    {review.rating}.0
+                  </span>
                 </div>
-                {review.comment && <p className="mt-3 text-sm leading-6 text-[#607269]">{review.comment}</p>}
-                {review.photoUrls && Array.isArray(review.photoUrls) && review.photoUrls.length > 0 && (
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {review.photoUrls.map((url: string, idx: number) => (
-                      <button key={idx} type="button" onClick={() => setActiveLightboxUrl(url)} className="block h-16 w-16 overflow-hidden rounded-xl border border-[#dfe4dc] text-left transition hover:scale-105">
-                        <img src={url} alt="Guest experience photo" className="h-full w-full object-cover" />
-                      </button>
-                    ))}
-                  </div>
+                {review.comment && (
+                  <p className="mt-3 text-sm leading-6 text-[#607269]">
+                    {review.comment}
+                  </p>
                 )}
-                <p className="mt-4 text-[10px] text-[#8a9890]">{new Date(review.createdAt).toLocaleDateString()}</p>
+                {review.photoUrls &&
+                  Array.isArray(review.photoUrls) &&
+                  review.photoUrls.length > 0 && (
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {review.photoUrls.map((url: string, idx: number) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => setActiveLightboxUrl(url)}
+                          className="block h-16 w-16 overflow-hidden rounded-xl border border-[#dfe4dc] text-left transition hover:scale-105"
+                        >
+                          <img
+                            src={url}
+                            alt="Guest experience photo"
+                            className="h-full w-full object-cover"
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                <p className="mt-4 text-[10px] text-[#8a9890]">
+                  {new Date(review.createdAt).toLocaleDateString()}
+                </p>
               </div>
             ))
           )}
         </div>
       </div>
       {activeLightboxUrl && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md" onClick={() => setActiveLightboxUrl(null)}>
-          <div className="relative max-h-[90vh] max-w-4xl overflow-hidden rounded-2xl bg-black p-2" onClick={(e) => e.stopPropagation()}>
-            <img src={activeLightboxUrl} alt="Enlarged review photo" className="max-h-[80vh] w-auto max-w-full rounded-xl object-contain" />
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md"
+          onClick={() => setActiveLightboxUrl(null)}
+        >
+          <div
+            className="relative max-h-[90vh] max-w-4xl overflow-hidden rounded-2xl bg-black p-2"
+            onClick={e => e.stopPropagation()}
+          >
+            <img
+              src={activeLightboxUrl}
+              alt="Enlarged review photo"
+              className="max-h-[80vh] w-auto max-w-full rounded-xl object-contain"
+            />
             <div className="mt-3 flex items-center justify-between px-3 pb-2 text-white">
-              <span className="text-xs text-white/70">Verified guest photo</span>
-              <Button size="sm" variant="ghost" onClick={() => setActiveLightboxUrl(null)} className="text-xs text-white hover:bg-white/10">Close</Button>
+              <span className="text-xs text-white/70">
+                Verified guest photo
+              </span>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setActiveLightboxUrl(null)}
+                className="text-xs text-white hover:bg-white/10"
+              >
+                Close
+              </Button>
             </div>
           </div>
         </div>
@@ -505,15 +4939,17 @@ export function ReviewModal({ booking }: { booking: any }) {
   const utils = trpc.useUtils();
   const uploadPhoto = trpc.bookings.uploadReviewPhoto.useMutation();
   const addReview = trpc.bookings.addReview.useMutation({
-      onSuccess: () => {
-        toast.success("Review submitted", { description: "Thank you for sharing your experience!" });
-        setIsOpen(false);
-        setComment("");
-        setPhotoUrls([]);
-        void utils.bookings.mine.invalidate();
-        void utils.catalog.reviews.invalidate();
-      },
-    onError: (error) => toast.error(error.message || "Could not submit review"),
+    onSuccess: () => {
+      toast.success("Review submitted", {
+        description: "Thank you for sharing your experience!",
+      });
+      setIsOpen(false);
+      setComment("");
+      setPhotoUrls([]);
+      void utils.bookings.mine.invalidate();
+      void utils.catalog.reviews.invalidate();
+    },
+    onError: error => toast.error(error.message || "Could not submit review"),
   });
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -536,9 +4972,12 @@ export function ReviewModal({ booking }: { booking: any }) {
           reader.onerror = reject;
           reader.readAsDataURL(file);
         });
-        const res = await uploadPhoto.mutateAsync({ base64Data: base64, fileName: file.name });
+        const res = await uploadPhoto.mutateAsync({
+          base64Data: base64,
+          fileName: file.name,
+        });
         if (res.url) {
-          setPhotoUrls((prev) => [...prev, res.url]);
+          setPhotoUrls(prev => [...prev, res.url]);
         }
       }
       toast.success("Photos attached");
@@ -551,49 +4990,126 @@ export function ReviewModal({ booking }: { booking: any }) {
 
   return (
     <>
-      <Button size="sm" onClick={() => setIsOpen(true)} className="rounded-xl bg-[#2b6755] text-xs font-bold text-white hover:bg-[#1f4e40]">Leave review</Button>
+      <Button
+        size="sm"
+        onClick={() => setIsOpen(true)}
+        className="rounded-xl bg-[#2b6755] text-xs font-bold text-white hover:bg-[#1f4e40]"
+      >
+        Leave review
+      </Button>
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
           <div className="w-full max-w-md rounded-[24px] bg-white p-6 shadow-2xl">
-            <h3 className="font-serif text-2xl text-[#183a31]">Review your stay</h3>
-            <p className="mt-1 text-xs text-[#718078]">Share your thoughts on {booking.hotelId === 1 ? "The Gold Coast House" : booking.hotelId === 3 ? "Ada Palm Retreat" : "Cantonments House"}</p>
+            <h3 className="font-serif text-2xl text-[#183a31]">
+              Review your stay
+            </h3>
+            <p className="mt-1 text-xs text-[#718078]">
+              Share your thoughts on{" "}
+              {booking.hotelId === 1
+                ? "The Gold Coast House"
+                : booking.hotelId === 3
+                  ? "Ada Palm Retreat"
+                  : "Cantonments House"}
+            </p>
             <div className="mt-5 space-y-4">
               <div>
-                <label className="text-xs font-bold text-[#50605a]">Rating (1 to 5 stars)</label>
+                <label className="text-xs font-bold text-[#50605a]">
+                  Rating (1 to 5 stars)
+                </label>
                 <div className="mt-2 flex items-center gap-2">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <button type="button" key={star} onClick={() => setRating(star)} className={`grid h-10 w-10 place-items-center rounded-xl border font-bold ${rating >= star ? "border-[#e7c77b] bg-[#fdf8ec] text-[#b18143]" : "border-[#dfe4dc] text-[#8a9890]"}`}>
-                      <Star size={16} className={rating >= star ? "fill-[#e7c77b] text-[#e7c77b]" : ""} />
+                  {[1, 2, 3, 4, 5].map(star => (
+                    <button
+                      type="button"
+                      key={star}
+                      onClick={() => setRating(star)}
+                      className={`grid h-10 w-10 place-items-center rounded-xl border font-bold ${rating >= star ? "border-[#e7c77b] bg-[#fdf8ec] text-[#b18143]" : "border-[#dfe4dc] text-[#8a9890]"}`}
+                    >
+                      <Star
+                        size={16}
+                        className={
+                          rating >= star ? "fill-[#e7c77b] text-[#e7c77b]" : ""
+                        }
+                      />
                     </button>
                   ))}
                 </div>
               </div>
               <div>
-                <label className="text-xs font-bold text-[#50605a]">Review comment</label>
-                <Textarea value={comment} onChange={(e) => setComment(e.target.value)} placeholder="How was your room, service, and overall arrival experience?" className="mt-2 min-h-[90px] rounded-xl border-[#dfe4dc]" />
+                <label className="text-xs font-bold text-[#50605a]">
+                  Review comment
+                </label>
+                <Textarea
+                  value={comment}
+                  onChange={e => setComment(e.target.value)}
+                  placeholder="How was your room, service, and overall arrival experience?"
+                  className="mt-2 min-h-[90px] rounded-xl border-[#dfe4dc]"
+                />
               </div>
               <div>
-                <label className="text-xs font-bold text-[#50605a]">Attach experience photos (up to 5)</label>
+                <label className="text-xs font-bold text-[#50605a]">
+                  Attach experience photos (up to 5)
+                </label>
                 <div className="mt-2 flex flex-wrap items-center gap-3">
                   {photoUrls.map((url, idx) => (
-                    <div key={idx} className="relative h-16 w-16 overflow-hidden rounded-xl border border-[#dfe4dc]">
-                      <img src={url} alt="Attachment preview" className="h-full w-full object-cover" />
-                      <button type="button" onClick={() => setPhotoUrls(photoUrls.filter((_, i) => i !== idx))} className="absolute right-1 top-1 grid h-5 w-5 place-items-center rounded-full bg-black/60 text-white text-[10px]">×</button>
+                    <div
+                      key={idx}
+                      className="relative h-16 w-16 overflow-hidden rounded-xl border border-[#dfe4dc]"
+                    >
+                      <img
+                        src={url}
+                        alt="Attachment preview"
+                        className="h-full w-full object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setPhotoUrls(photoUrls.filter((_, i) => i !== idx))
+                        }
+                        className="absolute right-1 top-1 grid h-5 w-5 place-items-center rounded-full bg-black/60 text-white text-[10px]"
+                      >
+                        ×
+                      </button>
                     </div>
                   ))}
                   {photoUrls.length < 5 && (
                     <label className="flex h-16 w-16 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-[#8a9890] bg-[#f9faf8] text-[#718078] hover:bg-[#f3f5f0]">
                       <UploadCloud size={18} />
                       <span className="mt-1 text-[10px]">Add photo</span>
-                      <input type="file" accept="image/*" multiple onChange={handleFileChange} className="hidden" />
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={handleFileChange}
+                        className="hidden"
+                      />
                     </label>
                   )}
                 </div>
               </div>
               <div className="flex gap-3 pt-2">
-                <Button variant="outline" onClick={() => setIsOpen(false)} className="h-11 flex-1 rounded-xl border-[#dfe4dc]">Cancel</Button>
-                <Button onClick={() => addReview.mutate({ hotelId: booking.hotelId, bookingId: booking.id, rating, comment, photoUrls })} disabled={addReview.isPending || isUploading} className="h-11 flex-[2] rounded-xl bg-[#183a31] font-bold text-white">
-                  {addReview.isPending || isUploading ? "Submitting…" : "Submit review"}
+                <Button
+                  variant="outline"
+                  onClick={() => setIsOpen(false)}
+                  className="h-11 flex-1 rounded-xl border-[#dfe4dc]"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() =>
+                    addReview.mutate({
+                      hotelId: booking.hotelId,
+                      bookingId: booking.id,
+                      rating,
+                      comment,
+                      photoUrls,
+                    })
+                  }
+                  disabled={addReview.isPending || isUploading}
+                  className="h-11 flex-[2] rounded-xl bg-[#183a31] font-bold text-white"
+                >
+                  {addReview.isPending || isUploading
+                    ? "Submitting…"
+                    : "Submit review"}
                 </Button>
               </div>
             </div>

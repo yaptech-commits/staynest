@@ -33,3 +33,12 @@
 - [x] Reopen and verify the authenticated superadmin dashboard in the live preview.
 - [x] Add a stable StayNest application ID to native session tokens so production `auth.me` accepts stored login cookies.
 - [x] Add regression coverage for session-token application ID acceptance and verify the authenticated superadmin dashboard preview.
+- [x] Redesign the hotel-owner dashboard with a StayNest-branded Lodgify-inspired sidebar, KPI cards, availability, revenue, reservations, messages, tasks, inventory, calendar, financials, and reviews areas.
+- [x] Drive owner dashboard metrics from real owner-scoped data and show empty states instead of fabricated demo values.
+- [x] Verify responsive mobile behavior and preserve existing owner room, booking, messaging, and payout workflows.
+- [x] Fix the owner dashboard component test runtime so the full suite passes with the new workspace module.
+- [x] Correct the owner dashboard rendered test harness to control sidebar tab state during interaction assertions.
+- [x] Add a preserved owner messaging entry point backed by booking-scoped guest-owner messages in the redesigned workspace.
+- [x] Add rendered coverage proving owner payout-account access and owner messaging navigation remain available.
+- [x] Verify the authenticated owner workspace layout at desktop and mobile widths with real owner-scoped data or an explicit empty-state fixture.
+- [x] Update owner-dashboard and logout regression assertions to match the current formatted production markup and workflow props.

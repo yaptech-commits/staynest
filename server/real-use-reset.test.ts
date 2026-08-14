@@ -29,7 +29,7 @@ describe("real-use catalog reset", () => {
   });
 
   it("exposes logout in the authenticated mobile navigation", () => {
-    expect(pageSource).toContain(">Log out</Button>");
+    expect(pageSource).toContain("Log out");
     expect(pageSource).toContain("void logout()");
   });
 });

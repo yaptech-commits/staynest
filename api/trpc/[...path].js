@@ -292,7 +292,7 @@ function getSessionCookieOptions(req) {
   return {
     httpOnly: true,
     path: "/",
-    sameSite: "none",
+    sameSite: "lax",
     secure: isSecureRequest(req)
   };
 }
@@ -1621,11 +1621,6 @@ var appRouter = router({
         expiresInMs: ONE_YEAR_MS
       });
       const cookieOptions = getSessionCookieOptions(ctx.req);
-      ctx.res.clearCookie(COOKIE_NAME, {
-        path: "/",
-        secure: true,
-        sameSite: "none"
-      });
       ctx.res.cookie(COOKIE_NAME, sessionToken, {
         ...cookieOptions,
         maxAge: ONE_YEAR_MS
@@ -1666,11 +1661,6 @@ var appRouter = router({
         expiresInMs: ONE_YEAR_MS
       });
       const cookieOptions = getSessionCookieOptions(ctx.req);
-      ctx.res.clearCookie(COOKIE_NAME, {
-        path: "/",
-        secure: true,
-        sameSite: "none"
-      });
       ctx.res.cookie(COOKIE_NAME, sessionToken, {
         ...cookieOptions,
         maxAge: ONE_YEAR_MS
@@ -2025,7 +2015,9 @@ var appRouter = router({
           code: "PRECONDITION_FAILED",
           message: "Payment verification expired or did not match the booking total."
         });
-      const existingBooking = await getBookingByPaymentReference(input.paymentReference);
+      const existingBooking = await getBookingByPaymentReference(
+        input.paymentReference
+      );
       if (existingBooking)
         throw new TRPCError3({
           code: "CONFLICT",

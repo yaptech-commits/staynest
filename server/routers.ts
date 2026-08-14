@@ -187,11 +187,6 @@ export const appRouter = router({
           expiresInMs: ONE_YEAR_MS,
         });
         const cookieOptions = getSessionCookieOptions(ctx.req);
-        ctx.res.clearCookie(COOKIE_NAME, {
-          path: "/",
-          secure: true,
-          sameSite: "none",
-        });
         ctx.res.cookie(COOKIE_NAME, sessionToken, {
           ...cookieOptions,
           maxAge: ONE_YEAR_MS,
@@ -235,11 +230,6 @@ export const appRouter = router({
           expiresInMs: ONE_YEAR_MS,
         });
         const cookieOptions = getSessionCookieOptions(ctx.req);
-        ctx.res.clearCookie(COOKIE_NAME, {
-          path: "/",
-          secure: true,
-          sameSite: "none",
-        });
         ctx.res.cookie(COOKIE_NAME, sessionToken, {
           ...cookieOptions,
           maxAge: ONE_YEAR_MS,
@@ -588,10 +578,10 @@ export const appRouter = router({
             : undefined;
         const live = await getLiveAvailability({
           businessId: dbHotel?.isBillflowConnected
-            ? dbHotel.billflowBusinessId ?? undefined
+            ? (dbHotel.billflowBusinessId ?? undefined)
             : undefined,
           propertyId: dbHotel?.isBillflowConnected
-            ? dbHotel.billflowPropertyId ?? undefined
+            ? (dbHotel.billflowPropertyId ?? undefined)
             : undefined,
           roomTypeId: String(input.roomTypeId),
           checkInDate: input.checkInDate,
@@ -611,7 +601,9 @@ export const appRouter = router({
           source:
             live.source === "billflow"
               ? ("billflow" as const)
-              : (connected ? ("billflow" as const) : ("staynest" as const)),
+              : connected
+                ? ("billflow" as const)
+                : ("staynest" as const),
           checkedAt: new Date().toISOString(),
         };
       }),
@@ -702,11 +694,14 @@ export const appRouter = router({
             message:
               "Payment verification expired or did not match the booking total.",
           });
-        const existingBooking = await getBookingByPaymentReference(input.paymentReference);
+        const existingBooking = await getBookingByPaymentReference(
+          input.paymentReference
+        );
         if (existingBooking)
           throw new TRPCError({
             code: "CONFLICT",
-            message: "This payment reference has already been used. The booking was not charged twice.",
+            message:
+              "This payment reference has already been used. The booking was not charged twice.",
           });
         const { commission, hotelPayout } = calculateCommission(
           input.totalAmount
@@ -726,8 +721,12 @@ export const appRouter = router({
           });
         const connected = Boolean(dbHotel.isBillflowConnected);
         const billflowReservation = await createBillFlowReservation({
-          businessId: connected ? dbHotel.billflowBusinessId ?? undefined : undefined,
-          propertyId: connected ? dbHotel.billflowPropertyId ?? undefined : undefined,
+          businessId: connected
+            ? (dbHotel.billflowBusinessId ?? undefined)
+            : undefined,
+          propertyId: connected
+            ? (dbHotel.billflowPropertyId ?? undefined)
+            : undefined,
           roomTypeId: room.roomType,
           guestName: input.guestName,
           guestEmail: input.guestEmail,

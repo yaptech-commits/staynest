@@ -37,7 +37,8 @@ describe("native superadmin local login", () => {
     vi.spyOn(db, "getUserByEmail").mockResolvedValue(adminUser);
     vi.spyOn(sdk, "createSessionToken").mockResolvedValue("test-session-token");
 
-    const result = await appRouter.createCaller(context()).auth.localLogin({
+    const ctx = context();
+    const result = await appRouter.createCaller(ctx).auth.localLogin({
       email: "  WisdomAsaare41@GMAIL.COM ",
       password: "Gist_zone@blogger1",
     });
@@ -49,6 +50,18 @@ describe("native superadmin local login", () => {
     expect(sdk.createSessionToken).toHaveBeenCalledWith(
       "local_superadmin",
       expect.objectContaining({ name: "Wisdom Asaare" })
+    );
+    expect(ctx.res.clearCookie).not.toHaveBeenCalled();
+    expect(ctx.res.cookie).toHaveBeenCalledWith(
+      "app_session_id",
+      "test-session-token",
+      expect.objectContaining({
+        httpOnly: true,
+        path: "/",
+        sameSite: "lax",
+        secure: true,
+        maxAge: expect.any(Number),
+      })
     );
   });
 });

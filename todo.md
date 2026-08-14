@@ -162,3 +162,4 @@
 - [x] Disable Vercel Deployment Protection for the public StayNest production project so native API authentication is reachable by guests and owners.
 - [x] Add a Vercel-compatible serverless entrypoint for `/api/trpc` so mutations do not fall through to the static index page.
 - [ ] Add Vercel routing configuration and verify the public deployed native superadmin login creates a session.
+- [x] Remove the invalid explicit Vercel function runtime override that caused the d6ffc29 build to fail.

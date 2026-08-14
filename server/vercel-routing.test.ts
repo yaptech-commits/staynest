@@ -19,9 +19,7 @@ describe("Vercel API routing", () => {
       readProjectFile("api/trpc/[...path].ts"),
     ]);
 
-    expect(config.functions["api/trpc/[...path].ts"]).toMatchObject({
-      runtime: "nodejs22.x",
-    });
+    expect(config.functions).toBeUndefined();
     expect(handler).toContain("createExpressMiddleware");
     expect(handler).toContain("export default app");
   });

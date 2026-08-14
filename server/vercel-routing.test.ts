@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, it, expect } from "vitest";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
@@ -16,10 +16,10 @@ describe("Vercel API routing", () => {
   it("keeps the tRPC catch-all serverless entrypoint configured", async () => {
     const [config, handler] = await Promise.all([
       readProjectFile("vercel.json").then(JSON.parse),
-      readProjectFile("api/trpc/[...path].ts"),
+      readProjectFile("server/_core/vercelTrpc.ts"),
     ]);
 
-    expect(config.functions["api/trpc/[...path].ts"].includeFiles).toBe("server/**");
+    expect(config.functions).toBeUndefined();
     expect(handler).toContain("createExpressMiddleware");
     expect(handler).toContain("export default app");
   });

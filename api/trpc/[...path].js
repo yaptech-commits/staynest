@@ -255,7 +255,7 @@ var init_schema = __esm({
   }
 });
 
-// api/trpc/[...path].ts
+// server/_core/vercelTrpc.ts
 import express from "express";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 
@@ -2644,7 +2644,7 @@ async function createContext(opts) {
   };
 }
 
-// api/trpc/[...path].ts
+// server/_core/vercelTrpc.ts
 var app = express();
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
@@ -2664,7 +2664,7 @@ app.use((err, req, res, next) => {
     stack: process.env.NODE_ENV === "development" ? err?.stack : void 0
   });
 });
-var path_default = app;
+var vercelTrpc_default = app;
 export {
-  path_default as default
+  vercelTrpc_default as default
 };

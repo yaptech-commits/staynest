@@ -2664,7 +2664,21 @@ app.use((err, req, res, next) => {
     stack: process.env.NODE_ENV === "development" ? err?.stack : void 0
   });
 });
-var vercelTrpc_default = app;
+async function handler(req, res) {
+  if (!req.body && (req.method === "POST" || req.method === "PUT")) {
+    let body = "";
+    for await (const chunk of req) {
+      body += chunk;
+    }
+    try {
+      if (body) {
+        req.body = JSON.parse(body);
+      }
+    } catch (e) {
+    }
+  }
+  return app(req, res);
+}
 export {
-  vercelTrpc_default as default
+  handler as default
 };

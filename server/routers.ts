@@ -179,7 +179,7 @@ export const appRouter = router({
             message: "Invalid email or password.",
           });
         }
-        const bcrypt = await import("bcrypt");
+        const bcrypt = await import("bcryptjs");
         const crypto = await import("crypto");
         let valid = false;
         if (
@@ -242,7 +242,7 @@ export const appRouter = router({
             message: "An account with this email already exists.",
           });
         }
-        const bcrypt = await import("bcrypt");
+        const bcrypt = await import("bcryptjs");
         const passwordHash = await bcrypt.hash(input.password, 10);
         const user = await createOrUpdateLocalUser({
           email: input.email,
@@ -314,7 +314,7 @@ export const appRouter = router({
             message: "Invalid or expired password reset token.",
           });
         }
-        const bcrypt = await import("bcrypt");
+        const bcrypt = await import("bcryptjs");
         const passwordHash = await bcrypt.hash(input.newPassword, 10);
         await updateUserPassword(user.id, passwordHash);
         return {

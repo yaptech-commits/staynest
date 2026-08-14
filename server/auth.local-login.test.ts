@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import type { TrpcContext } from "./_core/context";
 import { sdk } from "./_core/sdk";
 import * as db from "./db";

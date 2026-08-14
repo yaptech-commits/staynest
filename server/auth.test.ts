@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { appRouter } from "./routers";
 import { getDb } from "./db";
 import { users } from "../drizzle/schema";

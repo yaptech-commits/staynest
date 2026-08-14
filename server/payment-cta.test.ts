@@ -12,9 +12,23 @@ describe("booking payment CTA", () => {
   it("keeps a visible payment action in the booking summary", async () => {
     const source = await readFile(stayNestPage, "utf8");
 
-    expect(source).toContain("Pay now · {formatMoney(total, booking.currency)}");
-    expect(source).toContain("onClick={() => step === 1 ? setStep(2) : onPay()}");
+    expect(source).toContain(
+      "Pay now · {formatMoney(total, booking.currency)}"
+    );
+    expect(source).toContain(
+      "onClick={() => step === 1 ? setStep(2) : onPay()}"
+    );
     expect(source).toContain("disabled={initialize.isPending}");
-    expect(source).toContain("You’ll be redirected to the selected payment processor.");
+    expect(source).toContain(
+      "You’ll be redirected to the selected payment processor."
+    );
+    expect(source).toContain("Payment pending");
+    expect(source).toContain(
+      'item.paymentStatus === "success" ? "Paid" : "Payment pending"'
+    );
+    expect(source).toContain("Payment needs attention");
+    expect(source).toContain("Nothing has been booked yet.");
+    expect(source).toContain("startHostedCheckout({");
+    expect(source).toContain("completePaymentFlow({");
   });
 });

@@ -262,6 +262,17 @@ export async function getAllBookings() {
   return db.select().from(bookings).orderBy(desc(bookings.createdAt));
 }
 
+export async function getBookingByPaymentReference(paymentReference: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db
+    .select()
+    .from(bookings)
+    .where(eq(bookings.paymentReference, paymentReference))
+    .limit(1);
+  return result[0];
+}
+
 export async function cancelBookingForUser(id: number, userId: number) {
   const db = await getDb();
   if (!db) return false;

@@ -17,4 +17,11 @@
 - [x] Configure robust single-file pre-bundled serverless tRPC API endpoint on Vercel (`api/trpc/[...path].js`)
 - [x] Verify superadmin native sign-in and session creation on production
 - [x] Add a visible mobile and desktop Pay for booking button to the booking summary and connect it to the existing payment flow.
-- [ ] Verify pending, redirect, success, failure, and already-paid payment states for booking checkout.
+- [x] Verify pending, redirect, success, failure, and already-paid payment states for booking checkout.
+- [x] Add behavioral tests for payment initialization pending/loading, hosted-checkout redirect, verified success, and failed verification.
+- [x] Implement and test an explicit already-paid guard so completed bookings cannot be charged twice.
+- [x] Add a server-side booking/payment reference lookup before creating a paid booking.
+- [x] Reject repeated successful payment references with a clear idempotency error and test the rejection.
+- [x] Add integration-level coverage for the checkout session handoff and payment completion callback contract.
+- [x] Add a production-path test for BookingPage checkout initialization, sessionStorage handoff, and hosted redirect.
+- [x] Add a production-path test for PaymentCompletePage callback parsing, verification failure, successful booking creation, and confirmation navigation.

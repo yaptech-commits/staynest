@@ -662,6 +662,12 @@ async function getAllBookings() {
   if (!db) return [];
   return db.select().from(bookings).orderBy(desc(bookings.createdAt));
 }
+async function getBookingByPaymentReference(paymentReference) {
+  const db = await getDb();
+  if (!db) return void 0;
+  const result = await db.select().from(bookings).where(eq(bookings.paymentReference, paymentReference)).limit(1);
+  return result[0];
+}
 async function cancelBookingForUser(id, userId) {
   const db = await getDb();
   if (!db) return false;
@@ -2106,6 +2112,12 @@ var appRouter = router({
         throw new TRPCError3({
           code: "PRECONDITION_FAILED",
           message: "Payment verification expired or did not match the booking total."
+        });
+      const existingBooking = await getBookingByPaymentReference(input.paymentReference);
+      if (existingBooking)
+        throw new TRPCError3({
+          code: "CONFLICT",
+          message: "This payment reference has already been used. The booking was not charged twice."
         });
       const { commission, hotelPayout } = calculateCommission(
         input.totalAmount

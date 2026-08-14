@@ -22,6 +22,7 @@ import {
   createBooking,
   getAllBookings,
   getBookingForUser,
+  getBookingByPaymentReference,
   getBookingsForUser,
   getHotelById,
   listAllHotels,
@@ -747,6 +748,12 @@ export const appRouter = router({
             code: "PRECONDITION_FAILED",
             message:
               "Payment verification expired or did not match the booking total.",
+          });
+        const existingBooking = await getBookingByPaymentReference(input.paymentReference);
+        if (existingBooking)
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: "This payment reference has already been used. The booking was not charged twice.",
           });
         const { commission, hotelPayout } = calculateCommission(
           input.totalAmount

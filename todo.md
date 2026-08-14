@@ -28,8 +28,8 @@
 - [x] Verify a visible user logout control exists and clears the StayNest session.
 - [x] Permanently remove seeded demo hotels, properties, rooms, and related demo booking records while preserving users and schema.
 - [x] Verify the catalog is empty and ready for real hotel-owner listings after the reset.
-- [ ] Fix Vercel serverless native-login session cookie propagation so `auth.me` recognizes a successful superadmin login.
-- [ ] Add regression coverage for login persistence across the localLogin → auth.me request boundary.
+- [x] Fix Vercel serverless native-login session cookie propagation so `auth.me` recognizes a successful superadmin login.
+- [x] Add regression coverage for login persistence across the localLogin → auth.me request boundary.
 - [x] Reopen and verify the authenticated superadmin dashboard in the live preview.
 - [x] Add a stable StayNest application ID to native session tokens so production `auth.me` accepts stored login cookies.
 - [x] Add regression coverage for session-token application ID acceptance and verify the authenticated superadmin dashboard preview.

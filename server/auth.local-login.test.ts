@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import bcrypt from "bcryptjs";
-import type { TrpcContext } from "./_core/context";
+import { createContext, type TrpcContext } from "./_core/context";
 import { sdk } from "./_core/sdk";
 import * as db from "./db";
 import { appRouter } from "./routers";
@@ -63,5 +63,41 @@ describe("native superadmin local login", () => {
         maxAge: expect.any(Number),
       })
     );
+  });
+
+  it("persists the session across localLogin and auth.me request boundary", async () => {
+    adminUser.passwordHash = await bcrypt.hash("Gist_zone@blogger1", 4);
+    vi.spyOn(db, "getUserByEmail").mockResolvedValue(adminUser);
+    vi.spyOn(db, "getUserByOpenId").mockResolvedValue(adminUser);
+
+    const loginCtx = context();
+    await appRouter.createCaller(loginCtx).auth.localLogin({
+      email: "wisdomasaare41@gmail.com",
+      password: "Gist_zone@blogger1",
+    });
+
+    const cookieCall = vi
+      .mocked(loginCtx.res.cookie)
+      .mock.calls.find(call => call[0] === "app_session_id");
+    const issuedToken = cookieCall?.[1] as string;
+    expect(issuedToken).toBeDefined();
+
+    const meReq = {
+      protocol: "https",
+      headers: {
+        cookie: `app_session_id=${issuedToken}`,
+      },
+    } as unknown as TrpcContext["req"];
+    const meRes = {
+      clearCookie: vi.fn(),
+      cookie: vi.fn(),
+    } as unknown as TrpcContext["res"];
+    const meCtx = await createContext({ req: meReq, res: meRes } as any);
+
+    const currentUser = await appRouter.createCaller(meCtx).auth.me();
+    expect(currentUser).toMatchObject({
+      email: "wisdomasaare41@gmail.com",
+      role: "admin",
+    });
   });
 });

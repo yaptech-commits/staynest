@@ -4345,6 +4345,20 @@ export function AdminDashboard() {
   const { data: payouts = [] } = trpc.admin.payouts.useQuery(undefined, {
     enabled: isAuthenticated,
   });
+  const { data: users = [] } = trpc.admin.users.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
+  const { data: rooms = [] } = trpc.admin.rooms.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
+  const { data: blockedAvailability = [] } =
+    trpc.admin.blockedAvailability.useQuery(undefined, {
+      enabled: isAuthenticated,
+    });
+  const { data: payoutAccounts = [] } = trpc.admin.payoutAccounts.useQuery(
+    undefined,
+    { enabled: isAuthenticated }
+  );
   const { data: notifications = [] } = trpc.notifications.mine.useQuery(
     undefined,
     { enabled: isAuthenticated }
@@ -4367,9 +4381,9 @@ export function AdminDashboard() {
   const markNotificationRead = trpc.notifications.markRead.useMutation({
     onSuccess: () => void utils.notifications.mine.invalidate(),
   });
-  const [tab, setTab] = useState<"overview" | "hotels" | "bookings">(
-    "overview"
-  );
+  const [tab, setTab] = useState<
+    "overview" | "hotels" | "bookings" | "users" | "operations"
+  >("overview");
   if (!isAuthenticated)
     return (
       <Shell variant="cream">
@@ -4423,7 +4437,9 @@ export function AdminDashboard() {
             </p>
           </div>
           <div className="flex items-center gap-2 rounded-xl bg-white p-1">
-            {(["overview", "hotels", "bookings"] as const).map(value => (
+            {(
+              ["overview", "hotels", "bookings", "users", "operations"] as const
+            ).map(value => (
               <button
                 key={value}
                 onClick={() => setTab(value)}
@@ -4456,6 +4472,11 @@ export function AdminDashboard() {
                 label="Commission"
                 value={summary ? formatMoney(summary.commission, "GHS") : "—"}
                 icon={<BarChart3 size={17} />}
+              />
+              <Metric
+                label="Users"
+                value={users.length}
+                icon={<UsersRound size={17} />}
               />
             </div>
             <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_360px]">
@@ -4692,6 +4713,175 @@ export function AdminDashboard() {
                 {hotels.length === 0 && (
                   <div className="py-10 text-center text-sm text-[#718078]">
                     Connected and submitted hotels will appear here.
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+        {tab === "operations" && (
+          <div className="mt-8 grid gap-6 xl:grid-cols-3">
+            <Card className="rounded-[22px] border-[#dfe4dc] bg-white shadow-none">
+              <CardHeader className="p-6">
+                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#b18143]">
+                  Owner inventory
+                </p>
+                <CardTitle className="mt-2 font-serif text-[28px] text-[#183a31]">
+                  Room inventory
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 p-6 pt-0">
+                {rooms.length === 0 ? (
+                  <p className="rounded-xl bg-[#f3f5f0] p-4 text-sm text-[#718078]">
+                    No owner rooms have been listed yet.
+                  </p>
+                ) : (
+                  rooms.slice(0, 8).map((room: any) => (
+                    <div
+                      key={room.id}
+                      className="rounded-xl border border-[#e5ebe4] p-4"
+                    >
+                      <p className="font-semibold text-[#183a31]">
+                        {room.name}
+                      </p>
+                      <p className="mt-1 text-xs text-[#718078]">
+                        Hotel #{room.hotelId} · {room.totalRooms} total rooms
+                      </p>
+                    </div>
+                  ))
+                )}
+              </CardContent>
+            </Card>
+            <Card className="rounded-[22px] border-[#dfe4dc] bg-white shadow-none">
+              <CardHeader className="p-6">
+                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#b18143]">
+                  Availability controls
+                </p>
+                <CardTitle className="mt-2 font-serif text-[28px] text-[#183a31]">
+                  Blocked dates
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 p-6 pt-0">
+                {blockedAvailability.length === 0 ? (
+                  <p className="rounded-xl bg-[#f3f5f0] p-4 text-sm text-[#718078]">
+                    No blocked availability windows have been recorded.
+                  </p>
+                ) : (
+                  blockedAvailability.slice(0, 8).map((block: any) => (
+                    <div
+                      key={block.id}
+                      className="rounded-xl border border-[#e5ebe4] p-4"
+                    >
+                      <p className="font-semibold text-[#183a31]">
+                        {block.startDate} → {block.endDate}
+                      </p>
+                      <p className="mt-1 text-xs text-[#718078]">
+                        Hotel #{block.hotelId} ·{" "}
+                        {block.roomId ? `Room #${block.roomId}` : "All rooms"}
+                      </p>
+                    </div>
+                  ))
+                )}
+              </CardContent>
+            </Card>
+            <Card className="rounded-[22px] border-[#dfe4dc] bg-white shadow-none">
+              <CardHeader className="p-6">
+                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#b18143]">
+                  Settlement readiness
+                </p>
+                <CardTitle className="mt-2 font-serif text-[28px] text-[#183a31]">
+                  Payout accounts
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 p-6 pt-0">
+                {payoutAccounts.length === 0 ? (
+                  <p className="rounded-xl bg-[#f3f5f0] p-4 text-sm text-[#718078]">
+                    No owner payout accounts have been configured.
+                  </p>
+                ) : (
+                  payoutAccounts.slice(0, 8).map((account: any) => (
+                    <div
+                      key={account.id}
+                      className="rounded-xl border border-[#e5ebe4] p-4"
+                    >
+                      <p className="font-semibold text-[#183a31]">
+                        {account.accountName || "Unnamed account"}
+                      </p>
+                      <p className="mt-1 text-xs text-[#718078]">
+                        Hotel #{account.hotelId} ·{" "}
+                        {account.payoutMethod ||
+                          account.networkProvider ||
+                          "Method pending"}
+                      </p>
+                    </div>
+                  ))
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        )}
+        {tab === "users" && (
+          <Card className="mt-8 rounded-[22px] border-[#dfe4dc] bg-white shadow-none">
+            <CardHeader className="p-6">
+              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#b18143]">
+                People and access
+              </p>
+              <CardTitle className="mt-2 font-serif text-[28px] text-[#183a31]">
+                Platform users
+              </CardTitle>
+              <p className="mt-2 text-sm text-[#718078]">
+                Review registered guests, hotel owners, and administrator access
+                without exposing passwords or reset tokens.
+              </p>
+            </CardHeader>
+            <CardContent className="p-6 pt-0">
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[760px] text-left text-sm">
+                  <thead className="border-b border-[#e5ebe4] text-[10px] font-bold uppercase tracking-[0.14em] text-[#8a9890]">
+                    <tr>
+                      <th className="pb-3">User</th>
+                      <th className="pb-3">Role</th>
+                      <th className="pb-3">Sign-in method</th>
+                      <th className="pb-3 text-right">Last active</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#eef1ed]">
+                    {users.map((user: any) => (
+                      <tr key={user.id}>
+                        <td className="py-4">
+                          <p className="font-semibold text-[#183a31]">
+                            {user.name || "Unnamed user"}
+                          </p>
+                          <p className="mt-1 text-xs text-[#718078]">
+                            {user.email || "No email"}
+                          </p>
+                        </td>
+                        <td className="py-4">
+                          <Badge
+                            className={
+                              user.role === "superadmin"
+                                ? "border-0 bg-[#f4e4b8] text-[#795b1d]"
+                                : "border-0 bg-[#e8efe7] text-[#2b6755]"
+                            }
+                          >
+                            {user.role}
+                          </Badge>
+                        </td>
+                        <td className="py-4 text-xs text-[#607269]">
+                          {user.loginMethod || "—"}
+                        </td>
+                        <td className="py-4 text-right text-xs text-[#718078]">
+                          {user.lastSignedIn
+                            ? new Date(user.lastSignedIn).toLocaleDateString()
+                            : "—"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {users.length === 0 && (
+                  <div className="py-10 text-center text-sm text-[#718078]">
+                    No registered users yet.
                   </div>
                 )}
               </div>

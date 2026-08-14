@@ -20,11 +20,15 @@ describe("StayNest Native Authentication", () => {
     expect(match).toBe(false);
   });
 
-  it("seeds wisdomasaare41@gmail.com with admin role and password hash", async () => {
+  it("seeds wisdomasaare41@gmail.com with superadmin role and password hash", async () => {
     const db = await getDb();
     if (!db) return;
-    const adminUser = await db.select().from(users).where(eq(users.email, "wisdomasaare41@gmail.com")).limit(1);
+    const adminUser = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, "wisdomasaare41@gmail.com"))
+      .limit(1);
     expect(adminUser.length).toBe(1);
-    expect(adminUser[0].role).toBe("admin");
+    expect(adminUser[0].role).toBe("superadmin");
   });
 });

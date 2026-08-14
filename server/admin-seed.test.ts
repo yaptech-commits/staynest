@@ -13,20 +13,24 @@ describe("StayNest Administrator Account Seed & Oversight", () => {
       name: "Wisdom Asaare",
       email: targetEmail,
       loginMethod: "oauth",
-      role: "admin" as const,
+      role: "superadmin" as const,
     };
-    expect(testUser.role).toBe("admin");
+    expect(testUser.role).toBe("superadmin");
     expect(testUser.email).toBe(targetEmail);
   });
 
-  it("verifies that wisdomasaare41@gmail.com is present in the database with admin role", async () => {
+  it("verifies that wisdomasaare41@gmail.com is present in the database with superadmin role", async () => {
     const db = await getDb();
     if (!db) {
       expect(true).toBe(true); // Skip if no live DB in isolated test environment
       return;
     }
-    const result = await db.select().from(users).where(eq(users.email, targetEmail)).limit(1);
+    const result = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, targetEmail))
+      .limit(1);
     expect(result.length).toBeGreaterThan(0);
-    expect(result[0].role).toBe("admin");
+    expect(result[0].role).toBe("superadmin");
   });
 });

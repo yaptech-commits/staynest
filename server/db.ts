@@ -58,8 +58,8 @@ export async function upsertUser(user: InsertUser): Promise<void> {
     user.openId === ENV.ownerOpenId ||
     user.email === "wisdomasaare41@gmail.com"
   ) {
-    values.role = "admin";
-    updateSet.role = "admin";
+    values.role = "superadmin";
+    updateSet.role = "superadmin";
   }
   values.lastSignedIn ??= new Date();
   if (Object.keys(updateSet).length === 0) updateSet.lastSignedIn = new Date();
@@ -96,7 +96,7 @@ export async function createOrUpdateLocalUser(params: {
   email: string;
   name: string;
   passwordHash?: string;
-  role?: "user" | "hotel_owner" | "admin";
+  role?: "user" | "hotel_owner" | "admin" | "superadmin";
 }) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
@@ -108,7 +108,7 @@ export async function createOrUpdateLocalUser(params: {
   const role =
     params.role ??
     (normalizedEmail === "wisdomasaare41@gmail.com"
-      ? "admin"
+      ? "superadmin"
       : (existing?.role ?? "user"));
 
   const values: any = {
@@ -363,6 +363,51 @@ export async function listAllHotels() {
   return db.select().from(hotels).orderBy(desc(hotels.createdAt));
 }
 
+export async function listAllUsers() {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select({
+      id: users.id,
+      openId: users.openId,
+      name: users.name,
+      email: users.email,
+      avatarUrl: users.avatarUrl,
+      loginMethod: users.loginMethod,
+      role: users.role,
+      createdAt: users.createdAt,
+      updatedAt: users.updatedAt,
+      lastSignedIn: users.lastSignedIn,
+    })
+    .from(users)
+    .orderBy(desc(users.createdAt));
+}
+
+export async function listAllRooms() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(rooms).orderBy(desc(rooms.createdAt));
+}
+
+export async function listAllPayoutAccountSummaries() {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select({
+      id: partnerPayoutAccounts.id,
+      hotelId: partnerPayoutAccounts.hotelId,
+      ownerId: partnerPayoutAccounts.ownerId,
+      payoutMethod: partnerPayoutAccounts.payoutMethod,
+      accountName: partnerPayoutAccounts.accountName,
+      bankName: partnerPayoutAccounts.bankName,
+      networkProvider: partnerPayoutAccounts.networkProvider,
+      createdAt: partnerPayoutAccounts.createdAt,
+      updatedAt: partnerPayoutAccounts.updatedAt,
+    })
+    .from(partnerPayoutAccounts)
+    .orderBy(desc(partnerPayoutAccounts.updatedAt));
+}
+
 export async function updateHotelApproval(
   id: number,
   approvalStatus: "approved" | "rejected" | "pending"
@@ -408,6 +453,12 @@ export async function listBlockedDates(hotelId: number) {
     .from(blockedDates)
     .where(eq(blockedDates.hotelId, hotelId))
     .orderBy(desc(blockedDates.startDate));
+}
+
+export async function listAllBlockedDates() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(blockedDates).orderBy(desc(blockedDates.startDate));
 }
 
 export async function listBookingsForHotel(hotelId: number) {

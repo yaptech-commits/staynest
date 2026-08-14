@@ -4,6 +4,7 @@ import { storagePut } from "./storage";
 import { systemRouter } from "./_core/systemRouter";
 import {
   adminProcedure,
+  isPlatformAdmin,
   protectedProcedure,
   publicProcedure,
   router,
@@ -26,7 +27,11 @@ import {
   getBookingsForUser,
   getHotelById,
   listAllHotels,
+  listAllPayoutAccountSummaries,
+  listAllRooms,
+  listAllUsers,
   listApprovedHotels,
+  listAllBlockedDates,
   listBlockedDates,
   listHotelsForOwner,
   listReviewsForHotel,
@@ -953,7 +958,7 @@ export const appRouter = router({
         const booking = await getBookingForUser(input.bookingId, ctx.user.id);
         const hotel = booking ? await getHotelById(booking.hotelId) : null;
         const isOwner = hotel && hotel.ownerId === ctx.user.id;
-        const isAdmin = ctx.user.role === "admin";
+        const isAdmin = isPlatformAdmin(ctx.user);
         if (!booking && !isOwner && !isAdmin) {
           throw new TRPCError({
             code: "FORBIDDEN",
@@ -974,7 +979,7 @@ export const appRouter = router({
         const booking = await getBookingForUser(input.bookingId, ctx.user.id);
         const hotel = booking ? await getHotelById(booking.hotelId) : null;
         const isOwner = hotel && hotel.ownerId === ctx.user.id;
-        const isAdmin = ctx.user.role === "admin";
+        const isAdmin = isPlatformAdmin(ctx.user);
         if (!booking && !isOwner && !isAdmin) {
           throw new TRPCError({
             code: "FORBIDDEN",
@@ -1275,9 +1280,32 @@ export const appRouter = router({
   }),
 
   admin: router({
+    users: adminProcedure.query(() => listAllUsers()),
     hotels: adminProcedure.query(() => listAllHotels()),
     bookings: adminProcedure.query(() => getAllBookings()),
     payouts: adminProcedure.query(() => listPayouts()),
+    rooms: adminProcedure.query(() => listAllRooms()),
+    blockedAvailability: adminProcedure.query(() => listAllBlockedDates()),
+    payoutAccounts: adminProcedure.query(() => listAllPayoutAccountSummaries()),
+    ownerOperations: adminProcedure.query(async () => {
+      const [users, hotels, rooms, bookings, payouts, payoutAccounts] =
+        await Promise.all([
+          listAllUsers(),
+          listAllHotels(),
+          listAllRooms(),
+          getAllBookings(),
+          listPayouts(),
+          listAllPayoutAccountSummaries(),
+        ]);
+      return {
+        owners: users.filter(user => user.role === "hotel_owner"),
+        propertyCount: hotels.length,
+        roomCount: rooms.length,
+        bookingCount: bookings.length,
+        payoutCount: payouts.length,
+        payoutAccountCount: payoutAccounts.length,
+      };
+    }),
     refundBooking: adminProcedure
       .input(z.object({ id: z.number().int().positive() }))
       .mutation(({ input }) => refundBookingForAdmin(input.id)),

@@ -42,3 +42,12 @@
 - [x] Add rendered coverage proving owner payout-account access and owner messaging navigation remain available.
 - [x] Verify the authenticated owner workspace layout at desktop and mobile widths with real owner-scoped data or an explicit empty-state fixture.
 - [x] Update owner-dashboard and logout regression assertions to match the current formatted production markup and workflow props.
+- [x] Promote `wisdomasaare41@gmail.com` to superadmin without changing the account password or other users.
+- [x] Verify superadmin role enforcement and platform-wide visibility for hotels, bookings, users, and owner operations.
+- [ ] Add regression coverage for the superadmin authorization contract and push the completed change to GitHub.
+- [x] Add or verify superadmin access to remaining owner-operation views/actions beyond hotels, bookings, payouts, and booking messages.
+- [x] Add rendered admin-dashboard coverage for the users tab, role badges, and empty-state behavior.
+- [ ] Commit and push the superadmin role migration, user-visibility route, dashboard UI, and regression tests to GitHub, then verify remote synchronization.
+- [x] Add concrete superadmin read procedures for room inventory, blocked availability, and payout-account summaries.
+- [x] Add an admin dashboard owner-operations view exposing those real datasets with safe empty states.
+- [x] Add regression tests proving concrete superadmin access to the owner-operation procedures and rendered dashboard view.

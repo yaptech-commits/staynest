@@ -1,4 +1,13 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, decimal, json } from "drizzle-orm/mysql-core";
+import {
+  int,
+  mysqlEnum,
+  mysqlTable,
+  text,
+  timestamp,
+  varchar,
+  decimal,
+  json,
+} from "drizzle-orm/mysql-core";
 
 export const users = mysqlTable("users", {
   id: int("id").autoincrement().primaryKey(),
@@ -10,7 +19,9 @@ export const users = mysqlTable("users", {
   passwordResetToken: varchar("passwordResetToken", { length: 128 }),
   passwordResetExpires: timestamp("passwordResetExpires"),
   loginMethod: varchar("loginMethod", { length: 64 }),
-  role: mysqlEnum("role", ["user", "hotel_owner", "admin"]).default("user").notNull(),
+  role: mysqlEnum("role", ["user", "hotel_owner", "admin", "superadmin"])
+    .default("user")
+    .notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
@@ -36,7 +47,13 @@ export const hotels = mysqlTable("staynest_hotels", {
   isBillflowConnected: int("isBillflowConnected").default(0), // 1 for connected, 0 for manual
   billflowBusinessId: varchar("billflowBusinessId", { length: 128 }),
   billflowPropertyId: varchar("billflowPropertyId", { length: 128 }),
-  approvalStatus: mysqlEnum("approvalStatus", ["pending", "approved", "rejected"]).default("pending").notNull(),
+  approvalStatus: mysqlEnum("approvalStatus", [
+    "pending",
+    "approved",
+    "rejected",
+  ])
+    .default("pending")
+    .notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -64,7 +81,9 @@ export type InsertRoom = typeof rooms.$inferInsert;
 
 export const bookings = mysqlTable("staynest_bookings", {
   id: int("id").autoincrement().primaryKey(),
-  bookingReference: varchar("bookingReference", { length: 64 }).notNull().unique(),
+  bookingReference: varchar("bookingReference", { length: 64 })
+    .notNull()
+    .unique(),
   userId: int("userId").notNull(),
   hotelId: int("hotelId").notNull(),
   roomId: int("roomId").notNull(),
@@ -79,12 +98,35 @@ export const bookings = mysqlTable("staynest_bookings", {
   guestPhone: varchar("guestPhone", { length: 64 }),
   currency: varchar("currency", { length: 8 }).default("GHS").notNull(),
   totalAmount: decimal("totalAmount", { precision: 10, scale: 2 }).notNull(),
-  commissionAmount: decimal("commissionAmount", { precision: 10, scale: 2 }).notNull(), // 15% flat
-  hotelPayoutAmount: decimal("hotelPayoutAmount", { precision: 10, scale: 2 }).notNull(),
-  paymentGateway: varchar("paymentGateway", { length: 32 }).default("paystack").notNull(), // paystack or flutterwave
+  commissionAmount: decimal("commissionAmount", {
+    precision: 10,
+    scale: 2,
+  }).notNull(), // 15% flat
+  hotelPayoutAmount: decimal("hotelPayoutAmount", {
+    precision: 10,
+    scale: 2,
+  }).notNull(),
+  paymentGateway: varchar("paymentGateway", { length: 32 })
+    .default("paystack")
+    .notNull(), // paystack or flutterwave
   paymentReference: varchar("paymentReference", { length: 128 }),
-  paymentStatus: mysqlEnum("paymentStatus", ["pending", "success", "failed", "refunded"]).default("pending").notNull(),
-  bookingStatus: mysqlEnum("bookingStatus", ["booked", "checked_in", "checked_out", "cancelled", "conflict_flagged"]).default("booked").notNull(),
+  paymentStatus: mysqlEnum("paymentStatus", [
+    "pending",
+    "success",
+    "failed",
+    "refunded",
+  ])
+    .default("pending")
+    .notNull(),
+  bookingStatus: mysqlEnum("bookingStatus", [
+    "booked",
+    "checked_in",
+    "checked_out",
+    "cancelled",
+    "conflict_flagged",
+  ])
+    .default("booked")
+    .notNull(),
   specialRequests: text("specialRequests"),
   conflictDetails: text("conflictDetails"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
@@ -128,7 +170,10 @@ export const ratePlans = mysqlTable("staynest_rate_plans", {
   roomId: int("roomId").notNull(),
   name: varchar("name", { length: 128 }).notNull(),
   currency: varchar("currency", { length: 8 }).notNull(),
-  nightlyAmount: decimal("nightlyAmount", { precision: 10, scale: 2 }).notNull(),
+  nightlyAmount: decimal("nightlyAmount", {
+    precision: 10,
+    scale: 2,
+  }).notNull(),
   cancellationPolicyId: int("cancellationPolicyId"),
   billflowRatePlanId: varchar("billflowRatePlanId", { length: 128 }),
   isActive: int("isActive").default(1).notNull(),
@@ -161,10 +206,21 @@ export const commissionLedger = mysqlTable("staynest_commission_ledger", {
   hotelId: int("hotelId").notNull(),
   currency: varchar("currency", { length: 8 }).notNull(),
   grossAmount: decimal("grossAmount", { precision: 10, scale: 2 }).notNull(),
-  commissionRate: decimal("commissionRate", { precision: 5, scale: 4 }).notNull(),
-  commissionAmount: decimal("commissionAmount", { precision: 10, scale: 2 }).notNull(),
-  hotelPayoutAmount: decimal("hotelPayoutAmount", { precision: 10, scale: 2 }).notNull(),
-  status: mysqlEnum("status", ["pending", "payable", "paid", "refunded"]).default("pending").notNull(),
+  commissionRate: decimal("commissionRate", {
+    precision: 5,
+    scale: 4,
+  }).notNull(),
+  commissionAmount: decimal("commissionAmount", {
+    precision: 10,
+    scale: 2,
+  }).notNull(),
+  hotelPayoutAmount: decimal("hotelPayoutAmount", {
+    precision: 10,
+    scale: 2,
+  }).notNull(),
+  status: mysqlEnum("status", ["pending", "payable", "paid", "refunded"])
+    .default("pending")
+    .notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
@@ -176,7 +232,9 @@ export const payouts = mysqlTable("staynest_payouts", {
   hotelId: int("hotelId").notNull(),
   currency: varchar("currency", { length: 8 }).notNull(),
   amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
-  status: mysqlEnum("status", ["pending", "processing", "paid", "failed"]).default("pending").notNull(),
+  status: mysqlEnum("status", ["pending", "processing", "paid", "failed"])
+    .default("pending")
+    .notNull(),
   processorReference: varchar("processorReference", { length: 128 }),
   paidAt: timestamp("paidAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
@@ -185,15 +243,20 @@ export const payouts = mysqlTable("staynest_payouts", {
 export type Payout = typeof payouts.$inferSelect;
 export type InsertPayout = typeof payouts.$inferInsert;
 
-export const cancellationPolicies = mysqlTable("staynest_cancellation_policies", {
-  id: int("id").autoincrement().primaryKey(),
-  hotelId: int("hotelId").notNull(),
-  name: varchar("name", { length: 128 }).notNull(),
-  freeCancellationHours: int("freeCancellationHours").default(48).notNull(),
-  refundPercentageAfterWindow: int("refundPercentageAfterWindow").default(0).notNull(),
-  isNonRefundable: int("isNonRefundable").default(0).notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
+export const cancellationPolicies = mysqlTable(
+  "staynest_cancellation_policies",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    hotelId: int("hotelId").notNull(),
+    name: varchar("name", { length: 128 }).notNull(),
+    freeCancellationHours: int("freeCancellationHours").default(48).notNull(),
+    refundPercentageAfterWindow: int("refundPercentageAfterWindow")
+      .default(0)
+      .notNull(),
+    isNonRefundable: int("isNonRefundable").default(0).notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  }
+);
 
 export type CancellationPolicy = typeof cancellationPolicies.$inferSelect;
 export type InsertCancellationPolicy = typeof cancellationPolicies.$inferInsert;
@@ -213,7 +276,6 @@ export const notifications = mysqlTable("staynest_notifications", {
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = typeof notifications.$inferInsert;
 
-
 export const onboardingProfiles = mysqlTable("staynest_onboarding_profiles", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull().unique(),
@@ -221,7 +283,12 @@ export const onboardingProfiles = mysqlTable("staynest_onboarding_profiles", {
   fullName: varchar("fullName", { length: 255 }).notNull(),
   email: varchar("email", { length: 320 }).notNull(),
   businessName: varchar("businessName", { length: 255 }),
-  emailVerificationStatus: mysqlEnum("emailVerificationStatus", ["pending", "verified"]).default("pending").notNull(),
+  emailVerificationStatus: mysqlEnum("emailVerificationStatus", [
+    "pending",
+    "verified",
+  ])
+    .default("pending")
+    .notNull(),
   emailVerificationToken: varchar("emailVerificationToken", { length: 128 }),
   emailVerificationExpiresAt: timestamp("emailVerificationExpiresAt"),
   emailVerifiedAt: timestamp("emailVerifiedAt"),
@@ -246,7 +313,8 @@ export const partnerPayoutAccounts = mysqlTable("staynest_payout_accounts", {
 });
 
 export type PartnerPayoutAccount = typeof partnerPayoutAccounts.$inferSelect;
-export type InsertPartnerPayoutAccount = typeof partnerPayoutAccounts.$inferInsert;
+export type InsertPartnerPayoutAccount =
+  typeof partnerPayoutAccounts.$inferInsert;
 
 export const userPreferences = mysqlTable("staynest_user_preferences", {
   id: int("id").autoincrement().primaryKey(),
@@ -260,8 +328,6 @@ export const userPreferences = mysqlTable("staynest_user_preferences", {
 
 export type UserPreferences = typeof userPreferences.$inferSelect;
 export type InsertUserPreferences = typeof userPreferences.$inferInsert;
-
-
 
 export const messages = mysqlTable("staynest_messages", {
   id: int("id").autoincrement().primaryKey(),

@@ -71,7 +71,6 @@ import {
   calculateCommission,
   cancelBillFlowReservation,
   createBillFlowReservation,
-  demoHotels,
   getLiveAvailability,
   initializePayment,
   makeBookingReference,
@@ -127,33 +126,6 @@ function defaultStayDates() {
     checkInDate: checkIn.toISOString().slice(0, 10),
     checkOutDate: checkOut.toISOString().slice(0, 10),
   };
-}
-
-function demoSearch(input: z.infer<typeof catalogInput>) {
-  const location = input.location?.trim().toLowerCase();
-  return demoHotels
-    .filter(
-      hotel =>
-        !location ||
-        `${hotel.name} ${hotel.location}`.toLowerCase().includes(location)
-    )
-    .map(hotel => ({
-      ...hotel,
-      rooms: hotel.rooms.filter(room => {
-        const amount = input.currency === "GHS" ? room.priceGhs : room.priceUsd;
-        return (
-          room.capacity >= input.guestsCount &&
-          (input.minPrice === undefined || amount >= input.minPrice) &&
-          (input.maxPrice === undefined || amount <= input.maxPrice)
-        );
-      }),
-    }))
-    .filter(
-      hotel =>
-        hotel.rooms.length > 0 &&
-        (input.minRating === undefined ||
-          (hotel.rating ?? 0) >= input.minRating)
-    );
 }
 
 export const appRouter = router({
@@ -445,7 +417,7 @@ export const appRouter = router({
   catalog: router({
     search: publicProcedure.input(catalogInput).query(async ({ input }) => {
       const dbHotels = await listApprovedHotels();
-      if (!dbHotels.length) return demoSearch(input);
+      if (!dbHotels.length) return [];
       const result = [];
       for (const hotel of dbHotels) {
         const hotelRooms = await listRoomsForHotel(hotel.id);
@@ -533,8 +505,6 @@ export const appRouter = router({
       .input(z.object({ id: z.number().int().positive() }))
       .query(async ({ input }) => {
         const hotel = await getHotelById(input.id);
-        const demo = demoHotels.find(item => item.id === input.id);
-        if (!hotel && demo) return demo;
         if (!hotel)
           throw new TRPCError({
             code: "NOT_FOUND",
@@ -600,21 +570,12 @@ export const appRouter = router({
       )
       .query(async ({ input }) => {
         const dbHotel = await getHotelById(input.hotelId);
-        const demoHotel = demoHotels.find(item => item.id === input.hotelId);
-        const hotel = dbHotel ?? demoHotel;
-        const demoRoom = demoHotel?.rooms.find(
-          item => item.id === input.roomTypeId
-        );
         const dbRoom = dbHotel
           ? (await listRoomsForHotel(dbHotel.id)).find(
               item => item.id === input.roomTypeId
             )
           : undefined;
-        const room = demoRoom ?? dbRoom;
-        const connected = Boolean(
-          hotel &&
-            ("isBillflowConnected" in hotel ? hotel.isBillflowConnected : false)
-        );
+        const connected = Boolean(dbHotel?.isBillflowConnected);
         const manualAvailability =
           !connected && dbHotel
             ? (
@@ -627,15 +588,11 @@ export const appRouter = router({
             : undefined;
         const live = await getLiveAvailability({
           businessId: dbHotel?.isBillflowConnected
-            ? (dbHotel.billflowBusinessId ?? `demo-business-${input.hotelId}`)
-            : demoHotel?.isBillflowConnected
-              ? `demo-business-${input.hotelId}`
-              : undefined,
+            ? dbHotel.billflowBusinessId ?? undefined
+            : undefined,
           propertyId: dbHotel?.isBillflowConnected
-            ? (dbHotel.billflowPropertyId ?? `demo-property-${input.hotelId}`)
-            : demoHotel?.isBillflowConnected
-              ? `demo-property-${input.hotelId}`
-              : undefined,
+            ? dbHotel.billflowPropertyId ?? undefined
+            : undefined,
           roomTypeId: String(input.roomTypeId),
           checkInDate: input.checkInDate,
           checkOutDate: input.checkOutDate,
@@ -643,22 +600,18 @@ export const appRouter = router({
         return {
           availableRooms:
             live.availableRooms ??
-            demoRoom?.availableRooms ??
             manualAvailability?.availableRooms ??
             dbRoom?.totalRooms ??
             0,
           livePricing:
             live.livePricing ??
-            (demoRoom
-              ? { ghs: demoRoom.priceGhs, usd: demoRoom.priceUsd }
-              : dbRoom
-                ? { ghs: Number(dbRoom.priceGhs), usd: Number(dbRoom.priceUsd) }
-                : null),
+            (dbRoom
+              ? { ghs: Number(dbRoom.priceGhs), usd: Number(dbRoom.priceUsd) }
+              : null),
           source:
             live.source === "billflow"
               ? ("billflow" as const)
-              : (demoRoom?.liveSource ??
-                (connected ? ("billflow" as const) : ("staynest" as const))),
+              : (connected ? ("billflow" as const) : ("staynest" as const)),
           checkedAt: new Date().toISOString(),
         };
       }),
@@ -759,27 +712,22 @@ export const appRouter = router({
           input.totalAmount
         );
         const dbHotel = await getHotelById(input.hotelId);
-        const demoHotel = demoHotels.find(item => item.id === input.hotelId);
-        const hotel = dbHotel ?? demoHotel;
-        const availableRooms = dbHotel
-          ? await listRoomsForHotel(dbHotel.id)
-          : (demoHotel?.rooms ?? []);
-        const room = availableRooms.find(item => item.id === input.roomId);
-        if (!hotel || !room)
+        if (!dbHotel)
           throw new TRPCError({
             code: "NOT_FOUND",
             message: "Hotel or room not found",
           });
-        const connected = dbHotel
-          ? Boolean(dbHotel.isBillflowConnected)
-          : Boolean(demoHotel?.isBillflowConnected);
+        const availableRooms = await listRoomsForHotel(dbHotel.id);
+        const room = availableRooms.find(item => item.id === input.roomId);
+        if (!room)
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Hotel or room not found",
+          });
+        const connected = Boolean(dbHotel.isBillflowConnected);
         const billflowReservation = await createBillFlowReservation({
-          businessId: connected
-            ? (dbHotel?.billflowBusinessId ?? `demo-business-${hotel.id}`)
-            : undefined,
-          propertyId: connected
-            ? (dbHotel?.billflowPropertyId ?? `demo-property-${hotel.id}`)
-            : undefined,
+          businessId: connected ? dbHotel.billflowBusinessId ?? undefined : undefined,
+          propertyId: connected ? dbHotel.billflowPropertyId ?? undefined : undefined,
           roomTypeId: room.roomType,
           guestName: input.guestName,
           guestEmail: input.guestEmail,
@@ -843,7 +791,7 @@ export const appRouter = router({
           to: input.guestEmail,
           guestName: input.guestName,
           bookingReference: input.bookingReference,
-          hotelName: hotel.name,
+          hotelName: dbHotel.name,
           roomName: room.name,
           checkInDate: input.checkInDate,
           checkOutDate: input.checkOutDate,
@@ -1357,7 +1305,7 @@ export const appRouter = router({
         0
       );
       return {
-        hotelCount: allHotels.length || demoHotels.length,
+        hotelCount: allHotels.length,
         bookingCount: allBookings.length,
         gross,
         commission,

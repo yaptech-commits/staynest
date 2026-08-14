@@ -1301,172 +1301,27 @@ var sdk = new SDKServer();
 import { customAlphabet, nanoid as nanoid2 } from "nanoid";
 import { SignJWT as SignJWT2, jwtVerify as jwtVerify2 } from "jose";
 var STAYNEST_COMMISSION_RATE = 0.15;
-var image = {
-  city: "/manus-storage/accra-city-hotel_5a17ca62.jpg",
-  room: "/manus-storage/boutique-room_db8a7e7f.jpg",
-  coast: "/manus-storage/coastal-resort_4b029dc9.jpg"
-};
-var demoHotels = [
-  {
-    id: 1,
-    name: "The Gold Coast House",
-    slug: "the-gold-coast-house",
-    location: "Labone, Accra",
-    address: "14 Wawa Street, Labone, Accra, Ghana",
-    description: "A quiet, design-led stay in the heart of Accra. The Gold Coast House pairs warm Ghanaian craft with crisp contemporary interiors, a shaded courtyard, and thoughtful service.",
-    images: [image.city, image.room, image.coast],
-    amenities: ["Breakfast included", "Pool", "Airport transfer", "Fast Wi-Fi", "24-hour reception", "On-site dining"],
-    rating: null,
-    reviewCount: 0,
-    isBillflowConnected: true,
-    approvalStatus: "approved",
-    lat: 5.5672,
-    lng: -0.1821,
-    rooms: [
-      {
-        id: 101,
-        hotelId: 1,
-        name: "Garden King",
-        roomType: "Garden King",
-        description: "A calm king room opening toward the courtyard garden, with a walk-in rain shower and generous work desk.",
-        capacity: 2,
-        priceGhs: 2850,
-        priceUsd: 185,
-        totalRooms: 6,
-        amenities: ["King bed", "Courtyard view", "Rain shower", "Workspace"],
-        images: [image.room],
-        availableRooms: 4,
-        liveSource: "billflow"
-      },
-      {
-        id: 102,
-        hotelId: 1,
-        name: "Terrace Suite",
-        roomType: "Terrace Suite",
-        description: "A spacious suite with a separate sitting area, private terrace, and evening turn-down service.",
-        capacity: 3,
-        priceGhs: 4125,
-        priceUsd: 268,
-        totalRooms: 3,
-        amenities: ["King bed", "Private terrace", "Sitting room", "Butler pantry"],
-        images: [image.city],
-        availableRooms: 2,
-        liveSource: "billflow"
-      }
-    ]
-  },
-  {
-    id: 2,
-    name: "Cantonments House",
-    slug: "cantonments-house",
-    location: "Cantonments, Accra",
-    address: "6 Fourth Circular Road, Cantonments, Accra, Ghana",
-    description: "A residential-feeling boutique hotel near Accra's diplomatic quarter, with leafy terraces, intimate common spaces, and a slower rhythm.",
-    images: [image.room, image.city, image.coast],
-    amenities: ["Breakfast included", "Garden terrace", "Concierge", "Fast Wi-Fi", "Fitness studio", "Meeting room"],
-    rating: null,
-    reviewCount: 0,
-    isBillflowConnected: false,
-    approvalStatus: "approved",
-    lat: 5.5834,
-    lng: -0.1763,
-    rooms: [
-      {
-        id: 201,
-        hotelId: 2,
-        name: "Courtyard Double",
-        roomType: "Courtyard Double",
-        description: "A bright double room with a private patio looking into the hotel's garden courtyard.",
-        capacity: 2,
-        priceGhs: 1980,
-        priceUsd: 129,
-        totalRooms: 8,
-        amenities: ["Queen bed", "Private patio", "Rain shower", "Breakfast"],
-        images: [image.room],
-        availableRooms: 5,
-        liveSource: "staynest"
-      },
-      {
-        id: 202,
-        hotelId: 2,
-        name: "Cantonments Loft",
-        roomType: "Cantonments Loft",
-        description: "A high-ceilinged loft with a lounge corner and wide windows overlooking the treetops.",
-        capacity: 3,
-        priceGhs: 3150,
-        priceUsd: 205,
-        totalRooms: 4,
-        amenities: ["King bed", "Lounge corner", "Treetop view", "Breakfast"],
-        images: [image.city],
-        availableRooms: 3,
-        liveSource: "staynest"
-      }
-    ]
-  },
-  {
-    id: 3,
-    name: "Ada Palm Retreat",
-    slug: "ada-palm-retreat",
-    location: "Ada Foah, Greater Accra",
-    address: "Palm Shore Road, Ada Foah, Ghana",
-    description: "An unhurried coastal retreat where palm-fringed water, breezy rooms, and warm hospitality make space for a proper reset.",
-    images: [image.coast, image.city, image.room],
-    amenities: ["Beach access", "Infinity pool", "Breakfast included", "Boat trips", "Outdoor dining", "Spa treatments"],
-    rating: null,
-    reviewCount: 0,
-    isBillflowConnected: true,
-    approvalStatus: "approved",
-    lat: 5.7878,
-    lng: 0.6337,
-    rooms: [
-      {
-        id: 301,
-        hotelId: 3,
-        name: "Palm Bungalow",
-        roomType: "Palm Bungalow",
-        description: "A private bungalow tucked under palms, with a shaded deck and a few steps to the lagoon.",
-        capacity: 2,
-        priceGhs: 3420,
-        priceUsd: 222,
-        totalRooms: 7,
-        amenities: ["King bed", "Outdoor deck", "Lagoon access", "Breakfast"],
-        images: [image.coast],
-        availableRooms: 2,
-        liveSource: "billflow"
-      },
-      {
-        id: 302,
-        hotelId: 3,
-        name: "Lagoon Villa",
-        roomType: "Lagoon Villa",
-        description: "A generous villa for longer stays, with a private plunge pool and uninterrupted lagoon views.",
-        capacity: 4,
-        priceGhs: 5850,
-        priceUsd: 380,
-        totalRooms: 2,
-        amenities: ["Two bedrooms", "Private plunge pool", "Lagoon view", "Living room"],
-        images: [image.coast],
-        availableRooms: 1,
-        liveSource: "billflow"
-      }
-    ]
-  }
-];
 function calculateCommission(total) {
   const commission = Number((total * STAYNEST_COMMISSION_RATE).toFixed(2));
   return { commission, hotelPayout: Number((total - commission).toFixed(2)) };
 }
-var bookingReferenceToken = customAlphabet("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ", 8);
+var bookingReferenceToken = customAlphabet(
+  "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+  8
+);
 function makeBookingReference() {
   return `SN-${(/* @__PURE__ */ new Date()).getFullYear()}-${bookingReferenceToken()}`;
 }
 function billflowConfigured() {
-  return Boolean(process.env.BILLFLOW_API_BASE_URL && process.env.BILLFLOW_API_KEY);
+  return Boolean(
+    process.env.BILLFLOW_API_BASE_URL && process.env.BILLFLOW_API_KEY
+  );
 }
 async function billflowRequest(path, init) {
   const baseUrl = process.env.BILLFLOW_API_BASE_URL;
   const apiKey = process.env.BILLFLOW_API_KEY;
-  if (!baseUrl || !apiKey) throw new Error("BillFlow integration is not configured yet");
+  if (!baseUrl || !apiKey)
+    throw new Error("BillFlow integration is not configured yet");
   const response = await fetch(`${baseUrl.replace(/\/$/, "")}${path}`, {
     ...init,
     headers: {
@@ -1475,18 +1330,29 @@ async function billflowRequest(path, init) {
       ...init?.headers ?? {}
     }
   });
-  if (!response.ok) throw new Error(`BillFlow request failed with ${response.status}`);
+  if (!response.ok)
+    throw new Error(`BillFlow request failed with ${response.status}`);
   return response.json();
 }
 async function getLiveAvailability(params) {
-  if (!billflowConfigured()) return { source: "demo", availableRooms: null, livePricing: null };
+  if (!billflowConfigured())
+    return {
+      source: "staynest",
+      availableRooms: null,
+      livePricing: null
+    };
   return billflowRequest("/api/staynest/availability", {
     method: "POST",
     body: JSON.stringify(params)
   });
 }
 async function createBillFlowReservation(payload) {
-  if (!billflowConfigured()) return { source: "demo", reservationId: `demo-${nanoid2(10)}`, conflict: false };
+  if (!billflowConfigured())
+    return {
+      source: "staynest",
+      reservationId: `staynest-${nanoid2(10)}`,
+      conflict: false
+    };
   return billflowRequest("/api/staynest/reservations", {
     method: "POST",
     body: JSON.stringify(payload)
@@ -1496,36 +1362,74 @@ async function initializePayment(input) {
   if (input.gateway === "paystack") {
     const secret2 = process.env.PAYSTACK_SECRET_KEY;
     if (!secret2) return { configured: false, checkoutUrl: null };
-    const response2 = await fetch("https://api.paystack.co/transaction/initialize", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${secret2}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ email: input.email, amount: Math.round(input.amount * 100), currency: input.currency, reference: input.reference, callback_url: input.callbackUrl, metadata: JSON.stringify(input.metadata) })
-    });
+    const response2 = await fetch(
+      "https://api.paystack.co/transaction/initialize",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${secret2}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          email: input.email,
+          amount: Math.round(input.amount * 100),
+          currency: input.currency,
+          reference: input.reference,
+          callback_url: input.callbackUrl,
+          metadata: JSON.stringify(input.metadata)
+        })
+      }
+    );
     const body2 = await response2.json();
-    if (!response2.ok || !body2.status) throw new Error("Paystack could not initialize this payment");
-    return { configured: true, checkoutUrl: body2.data?.authorization_url ?? null };
+    if (!response2.ok || !body2.status)
+      throw new Error("Paystack could not initialize this payment");
+    return {
+      configured: true,
+      checkoutUrl: body2.data?.authorization_url ?? null
+    };
   }
   const secret = process.env.FLUTTERWAVE_SECRET_KEY;
   if (!secret) return { configured: false, checkoutUrl: null };
   const response = await fetch("https://api.flutterwave.com/v3/payments", {
     method: "POST",
-    headers: { Authorization: `Bearer ${secret}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ tx_ref: input.reference, amount: input.amount, currency: input.currency, redirect_url: input.callbackUrl, customer: { email: input.email }, meta: input.metadata })
+    headers: {
+      Authorization: `Bearer ${secret}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      tx_ref: input.reference,
+      amount: input.amount,
+      currency: input.currency,
+      redirect_url: input.callbackUrl,
+      customer: { email: input.email },
+      meta: input.metadata
+    })
   });
   const body = await response.json();
-  if (!response.ok || body.status !== "success") throw new Error("Flutterwave could not initialize this payment");
+  if (!response.ok || body.status !== "success")
+    throw new Error("Flutterwave could not initialize this payment");
   return { configured: true, checkoutUrl: body.data?.link ?? null };
 }
 function paymentTokenKey() {
-  return new TextEncoder().encode(process.env.JWT_SECRET ?? "staynest-development-secret");
+  return new TextEncoder().encode(
+    process.env.JWT_SECRET ?? "staynest-development-secret"
+  );
 }
 async function issuePaymentVerificationToken(input) {
-  return new SignJWT2({ gateway: input.gateway, reference: input.reference, amount: input.expectedAmount, currency: input.currency, verified: true }).setProtectedHeader({ alg: "HS256" }).setIssuedAt().setExpirationTime("10m").sign(paymentTokenKey());
+  return new SignJWT2({
+    gateway: input.gateway,
+    reference: input.reference,
+    amount: input.expectedAmount,
+    currency: input.currency,
+    verified: true
+  }).setProtectedHeader({ alg: "HS256" }).setIssuedAt().setExpirationTime("10m").sign(paymentTokenKey());
 }
 async function verifyPaymentToken(token, expected) {
   try {
     const { payload } = await jwtVerify2(token, paymentTokenKey());
-    return Boolean(payload.verified === true && payload.gateway === expected.gateway && payload.reference === expected.reference && payload.currency === expected.currency && Number(payload.amount) === expected.expectedAmount);
+    return Boolean(
+      payload.verified === true && payload.gateway === expected.gateway && payload.reference === expected.reference && payload.currency === expected.currency && Number(payload.amount) === expected.expectedAmount
+    );
   } catch {
     return false;
   }
@@ -1534,22 +1438,44 @@ async function verifyPayment(input) {
   if (input.gateway === "paystack") {
     const secret2 = process.env.PAYSTACK_SECRET_KEY;
     if (!secret2) return { configured: false, verified: false };
-    const response2 = await fetch(`https://api.paystack.co/transaction/verify/${encodeURIComponent(input.reference)}`, { headers: { Authorization: `Bearer ${secret2}` } });
+    const response2 = await fetch(
+      `https://api.paystack.co/transaction/verify/${encodeURIComponent(input.reference)}`,
+      { headers: { Authorization: `Bearer ${secret2}` } }
+    );
     const body2 = await response2.json();
     const data2 = body2.data;
-    const verified2 = Boolean(response2.ok && body2.status && data2?.status === "success" && data2.reference === input.reference && data2.currency === input.currency && Number(data2.amount) === Math.round(input.expectedAmount * 100));
-    return { configured: true, verified: verified2, verificationToken: verified2 ? await issuePaymentVerificationToken(input) : null };
+    const verified2 = Boolean(
+      response2.ok && body2.status && data2?.status === "success" && data2.reference === input.reference && data2.currency === input.currency && Number(data2.amount) === Math.round(input.expectedAmount * 100)
+    );
+    return {
+      configured: true,
+      verified: verified2,
+      verificationToken: verified2 ? await issuePaymentVerificationToken(input) : null
+    };
   }
   const secret = process.env.FLUTTERWAVE_SECRET_KEY;
-  if (!secret || !input.transactionId) return { configured: false, verified: false };
-  const response = await fetch(`https://api.flutterwave.com/v3/transactions/${encodeURIComponent(input.transactionId)}/verify`, { headers: { Authorization: `Bearer ${secret}` } });
+  if (!secret || !input.transactionId)
+    return { configured: false, verified: false };
+  const response = await fetch(
+    `https://api.flutterwave.com/v3/transactions/${encodeURIComponent(input.transactionId)}/verify`,
+    { headers: { Authorization: `Bearer ${secret}` } }
+  );
   const body = await response.json();
   const data = body.data;
-  const verified = Boolean(response.ok && body.status === "success" && data?.status === "successful" && data.tx_ref === input.reference && data.currency === input.currency && Number(data.amount) === input.expectedAmount);
-  return { configured: true, verified, verificationToken: verified ? await issuePaymentVerificationToken(input) : null };
+  const verified = Boolean(
+    response.ok && body.status === "success" && data?.status === "successful" && data.tx_ref === input.reference && data.currency === input.currency && Number(data.amount) === input.expectedAmount
+  );
+  return {
+    configured: true,
+    verified,
+    verificationToken: verified ? await issuePaymentVerificationToken(input) : null
+  };
 }
 function escapeHtml(value) {
-  return value.replace(/[&<>'\"]/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[character] ?? character);
+  return value.replace(
+    /[&<>'\"]/g,
+    (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[character] ?? character
+  );
 }
 function buildWelcomeVerificationUrl(token, baseUrl = process.env.APP_URL ?? (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "")) {
   const normalizedBaseUrl = baseUrl.trim().replace(/\/$/, "");
@@ -1563,7 +1489,10 @@ async function sendWelcomeEmail(input) {
   const greeting = input.role === "partner" ? "Your partner workspace is ready to begin." : "Your next considered stay is closer than ever.";
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json"
+    },
     body: JSON.stringify({
       from: "StayNest <hello@staynest.example>",
       to: [input.to],
@@ -1578,7 +1507,10 @@ async function sendBookingEmail(input) {
   if (!apiKey) return { configured: false, sent: false };
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json"
+    },
     body: JSON.stringify({
       from: "StayNest <bookings@staynest.example>",
       to: [input.to],
@@ -1589,8 +1521,12 @@ async function sendBookingEmail(input) {
   return { configured: true, sent: response.ok };
 }
 async function cancelBillFlowReservation(payload) {
-  if (!billflowConfigured()) return { source: "demo", cancelled: true };
-  return billflowRequest("/api/staynest/reservations/cancel", { method: "POST", body: JSON.stringify(payload) });
+  if (!billflowConfigured())
+    return { source: "staynest", cancelled: true };
+  return billflowRequest(
+    "/api/staynest/reservations/cancel",
+    { method: "POST", body: JSON.stringify(payload) }
+  );
 }
 
 // server/routers.ts
@@ -1634,20 +1570,6 @@ function defaultStayDates() {
     checkInDate: checkIn.toISOString().slice(0, 10),
     checkOutDate: checkOut.toISOString().slice(0, 10)
   };
-}
-function demoSearch(input) {
-  const location = input.location?.trim().toLowerCase();
-  return demoHotels.filter(
-    (hotel) => !location || `${hotel.name} ${hotel.location}`.toLowerCase().includes(location)
-  ).map((hotel) => ({
-    ...hotel,
-    rooms: hotel.rooms.filter((room) => {
-      const amount = input.currency === "GHS" ? room.priceGhs : room.priceUsd;
-      return room.capacity >= input.guestsCount && (input.minPrice === void 0 || amount >= input.minPrice) && (input.maxPrice === void 0 || amount <= input.maxPrice);
-    })
-  })).filter(
-    (hotel) => hotel.rooms.length > 0 && (input.minRating === void 0 || (hotel.rating ?? 0) >= input.minRating)
-  );
 }
 var appRouter = router({
   system: systemRouter,
@@ -1891,7 +1813,7 @@ var appRouter = router({
   catalog: router({
     search: publicProcedure.input(catalogInput).query(async ({ input }) => {
       const dbHotels = await listApprovedHotels();
-      if (!dbHotels.length) return demoSearch(input);
+      if (!dbHotels.length) return [];
       const result = [];
       for (const hotel of dbHotels) {
         const hotelRooms = await listRoomsForHotel(hotel.id);
@@ -1951,8 +1873,6 @@ var appRouter = router({
     }),
     getHotel: publicProcedure.input(z2.object({ id: z2.number().int().positive() })).query(async ({ input }) => {
       const hotel = await getHotelById(input.id);
-      const demo = demoHotels.find((item) => item.id === input.id);
-      if (!hotel && demo) return demo;
       if (!hotel)
         throw new TRPCError3({
           code: "NOT_FOUND",
@@ -2007,34 +1927,26 @@ var appRouter = router({
       })
     ).query(async ({ input }) => {
       const dbHotel = await getHotelById(input.hotelId);
-      const demoHotel = demoHotels.find((item) => item.id === input.hotelId);
-      const hotel = dbHotel ?? demoHotel;
-      const demoRoom = demoHotel?.rooms.find(
-        (item) => item.id === input.roomTypeId
-      );
       const dbRoom = dbHotel ? (await listRoomsForHotel(dbHotel.id)).find(
         (item) => item.id === input.roomTypeId
       ) : void 0;
-      const room = demoRoom ?? dbRoom;
-      const connected = Boolean(
-        hotel && ("isBillflowConnected" in hotel ? hotel.isBillflowConnected : false)
-      );
+      const connected = Boolean(dbHotel?.isBillflowConnected);
       const manualAvailability = !connected && dbHotel ? (await listRoomAvailabilityForHotel({
         hotelId: dbHotel.id,
         checkInDate: input.checkInDate,
         checkOutDate: input.checkOutDate
       })).find((item) => item.id === input.roomTypeId) : void 0;
       const live = await getLiveAvailability({
-        businessId: dbHotel?.isBillflowConnected ? dbHotel.billflowBusinessId ?? `demo-business-${input.hotelId}` : demoHotel?.isBillflowConnected ? `demo-business-${input.hotelId}` : void 0,
-        propertyId: dbHotel?.isBillflowConnected ? dbHotel.billflowPropertyId ?? `demo-property-${input.hotelId}` : demoHotel?.isBillflowConnected ? `demo-property-${input.hotelId}` : void 0,
+        businessId: dbHotel?.isBillflowConnected ? dbHotel.billflowBusinessId ?? void 0 : void 0,
+        propertyId: dbHotel?.isBillflowConnected ? dbHotel.billflowPropertyId ?? void 0 : void 0,
         roomTypeId: String(input.roomTypeId),
         checkInDate: input.checkInDate,
         checkOutDate: input.checkOutDate
       });
       return {
-        availableRooms: live.availableRooms ?? demoRoom?.availableRooms ?? manualAvailability?.availableRooms ?? dbRoom?.totalRooms ?? 0,
-        livePricing: live.livePricing ?? (demoRoom ? { ghs: demoRoom.priceGhs, usd: demoRoom.priceUsd } : dbRoom ? { ghs: Number(dbRoom.priceGhs), usd: Number(dbRoom.priceUsd) } : null),
-        source: live.source === "billflow" ? "billflow" : demoRoom?.liveSource ?? (connected ? "billflow" : "staynest"),
+        availableRooms: live.availableRooms ?? manualAvailability?.availableRooms ?? dbRoom?.totalRooms ?? 0,
+        livePricing: live.livePricing ?? (dbRoom ? { ghs: Number(dbRoom.priceGhs), usd: Number(dbRoom.priceUsd) } : null),
+        source: live.source === "billflow" ? "billflow" : connected ? "billflow" : "staynest",
         checkedAt: (/* @__PURE__ */ new Date()).toISOString()
       };
     }),
@@ -2123,19 +2035,22 @@ var appRouter = router({
         input.totalAmount
       );
       const dbHotel = await getHotelById(input.hotelId);
-      const demoHotel = demoHotels.find((item) => item.id === input.hotelId);
-      const hotel = dbHotel ?? demoHotel;
-      const availableRooms = dbHotel ? await listRoomsForHotel(dbHotel.id) : demoHotel?.rooms ?? [];
-      const room = availableRooms.find((item) => item.id === input.roomId);
-      if (!hotel || !room)
+      if (!dbHotel)
         throw new TRPCError3({
           code: "NOT_FOUND",
           message: "Hotel or room not found"
         });
-      const connected = dbHotel ? Boolean(dbHotel.isBillflowConnected) : Boolean(demoHotel?.isBillflowConnected);
+      const availableRooms = await listRoomsForHotel(dbHotel.id);
+      const room = availableRooms.find((item) => item.id === input.roomId);
+      if (!room)
+        throw new TRPCError3({
+          code: "NOT_FOUND",
+          message: "Hotel or room not found"
+        });
+      const connected = Boolean(dbHotel.isBillflowConnected);
       const billflowReservation = await createBillFlowReservation({
-        businessId: connected ? dbHotel?.billflowBusinessId ?? `demo-business-${hotel.id}` : void 0,
-        propertyId: connected ? dbHotel?.billflowPropertyId ?? `demo-property-${hotel.id}` : void 0,
+        businessId: connected ? dbHotel.billflowBusinessId ?? void 0 : void 0,
+        propertyId: connected ? dbHotel.billflowPropertyId ?? void 0 : void 0,
         roomTypeId: room.roomType,
         guestName: input.guestName,
         guestEmail: input.guestEmail,
@@ -2189,7 +2104,7 @@ var appRouter = router({
         to: input.guestEmail,
         guestName: input.guestName,
         bookingReference: input.bookingReference,
-        hotelName: hotel.name,
+        hotelName: dbHotel.name,
         roomName: room.name,
         checkInDate: input.checkInDate,
         checkOutDate: input.checkOutDate,
@@ -2629,7 +2544,7 @@ var appRouter = router({
         0
       );
       return {
-        hotelCount: allHotels.length || demoHotels.length,
+        hotelCount: allHotels.length,
         bookingCount: allBookings.length,
         gross,
         commission,

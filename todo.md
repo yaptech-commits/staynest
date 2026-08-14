@@ -25,3 +25,6 @@
 - [x] Add integration-level coverage for the checkout session handoff and payment completion callback contract.
 - [x] Add a production-path test for BookingPage checkout initialization, sessionStorage handoff, and hosted redirect.
 - [x] Add a production-path test for PaymentCompletePage callback parsing, verification failure, successful booking creation, and confirmation navigation.
+- [x] Verify a visible user logout control exists and clears the StayNest session.
+- [x] Permanently remove seeded demo hotels, properties, rooms, and related demo booking records while preserving users and schema.
+- [x] Verify the catalog is empty and ready for real hotel-owner listings after the reset.

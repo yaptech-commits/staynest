@@ -222,7 +222,9 @@ export const appRouter = router({
           name: input.name,
           passwordHash,
           role:
-            input.email === "wisdomasaare41@gmail.com" ? "admin" : input.role,
+            input.email === "wisdomasaare41@gmail.com"
+              ? "superadmin"
+              : input.role,
         });
         if (!user) {
           throw new TRPCError({

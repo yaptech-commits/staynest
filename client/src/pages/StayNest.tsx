@@ -2015,6 +2015,13 @@ export function BookingPage() {
 
 export function AccountPage() {
   const { isAuthenticated, user } = useAuth();
+  const [, navigate] = useLocation();
+  const isPlatformAdmin = user?.role === "admin" || user?.role === "superadmin";
+  useEffect(() => {
+    if (isAuthenticated && isPlatformAdmin) {
+      navigate("/admin");
+    }
+  }, [isAuthenticated, isPlatformAdmin, navigate]);
   const { data: bookings = [], isLoading } = trpc.bookings.mine.useQuery(
     undefined,
     { enabled: isAuthenticated }
@@ -2044,6 +2051,16 @@ export function AccountPage() {
       return null;
     }
   })();
+  if (isAuthenticated && isPlatformAdmin)
+    return (
+      <Shell>
+        <div className="mx-auto max-w-[580px] px-5 py-24 text-center">
+          <p className="text-sm font-semibold text-[#2b6755]">
+            Opening the platform dashboard…
+          </p>
+        </div>
+      </Shell>
+    );
   if (!isAuthenticated)
     return (
       <Shell>

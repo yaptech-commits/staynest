@@ -44,10 +44,15 @@
 - [x] Update owner-dashboard and logout regression assertions to match the current formatted production markup and workflow props.
 - [x] Promote `wisdomasaare41@gmail.com` to superadmin without changing the account password or other users.
 - [x] Verify superadmin role enforcement and platform-wide visibility for hotels, bookings, users, and owner operations.
-- [ ] Add regression coverage for the superadmin authorization contract and push the completed change to GitHub.
+- [x] Add regression coverage for the superadmin authorization contract and push the completed change to GitHub.
 - [x] Add or verify superadmin access to remaining owner-operation views/actions beyond hotels, bookings, payouts, and booking messages.
 - [x] Add rendered admin-dashboard coverage for the users tab, role badges, and empty-state behavior.
-- [ ] Commit and push the superadmin role migration, user-visibility route, dashboard UI, and regression tests to GitHub, then verify remote synchronization.
+- [x] Commit and push the superadmin role migration, user-visibility route, dashboard UI, and regression tests to GitHub, then verify remote synchronization.
 - [x] Add concrete superadmin read procedures for room inventory, blocked availability, and payout-account summaries.
 - [x] Add an admin dashboard owner-operations view exposing those real datasets with safe empty states.
 - [x] Add regression tests proving concrete superadmin access to the owner-operation procedures and rendered dashboard view.
+- [x] Route authenticated `superadmin` users to the platform admin dashboard instead of the guest account page.
+- [x] Add regression coverage proving superadmin post-login navigation and admin-dashboard visibility.
+- [ ] Verify the live superadmin route after pushing the navigation fix to GitHub.
+- [x] Add a rendered integration test covering successful superadmin AuthModal login and navigation to `/admin`.
+- [x] Add a rendered integration test proving the admin dashboard content is visible after the superadmin route is reached.

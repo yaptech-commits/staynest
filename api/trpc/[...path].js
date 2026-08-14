@@ -28,7 +28,16 @@ __export(schema_exports, {
   userPreferences: () => userPreferences,
   users: () => users
 });
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, decimal, json } from "drizzle-orm/mysql-core";
+import {
+  int,
+  mysqlEnum,
+  mysqlTable,
+  text,
+  timestamp,
+  varchar,
+  decimal,
+  json
+} from "drizzle-orm/mysql-core";
 var users, hotels, rooms, bookings, reviews, blockedDates, ratePlans, availabilityEvents, commissionLedger, payouts, cancellationPolicies, notifications, onboardingProfiles, partnerPayoutAccounts, userPreferences, messages;
 var init_schema = __esm({
   "drizzle/schema.ts"() {
@@ -43,7 +52,7 @@ var init_schema = __esm({
       passwordResetToken: varchar("passwordResetToken", { length: 128 }),
       passwordResetExpires: timestamp("passwordResetExpires"),
       loginMethod: varchar("loginMethod", { length: 64 }),
-      role: mysqlEnum("role", ["user", "hotel_owner", "admin"]).default("user").notNull(),
+      role: mysqlEnum("role", ["user", "hotel_owner", "admin", "superadmin"]).default("user").notNull(),
       createdAt: timestamp("createdAt").defaultNow().notNull(),
       updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
       lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull()
@@ -69,7 +78,11 @@ var init_schema = __esm({
       // 1 for connected, 0 for manual
       billflowBusinessId: varchar("billflowBusinessId", { length: 128 }),
       billflowPropertyId: varchar("billflowPropertyId", { length: 128 }),
-      approvalStatus: mysqlEnum("approvalStatus", ["pending", "approved", "rejected"]).default("pending").notNull(),
+      approvalStatus: mysqlEnum("approvalStatus", [
+        "pending",
+        "approved",
+        "rejected"
+      ]).default("pending").notNull(),
       createdAt: timestamp("createdAt").defaultNow().notNull(),
       updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull()
     });
@@ -105,14 +118,31 @@ var init_schema = __esm({
       guestPhone: varchar("guestPhone", { length: 64 }),
       currency: varchar("currency", { length: 8 }).default("GHS").notNull(),
       totalAmount: decimal("totalAmount", { precision: 10, scale: 2 }).notNull(),
-      commissionAmount: decimal("commissionAmount", { precision: 10, scale: 2 }).notNull(),
+      commissionAmount: decimal("commissionAmount", {
+        precision: 10,
+        scale: 2
+      }).notNull(),
       // 15% flat
-      hotelPayoutAmount: decimal("hotelPayoutAmount", { precision: 10, scale: 2 }).notNull(),
+      hotelPayoutAmount: decimal("hotelPayoutAmount", {
+        precision: 10,
+        scale: 2
+      }).notNull(),
       paymentGateway: varchar("paymentGateway", { length: 32 }).default("paystack").notNull(),
       // paystack or flutterwave
       paymentReference: varchar("paymentReference", { length: 128 }),
-      paymentStatus: mysqlEnum("paymentStatus", ["pending", "success", "failed", "refunded"]).default("pending").notNull(),
-      bookingStatus: mysqlEnum("bookingStatus", ["booked", "checked_in", "checked_out", "cancelled", "conflict_flagged"]).default("booked").notNull(),
+      paymentStatus: mysqlEnum("paymentStatus", [
+        "pending",
+        "success",
+        "failed",
+        "refunded"
+      ]).default("pending").notNull(),
+      bookingStatus: mysqlEnum("bookingStatus", [
+        "booked",
+        "checked_in",
+        "checked_out",
+        "cancelled",
+        "conflict_flagged"
+      ]).default("booked").notNull(),
       specialRequests: text("specialRequests"),
       conflictDetails: text("conflictDetails"),
       createdAt: timestamp("createdAt").defaultNow().notNull(),
@@ -146,7 +176,10 @@ var init_schema = __esm({
       roomId: int("roomId").notNull(),
       name: varchar("name", { length: 128 }).notNull(),
       currency: varchar("currency", { length: 8 }).notNull(),
-      nightlyAmount: decimal("nightlyAmount", { precision: 10, scale: 2 }).notNull(),
+      nightlyAmount: decimal("nightlyAmount", {
+        precision: 10,
+        scale: 2
+      }).notNull(),
       cancellationPolicyId: int("cancellationPolicyId"),
       billflowRatePlanId: varchar("billflowRatePlanId", { length: 128 }),
       isActive: int("isActive").default(1).notNull(),
@@ -171,9 +204,18 @@ var init_schema = __esm({
       hotelId: int("hotelId").notNull(),
       currency: varchar("currency", { length: 8 }).notNull(),
       grossAmount: decimal("grossAmount", { precision: 10, scale: 2 }).notNull(),
-      commissionRate: decimal("commissionRate", { precision: 5, scale: 4 }).notNull(),
-      commissionAmount: decimal("commissionAmount", { precision: 10, scale: 2 }).notNull(),
-      hotelPayoutAmount: decimal("hotelPayoutAmount", { precision: 10, scale: 2 }).notNull(),
+      commissionRate: decimal("commissionRate", {
+        precision: 5,
+        scale: 4
+      }).notNull(),
+      commissionAmount: decimal("commissionAmount", {
+        precision: 10,
+        scale: 2
+      }).notNull(),
+      hotelPayoutAmount: decimal("hotelPayoutAmount", {
+        precision: 10,
+        scale: 2
+      }).notNull(),
       status: mysqlEnum("status", ["pending", "payable", "paid", "refunded"]).default("pending").notNull(),
       createdAt: timestamp("createdAt").defaultNow().notNull()
     });
@@ -187,15 +229,18 @@ var init_schema = __esm({
       paidAt: timestamp("paidAt"),
       createdAt: timestamp("createdAt").defaultNow().notNull()
     });
-    cancellationPolicies = mysqlTable("staynest_cancellation_policies", {
-      id: int("id").autoincrement().primaryKey(),
-      hotelId: int("hotelId").notNull(),
-      name: varchar("name", { length: 128 }).notNull(),
-      freeCancellationHours: int("freeCancellationHours").default(48).notNull(),
-      refundPercentageAfterWindow: int("refundPercentageAfterWindow").default(0).notNull(),
-      isNonRefundable: int("isNonRefundable").default(0).notNull(),
-      createdAt: timestamp("createdAt").defaultNow().notNull()
-    });
+    cancellationPolicies = mysqlTable(
+      "staynest_cancellation_policies",
+      {
+        id: int("id").autoincrement().primaryKey(),
+        hotelId: int("hotelId").notNull(),
+        name: varchar("name", { length: 128 }).notNull(),
+        freeCancellationHours: int("freeCancellationHours").default(48).notNull(),
+        refundPercentageAfterWindow: int("refundPercentageAfterWindow").default(0).notNull(),
+        isNonRefundable: int("isNonRefundable").default(0).notNull(),
+        createdAt: timestamp("createdAt").defaultNow().notNull()
+      }
+    );
     notifications = mysqlTable("staynest_notifications", {
       id: int("id").autoincrement().primaryKey(),
       userId: int("userId").notNull(),
@@ -214,7 +259,10 @@ var init_schema = __esm({
       fullName: varchar("fullName", { length: 255 }).notNull(),
       email: varchar("email", { length: 320 }).notNull(),
       businessName: varchar("businessName", { length: 255 }),
-      emailVerificationStatus: mysqlEnum("emailVerificationStatus", ["pending", "verified"]).default("pending").notNull(),
+      emailVerificationStatus: mysqlEnum("emailVerificationStatus", [
+        "pending",
+        "verified"
+      ]).default("pending").notNull(),
       emailVerificationToken: varchar("emailVerificationToken", { length: 128 }),
       emailVerificationExpiresAt: timestamp("emailVerificationExpiresAt"),
       emailVerifiedAt: timestamp("emailVerifiedAt"),
@@ -461,10 +509,11 @@ var requireUser = t.middleware(async (opts) => {
   });
 });
 var protectedProcedure = t.procedure.use(requireUser);
+var isPlatformAdmin = (user) => Boolean(user && ["admin", "superadmin"].includes(user.role));
 var adminProcedure = t.procedure.use(
   t.middleware(async (opts) => {
     const { ctx, next } = opts;
-    if (!ctx.user || ctx.user.role !== "admin") {
+    if (!isPlatformAdmin(ctx.user)) {
       throw new TRPCError2({ code: "FORBIDDEN", message: NOT_ADMIN_ERR_MSG });
     }
     return next({
@@ -543,8 +592,8 @@ async function upsertUser(user) {
     values.role = user.role;
     updateSet.role = user.role;
   } else if (user.openId === ENV.ownerOpenId || user.email === "wisdomasaare41@gmail.com") {
-    values.role = "admin";
-    updateSet.role = "admin";
+    values.role = "superadmin";
+    updateSet.role = "superadmin";
   }
   values.lastSignedIn ??= /* @__PURE__ */ new Date();
   if (Object.keys(updateSet).length === 0) updateSet.lastSignedIn = /* @__PURE__ */ new Date();
@@ -569,7 +618,7 @@ async function createOrUpdateLocalUser(params) {
   const normalizedEmail = params.email.trim().toLowerCase();
   const existing = await getUserByEmail(normalizedEmail);
   const openId = existing?.openId ?? `local_${Math.random().toString(36).substring(2, 12)}_${Date.now()}`;
-  const role = params.role ?? (normalizedEmail === "wisdomasaare41@gmail.com" ? "admin" : existing?.role ?? "user");
+  const role = params.role ?? (normalizedEmail === "wisdomasaare41@gmail.com" ? "superadmin" : existing?.role ?? "user");
   const values = {
     openId,
     name: params.name.trim(),
@@ -717,6 +766,42 @@ async function listAllHotels() {
   if (!db) return [];
   return db.select().from(hotels).orderBy(desc(hotels.createdAt));
 }
+async function listAllUsers() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select({
+    id: users.id,
+    openId: users.openId,
+    name: users.name,
+    email: users.email,
+    avatarUrl: users.avatarUrl,
+    loginMethod: users.loginMethod,
+    role: users.role,
+    createdAt: users.createdAt,
+    updatedAt: users.updatedAt,
+    lastSignedIn: users.lastSignedIn
+  }).from(users).orderBy(desc(users.createdAt));
+}
+async function listAllRooms() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(rooms).orderBy(desc(rooms.createdAt));
+}
+async function listAllPayoutAccountSummaries() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select({
+    id: partnerPayoutAccounts.id,
+    hotelId: partnerPayoutAccounts.hotelId,
+    ownerId: partnerPayoutAccounts.ownerId,
+    payoutMethod: partnerPayoutAccounts.payoutMethod,
+    accountName: partnerPayoutAccounts.accountName,
+    bankName: partnerPayoutAccounts.bankName,
+    networkProvider: partnerPayoutAccounts.networkProvider,
+    createdAt: partnerPayoutAccounts.createdAt,
+    updatedAt: partnerPayoutAccounts.updatedAt
+  }).from(partnerPayoutAccounts).orderBy(desc(partnerPayoutAccounts.updatedAt));
+}
 async function updateHotelApproval(id, approvalStatus) {
   const db = await getDb();
   if (!db) return false;
@@ -744,6 +829,11 @@ async function listBlockedDates(hotelId) {
   const db = await getDb();
   if (!db) return [];
   return db.select().from(blockedDates).where(eq(blockedDates.hotelId, hotelId)).orderBy(desc(blockedDates.startDate));
+}
+async function listAllBlockedDates() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(blockedDates).orderBy(desc(blockedDates.startDate));
 }
 async function listBookingsForHotel(hotelId) {
   const db = await getDb();
@@ -1648,7 +1738,7 @@ var appRouter = router({
         email: input.email,
         name: input.name,
         passwordHash,
-        role: input.email === "wisdomasaare41@gmail.com" ? "admin" : input.role
+        role: input.email === "wisdomasaare41@gmail.com" ? "superadmin" : input.role
       });
       if (!user) {
         throw new TRPCError3({
@@ -2228,7 +2318,7 @@ var appRouter = router({
       const booking = await getBookingForUser(input.bookingId, ctx.user.id);
       const hotel = booking ? await getHotelById(booking.hotelId) : null;
       const isOwner = hotel && hotel.ownerId === ctx.user.id;
-      const isAdmin = ctx.user.role === "admin";
+      const isAdmin = isPlatformAdmin(ctx.user);
       if (!booking && !isOwner && !isAdmin) {
         throw new TRPCError3({
           code: "FORBIDDEN",
@@ -2246,7 +2336,7 @@ var appRouter = router({
       const booking = await getBookingForUser(input.bookingId, ctx.user.id);
       const hotel = booking ? await getHotelById(booking.hotelId) : null;
       const isOwner = hotel && hotel.ownerId === ctx.user.id;
-      const isAdmin = ctx.user.role === "admin";
+      const isAdmin = isPlatformAdmin(ctx.user);
       if (!booking && !isOwner && !isAdmin) {
         throw new TRPCError3({
           code: "FORBIDDEN",
@@ -2511,9 +2601,31 @@ var appRouter = router({
     })
   }),
   admin: router({
+    users: adminProcedure.query(() => listAllUsers()),
     hotels: adminProcedure.query(() => listAllHotels()),
     bookings: adminProcedure.query(() => getAllBookings()),
     payouts: adminProcedure.query(() => listPayouts()),
+    rooms: adminProcedure.query(() => listAllRooms()),
+    blockedAvailability: adminProcedure.query(() => listAllBlockedDates()),
+    payoutAccounts: adminProcedure.query(() => listAllPayoutAccountSummaries()),
+    ownerOperations: adminProcedure.query(async () => {
+      const [users2, hotels2, rooms2, bookings2, payouts2, payoutAccounts] = await Promise.all([
+        listAllUsers(),
+        listAllHotels(),
+        listAllRooms(),
+        getAllBookings(),
+        listPayouts(),
+        listAllPayoutAccountSummaries()
+      ]);
+      return {
+        owners: users2.filter((user) => user.role === "hotel_owner"),
+        propertyCount: hotels2.length,
+        roomCount: rooms2.length,
+        bookingCount: bookings2.length,
+        payoutCount: payouts2.length,
+        payoutAccountCount: payoutAccounts.length
+      };
+    }),
     refundBooking: adminProcedure.input(z2.object({ id: z2.number().int().positive() })).mutation(({ input }) => refundBookingForAdmin(input.id)),
     approveHotel: adminProcedure.input(
       z2.object({

@@ -8,6 +8,8 @@ import { BrandImage } from "@/components/BrandImage";
 import { STAYNEST_LOGO_ALT } from "@/brand";
 import { isValidAuthEmail, normalizeAuthEmail } from "@/lib/authValidation";
 import { toast } from "sonner";
+import { useLocation } from "wouter";
+import { getPostLoginPath } from "@/lib/authNavigation";
 import { X, Lock, Mail, User, ShieldCheck, ArrowRight } from "lucide-react";
 
 export function AuthModal() {
@@ -16,14 +18,23 @@ export function AuthModal() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [, navigate] = useLocation();
   const utils = trpc.useUtils();
 
   const loginMutation = trpc.auth.localLogin.useMutation({
-    onSuccess: async () => {
+    onSuccess: async result => {
       toast.success("Welcome back to StayNest!");
       setIsOpen(false);
       await utils.auth.me.invalidate();
-      window.location.reload();
+      const destination = getPostLoginPath(
+        result.user,
+        window.location.pathname
+      );
+      if (destination !== window.location.pathname) {
+        navigate(destination);
+      } else {
+        window.location.reload();
+      }
     },
     onError: err => {
       toast.error(err.message || "Sign in failed");
@@ -31,11 +42,19 @@ export function AuthModal() {
   });
 
   const registerMutation = trpc.auth.localRegister.useMutation({
-    onSuccess: async () => {
+    onSuccess: async result => {
       toast.success("StayNest account created successfully!");
       setIsOpen(false);
       await utils.auth.me.invalidate();
-      window.location.reload();
+      const destination = getPostLoginPath(
+        result.user,
+        window.location.pathname
+      );
+      if (destination !== window.location.pathname) {
+        navigate(destination);
+      } else {
+        window.location.reload();
+      }
     },
     onError: err => {
       toast.error(err.message || "Registration failed");

@@ -6,6 +6,9 @@ export const users = mysqlTable("users", {
   name: text("name"),
   email: varchar("email", { length: 320 }),
   passwordHash: varchar("passwordHash", { length: 255 }),
+  avatarUrl: text("avatarUrl"),
+  passwordResetToken: varchar("passwordResetToken", { length: 128 }),
+  passwordResetExpires: timestamp("passwordResetExpires"),
   loginMethod: varchar("loginMethod", { length: 64 }),
   role: mysqlEnum("role", ["user", "hotel_owner", "admin"]).default("user").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
@@ -259,3 +262,15 @@ export type UserPreferences = typeof userPreferences.$inferSelect;
 export type InsertUserPreferences = typeof userPreferences.$inferInsert;
 
 
+
+export const messages = mysqlTable("staynest_messages", {
+  id: int("id").autoincrement().primaryKey(),
+  bookingId: int("bookingId").notNull(),
+  senderId: int("senderId").notNull(),
+  receiverId: int("receiverId").notNull(),
+  messageText: text("messageText").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Message = typeof messages.$inferSelect;
+export type InsertMessage = typeof messages.$inferInsert;

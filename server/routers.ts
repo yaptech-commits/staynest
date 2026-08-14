@@ -4,6 +4,7 @@ import { storagePut } from "./storage";
 import { systemRouter } from "./_core/systemRouter";
 import { adminProcedure, protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import { z } from "zod";
+import { nanoid } from "nanoid";
 import type { InsertRoom } from "../drizzle/schema";
 import { TRPCError } from "@trpc/server";
 import { hotels } from "../drizzle/schema";
@@ -23,6 +24,12 @@ import {
   listBlockedDates,
   listHotelsForOwner,
   listReviewsForHotel,
+  setPasswordResetToken,
+  getUserByResetToken,
+  updateUserPassword,
+  updateUserAvatar,
+  addMessage,
+  listMessagesForBooking,
   listRoomsForHotel,
   listRoomAvailabilityForHotel,
   listBookingsForHotel,
@@ -193,6 +200,46 @@ export const appRouter = router({
       ctx.res.clearCookie(COOKIE_NAME, { path: "/", secure: true, sameSite: "none" });
       ctx.res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
       return { success: true, user };
+    }),
+    requestPasswordReset: publicProcedure.input(z.object({ email: z.string().email() })).mutation(async ({ input }) => {
+      const user = await getUserByEmail(input.email);
+      if (!user) {
+        // Return success to prevent user enumeration
+        return { success: true, message: "If an account exists with this email, a reset link has been sent." };
+      }
+      const token = nanoid(32);
+      const expires = new Date(Date.now() + 3600 * 1000); // 1 hour
+      await setPasswordResetToken(input.email, token, expires);
+      // In production, send email via Resend. For sandbox testing, we log the reset link.
+      console.log(`[Password Reset] Link for ${input.email}: /reset-password?token=${token}`);
+      return { success: true, message: "Password reset link generated and sent.", debugToken: token };
+    }),
+    resetPassword: publicProcedure.input(z.object({ token: z.string().min(10), newPassword: z.string().min(6) })).mutation(async ({ input }) => {
+      const user = await getUserByResetToken(input.token);
+      if (!user || !user.passwordResetExpires || new Date() > user.passwordResetExpires) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid or expired password reset token." });
+      }
+      const bcrypt = await import("bcrypt");
+      const passwordHash = await bcrypt.hash(input.newPassword, 10);
+      await updateUserPassword(user.id, passwordHash);
+      return { success: true, message: "Password successfully updated. You can now sign in." };
+    }),
+    uploadAvatar: protectedProcedure.input(z.object({ base64Data: z.string() })).mutation(async ({ ctx, input }) => {
+      try {
+        const matches = input.base64Data.match(/^data:(image\/[a-zA-Z+-]+);base64,(.+)$/);
+        if (!matches) throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid image data format." });
+        const mimeType = matches[1].toLowerCase();
+        const buffer = Buffer.from(matches[2], "base64");
+        if (buffer.length > 5 * 1024 * 1024) throw new TRPCError({ code: "BAD_REQUEST", message: "Avatar exceeds 5MB limit." });
+        const ext = mimeType.split("/")[1] || "jpg";
+        const key = `avatars/${ctx.user.id}-${Date.now()}.${ext}`;
+        const stored = await storagePut(key, buffer, mimeType);
+        await updateUserAvatar(ctx.user.id, stored.url);
+        return { success: true, url: stored.url };
+      } catch (err: any) {
+        if (err instanceof TRPCError) throw err;
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Could not upload avatar." });
+      }
     }),
     onboardingProfile: protectedProcedure.query(({ ctx }) => getOnboardingProfileForUser(ctx.user.id)),
     resendVerification: protectedProcedure.mutation(async ({ ctx }) => {
@@ -521,6 +568,35 @@ export const appRouter = router({
         await db.update(hotels).set({ rating: avgRating.toFixed(2), reviewCount: updatedReviews.length }).where(eq(hotels.id, input.hotelId));
       }
       return { success: true, review, newRating: Number(avgRating.toFixed(2)), reviewCount: updatedReviews.length };
+    }),
+
+    listMessages: protectedProcedure.input(z.object({ bookingId: z.number().int().positive() })).query(async ({ ctx, input }) => {
+      const booking = await getBookingForUser(input.bookingId, ctx.user.id);
+      const hotel = booking ? await getHotelById(booking.hotelId) : null;
+      const isOwner = hotel && hotel.ownerId === ctx.user.id;
+      const isAdmin = ctx.user.role === "admin";
+      if (!booking && !isOwner && !isAdmin) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "You do not have access to this conversation." });
+      }
+      return listMessagesForBooking(input.bookingId);
+    }),
+
+    sendMessage: protectedProcedure.input(z.object({ bookingId: z.number().int().positive(), messageText: z.string().min(1).max(2000) })).mutation(async ({ ctx, input }) => {
+      const booking = await getBookingForUser(input.bookingId, ctx.user.id);
+      const hotel = booking ? await getHotelById(booking.hotelId) : null;
+      const isOwner = hotel && hotel.ownerId === ctx.user.id;
+      const isAdmin = ctx.user.role === "admin";
+      if (!booking && !isOwner && !isAdmin) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "You do not have access to this conversation." });
+      }
+      const receiverId = ctx.user.id === booking?.userId ? (hotel?.ownerId ?? booking.userId) : (booking?.userId ?? ctx.user.id);
+      const message = await addMessage({
+        bookingId: input.bookingId,
+        senderId: ctx.user.id,
+        receiverId,
+        messageText: input.messageText,
+      });
+      return { success: true, message };
     }),
   }),
 

@@ -1,7 +1,7 @@
 import { eq, desc, and, gt } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { nanoid } from "nanoid";
-import { InsertHotel, InsertRoom, InsertUser, users, hotels, rooms, bookings, reviews, blockedDates, onboardingProfiles, notifications, partnerPayoutAccounts, userPreferences } from "../drizzle/schema";
+import {   InsertHotel, InsertRoom, InsertUser, users, hotels, rooms, bookings, reviews, blockedDates, onboardingProfiles, notifications, partnerPayoutAccounts, userPreferences, messages } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -497,4 +497,45 @@ export async function saveUserPreferences(input: { userId: number; phone?: strin
     },
   });
   return getUserPreferences(input.userId);
+}
+
+export async function updateUserAvatar(userId: number, avatarUrl: string) {
+  const db = await getDb();
+  if (!db) return false;
+  const result = await db.update(users).set({ avatarUrl }).where(eq(users.id, userId));
+  return result[0].affectedRows > 0;
+}
+
+export async function setPasswordResetToken(email: string, token: string, expires: Date) {
+  const db = await getDb();
+  if (!db) return false;
+  const result = await db.update(users).set({ passwordResetToken: token, passwordResetExpires: expires }).where(eq(users.email, email));
+  return result[0].affectedRows > 0;
+}
+
+export async function getUserByResetToken(token: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(users).where(eq(users.passwordResetToken, token)).limit(1);
+  return result[0];
+}
+
+export async function updateUserPassword(userId: number, passwordHash: string) {
+  const db = await getDb();
+  if (!db) return false;
+  const result = await db.update(users).set({ passwordHash, passwordResetToken: null, passwordResetExpires: null }).where(eq(users.id, userId));
+  return result[0].affectedRows > 0;
+}
+
+export async function addMessage(input: { bookingId: number; senderId: number; receiverId: number; messageText: string }) {
+  const db = await getDb();
+  if (!db) return { id: 0, ...input, createdAt: new Date() };
+  const result = await db.insert(messages).values(input);
+  return { id: Number(result[0].insertId), ...input, createdAt: new Date() };
+}
+
+export async function listMessagesForBooking(bookingId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(messages).where(eq(messages.bookingId, bookingId)).orderBy(messages.createdAt);
 }

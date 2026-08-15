@@ -968,73 +968,36 @@ export function Home() {
               Start with a destination, then let the right stay find you.
             </p>
           </div>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <Link
-              href="#stays"
-              className="group relative h-[180px] overflow-hidden rounded-2xl"
-            >
-              <img
-                src={image.city}
-                alt="Accra city stays"
-                className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#071c17]/75 to-transparent" />
-              <div className="absolute bottom-4 left-4 text-white">
-                <p className="font-serif text-2xl">Accra</p>
-                <p className="text-xs text-white/75">
-                  City energy, leafy corners
+          <div>
+            {hotels.length > 0 ? (
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {hotels.slice(0, 4).map((hotel: any) => (
+                  <Link
+                    key={hotel.id}
+                    href={`/hotel/${hotel.id}`}
+                    className="group relative h-[180px] overflow-hidden rounded-2xl"
+                  >
+                    <img
+                      src={Array.isArray(hotel.images) && hotel.images[0] ? hotel.images[0] : image.city}
+                      alt={hotel.name}
+                      className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#071c17]/75 to-transparent" />
+                    <div className="absolute bottom-4 left-4 text-white">
+                      <p className="font-serif text-2xl">{hotel.name}</p>
+                      <p className="text-xs text-white/75">{hotel.location}</p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-[22px] border border-dashed border-[#dfe4dc] bg-white p-10 text-center">
+                <p className="font-serif text-xl text-[#183a31]">No destinations listed yet</p>
+                <p className="mt-2 text-sm text-[#718078]">
+                  Verified properties published by hotel partners will appear here in real time.
                 </p>
               </div>
-            </Link>
-            <Link
-              href="#stays"
-              className="group relative h-[180px] overflow-hidden rounded-2xl"
-            >
-              <img
-                src={image.coast}
-                alt="Ada coastal stays"
-                className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#071c17]/75 to-transparent" />
-              <div className="absolute bottom-4 left-4 text-white">
-                <p className="font-serif text-2xl">Ada</p>
-                <p className="text-xs text-white/75">
-                  Lagoon air and slow days
-                </p>
-              </div>
-            </Link>
-            <Link
-              href="#stays"
-              className="group relative h-[180px] overflow-hidden rounded-2xl"
-            >
-              <img
-                src={image.room}
-                alt="Kumasi boutique stays"
-                className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#071c17]/75 to-transparent" />
-              <div className="absolute bottom-4 left-4 text-white">
-                <p className="font-serif text-2xl">Kumasi</p>
-                <p className="text-xs text-white/75">
-                  Culture, craft, character
-                </p>
-              </div>
-            </Link>
-            <Link
-              href="#stays"
-              className="group relative h-[180px] overflow-hidden rounded-2xl"
-            >
-              <img
-                src={image.city}
-                alt="Cape Coast stays"
-                className="h-full w-full object-cover object-right transition duration-500 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#071c17]/75 to-transparent" />
-              <div className="absolute bottom-4 left-4 text-white">
-                <p className="font-serif text-2xl">Cape Coast</p>
-                <p className="text-xs text-white/75">History by the water</p>
-              </div>
-            </Link>
+            )}
           </div>
         </section>
         <section className="border-y border-[#dfe4dc] bg-[#f3f5f0]">

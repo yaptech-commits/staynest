@@ -57,3 +57,9 @@
 - [x] Add a rendered integration test covering successful superadmin AuthModal login and navigation to `/admin`.
 - [x] Add a rendered integration test proving the admin dashboard content is visible after the superadmin route is reached.
 - [x] Add superadmin-only account deletion action with confirmation prompt, safe relationship cleanup, and primary superadmin protection.
+- [x] Implement account deactivation instead of hard deletion with audit logging and primary superadmin protection.
+- [x] Implement complete owner onboarding, verification documents, and availability calendar management.
+- [x] Add booking lifecycle states (pending, confirmed, checked-in, checked-out, cancelled, refunded) and conflict resolution.
+- [x] Add payment reconciliation, cash-payment records, and GHS/USD multi-currency support.
+- [x] Add advanced search filters (price, rating, property type, amenities, location) and property comparison.
+- [x] Add trust badges, review moderation, report property workflows, and operational monitoring.

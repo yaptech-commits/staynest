@@ -4395,14 +4395,14 @@ export function AdminDashboard() {
       void utils.admin.summary.invalidate();
     },
   });
-  const deleteUser = trpc.admin.deleteUser.useMutation({
+  const deactivateUser = trpc.admin.deactivateUser.useMutation({
     onSuccess: () => {
-      toast.success("User account deleted successfully");
+      toast.success("User account deactivated successfully");
       void utils.admin.users.invalidate();
       void utils.admin.summary.invalidate();
     },
-    onError: err => {
-      toast.error(err.message || "Failed to delete user account");
+    onError: (err: any) => {
+      toast.error(err.message || "Failed to deactivate user account");
     },
   });
   const markNotificationRead = trpc.notifications.markRead.useMutation({
@@ -4911,14 +4911,14 @@ export function AdminDashboard() {
                               variant="outline"
                               size="sm"
                               onClick={() => {
-                                if (window.confirm(`Are you sure you want to delete account "${user.email || user.name}"?`)) {
-                                  deleteUser.mutate({ id: user.id });
+                                if (window.confirm(`Are you sure you want to deactivate account "${user.email || user.name}"?`)) {
+                                  deactivateUser.mutate({ id: user.id });
                                 }
                               }}
-                              disabled={deleteUser.isPending}
-                              className="h-8 rounded-lg border-red-200 text-xs font-bold text-red-600 hover:bg-red-50 hover:text-red-700"
+                              disabled={deactivateUser.isPending}
+                              className="h-8 rounded-lg border-amber-200 text-xs font-bold text-amber-700 hover:bg-amber-50 hover:text-amber-800"
                             >
-                              Delete account
+                              Deactivate
                             </Button>
                           )}
                         </td>

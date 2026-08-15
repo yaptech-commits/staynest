@@ -78,6 +78,13 @@
       "when": 1786746344782,
       "tag": "0010_broad_legion",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "5",
+      "when": 1786824471348,
+      "tag": "0011_bizarre_radioactive_man",
+      "breakpoints": true
     }
   ]
 }

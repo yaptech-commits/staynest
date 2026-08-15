@@ -36,7 +36,7 @@ const mocks = vi.hoisted(() => ({
   notifications: [] as unknown[],
   approval: { mutate: vi.fn(), isPending: false },
   refund: { mutate: vi.fn(), isPending: false },
-  deleteUser: { mutate: vi.fn(), isPending: false },
+  deactivateUser: { mutate: vi.fn(), isPending: false },
   markRead: { mutate: vi.fn(), isPending: false },
 }));
 
@@ -124,7 +124,7 @@ vi.mock("@/lib/trpc", () => ({
       payoutAccounts: { useQuery: () => ({ data: mocks.adminPayoutAccounts }) },
       approveHotel: { useMutation: () => mocks.approval },
       refundBooking: { useMutation: () => mocks.refund },
-      deleteUser: { useMutation: () => mocks.deleteUser },
+      deactivateUser: { useMutation: () => mocks.deactivateUser },
     },
     notifications: {
       mine: { useQuery: () => ({ data: mocks.notifications }) },

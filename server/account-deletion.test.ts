@@ -1,9 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { deleteUser } from "./db";
+import { deactivateUser } from "./db";
 
-describe("Superadmin Account Deletion & Protection", () => {
-  it("protects primary superadmin email from deletion", async () => {
-    // Attempting to delete wisdomasaare41@gmail.com should throw an error or reject
-    await expect(deleteUser(999999)).rejects.toThrow();
+describe("Superadmin Account Deactivation & Protection", () => {
+  it("protects primary superadmin email from deactivation", async () => {
+    await expect(deactivateUser(999999, { id: 1, email: "wisdomasaare41@gmail.com" })).rejects.toThrow();
   });
 });

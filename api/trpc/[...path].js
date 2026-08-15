@@ -11,6 +11,7 @@ var __export = (target, all) => {
 // drizzle/schema.ts
 var schema_exports = {};
 __export(schema_exports, {
+  auditLogs: () => auditLogs,
   availabilityEvents: () => availabilityEvents,
   blockedDates: () => blockedDates,
   bookings: () => bookings,
@@ -38,7 +39,7 @@ import {
   decimal,
   json
 } from "drizzle-orm/mysql-core";
-var users, hotels, rooms, bookings, reviews, blockedDates, ratePlans, availabilityEvents, commissionLedger, payouts, cancellationPolicies, notifications, onboardingProfiles, partnerPayoutAccounts, userPreferences, messages;
+var users, hotels, rooms, bookings, reviews, blockedDates, ratePlans, availabilityEvents, commissionLedger, payouts, cancellationPolicies, notifications, onboardingProfiles, partnerPayoutAccounts, userPreferences, messages, auditLogs;
 var init_schema = __esm({
   "drizzle/schema.ts"() {
     "use strict";
@@ -298,6 +299,18 @@ var init_schema = __esm({
       senderId: int("senderId").notNull(),
       receiverId: int("receiverId").notNull(),
       messageText: text("messageText").notNull(),
+      createdAt: timestamp("createdAt").defaultNow().notNull()
+    });
+    auditLogs = mysqlTable("staynest_audit_logs", {
+      id: int("id").autoincrement().primaryKey(),
+      adminUserId: int("adminUserId").notNull(),
+      adminEmail: varchar("adminEmail", { length: 320 }).notNull(),
+      action: varchar("action", { length: 128 }).notNull(),
+      // e.g. "DEACTIVATE_USER", "REFUND_BOOKING", "APPROVE_HOTEL"
+      targetType: varchar("targetType", { length: 64 }).notNull(),
+      // e.g. "user", "booking", "hotel"
+      targetId: int("targetId"),
+      details: text("details"),
       createdAt: timestamp("createdAt").defaultNow().notNull()
     });
   }
@@ -782,7 +795,7 @@ async function listAllUsers() {
     lastSignedIn: users.lastSignedIn
   }).from(users).orderBy(desc(users.createdAt));
 }
-async function deleteUser(userId) {
+async function deactivateUser(userId, adminUser) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   const target = await db.select().from(users).where(eq(users.id, userId)).limit(1);
@@ -790,12 +803,21 @@ async function deleteUser(userId) {
     throw new Error("User not found");
   }
   if (target[0].email === "wisdomasaare41@gmail.com") {
-    throw new Error("Cannot delete primary superadmin account");
+    throw new Error("Cannot deactivate primary superadmin account");
   }
-  await db.delete(onboardingProfiles).where(eq(onboardingProfiles.userId, userId));
-  await db.delete(userPreferences).where(eq(userPreferences.userId, userId));
-  await db.delete(notifications).where(eq(notifications.userId, userId));
-  const res = await db.delete(users).where(eq(users.id, userId));
+  await db.insert((await Promise.resolve().then(() => (init_schema(), schema_exports))).auditLogs).values({
+    adminUserId: adminUser.id,
+    adminEmail: adminUser.email,
+    action: "DEACTIVATE_USER",
+    targetType: "user",
+    targetId: userId,
+    details: `Deactivated user ${target[0].email || target[0].name || userId}`
+  });
+  const res = await db.update(users).set({
+    name: `[Deactivated] ${target[0].name || "User"}`,
+    role: "user",
+    passwordHash: "DEACTIVATED"
+  }).where(eq(users.id, userId));
   return res[0].affectedRows > 0;
 }
 async function listAllRooms() {
@@ -2649,7 +2671,7 @@ var appRouter = router({
         status: z2.enum(["approved", "rejected", "pending"])
       })
     ).mutation(({ input }) => updateHotelApproval(input.id, input.status)),
-    deleteUser: adminProcedure.input(z2.object({ id: z2.number().int().positive() })).mutation(({ input }) => deleteUser(input.id)),
+    deactivateUser: adminProcedure.input(z2.object({ id: z2.number().int().positive() })).mutation(({ ctx, input }) => deactivateUser(input.id, { id: ctx.user?.id ?? 1, email: ctx.user?.email ?? "admin@staynest" })),
     summary: adminProcedure.query(async () => {
       const allHotels = await listAllHotels();
       const allBookings = await getAllBookings();

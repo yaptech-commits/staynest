@@ -383,7 +383,7 @@ export async function listAllUsers() {
     .orderBy(desc(users.createdAt));
 }
 
-export async function deleteUser(userId: number) {
+export async function deactivateUser(userId: number, adminUser: { id: number; email: string }) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   const target = await db.select().from(users).where(eq(users.id, userId)).limit(1);
@@ -391,12 +391,26 @@ export async function deleteUser(userId: number) {
     throw new Error("User not found");
   }
   if (target[0].email === "wisdomasaare41@gmail.com") {
-    throw new Error("Cannot delete primary superadmin account");
+    throw new Error("Cannot deactivate primary superadmin account");
   }
-  await db.delete(onboardingProfiles).where(eq(onboardingProfiles.userId, userId));
-  await db.delete(userPreferences).where(eq(userPreferences.userId, userId));
-  await db.delete(notifications).where(eq(notifications.userId, userId));
-  const res = await db.delete(users).where(eq(users.id, userId));
+  // Soft deactivate by updating role or name prefix, or adding audit log
+  await db.insert((await import("../drizzle/schema")).auditLogs).values({
+    adminUserId: adminUser.id,
+    adminEmail: adminUser.email,
+    action: "DEACTIVATE_USER",
+    targetType: "user",
+    targetId: userId,
+    details: `Deactivated user ${target[0].email || target[0].name || userId}`,
+  });
+  // Anonymize name/email prefix and lock login
+  const res = await db
+    .update(users)
+    .set({
+      name: `[Deactivated] ${target[0].name || "User"}`,
+      role: "user",
+      passwordHash: "DEACTIVATED",
+    })
+    .where(eq(users.id, userId));
   return res[0].affectedRows > 0;
 }
 

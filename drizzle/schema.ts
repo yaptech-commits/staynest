@@ -340,3 +340,17 @@ export const messages = mysqlTable("staynest_messages", {
 
 export type Message = typeof messages.$inferSelect;
 export type InsertMessage = typeof messages.$inferInsert;
+
+export const auditLogs = mysqlTable("staynest_audit_logs", {
+  id: int("id").autoincrement().primaryKey(),
+  adminUserId: int("adminUserId").notNull(),
+  adminEmail: varchar("adminEmail", { length: 320 }).notNull(),
+  action: varchar("action", { length: 128 }).notNull(), // e.g. "DEACTIVATE_USER", "REFUND_BOOKING", "APPROVE_HOTEL"
+  targetType: varchar("targetType", { length: 64 }).notNull(), // e.g. "user", "booking", "hotel"
+  targetId: int("targetId"),
+  details: text("details"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type AuditLog = typeof auditLogs.$inferSelect;
+export type InsertAuditLog = typeof auditLogs.$inferInsert;

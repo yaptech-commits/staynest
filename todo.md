@@ -56,3 +56,4 @@
 - [ ] Verify the live superadmin route after pushing the navigation fix to GitHub.
 - [x] Add a rendered integration test covering successful superadmin AuthModal login and navigation to `/admin`.
 - [x] Add a rendered integration test proving the admin dashboard content is visible after the superadmin route is reached.
+- [x] Add superadmin-only account deletion action with confirmation prompt, safe relationship cleanup, and primary superadmin protection.

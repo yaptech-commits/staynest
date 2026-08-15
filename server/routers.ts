@@ -30,6 +30,7 @@ import {
   listAllPayoutAccountSummaries,
   listAllRooms,
   listAllUsers,
+  deleteUser,
   listApprovedHotels,
   listAllBlockedDates,
   listBlockedDates,
@@ -1319,6 +1320,9 @@ export const appRouter = router({
         })
       )
       .mutation(({ input }) => updateHotelApproval(input.id, input.status)),
+    deleteUser: adminProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(({ input }) => deleteUser(input.id)),
     summary: adminProcedure.query(async () => {
       const allHotels = await listAllHotels();
       const allBookings = await getAllBookings();

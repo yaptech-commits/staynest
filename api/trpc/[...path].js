@@ -782,6 +782,22 @@ async function listAllUsers() {
     lastSignedIn: users.lastSignedIn
   }).from(users).orderBy(desc(users.createdAt));
 }
+async function deleteUser(userId) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const target = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+  if (!target[0]) {
+    throw new Error("User not found");
+  }
+  if (target[0].email === "wisdomasaare41@gmail.com") {
+    throw new Error("Cannot delete primary superadmin account");
+  }
+  await db.delete(onboardingProfiles).where(eq(onboardingProfiles.userId, userId));
+  await db.delete(userPreferences).where(eq(userPreferences.userId, userId));
+  await db.delete(notifications).where(eq(notifications.userId, userId));
+  const res = await db.delete(users).where(eq(users.id, userId));
+  return res[0].affectedRows > 0;
+}
 async function listAllRooms() {
   const db = await getDb();
   if (!db) return [];
@@ -2633,6 +2649,7 @@ var appRouter = router({
         status: z2.enum(["approved", "rejected", "pending"])
       })
     ).mutation(({ input }) => updateHotelApproval(input.id, input.status)),
+    deleteUser: adminProcedure.input(z2.object({ id: z2.number().int().positive() })).mutation(({ input }) => deleteUser(input.id)),
     summary: adminProcedure.query(async () => {
       const allHotels = await listAllHotels();
       const allBookings = await getAllBookings();

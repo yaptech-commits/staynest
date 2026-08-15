@@ -4390,9 +4390,19 @@ export function AdminDashboard() {
   });
   const refund = trpc.admin.refundBooking.useMutation({
     onSuccess: () => {
-      toast.success("Booking marked for refund");
+      toast.success("Booking refunded successfully");
       void utils.admin.bookings.invalidate();
       void utils.admin.summary.invalidate();
+    },
+  });
+  const deleteUser = trpc.admin.deleteUser.useMutation({
+    onSuccess: () => {
+      toast.success("User account deleted successfully");
+      void utils.admin.users.invalidate();
+      void utils.admin.summary.invalidate();
+    },
+    onError: err => {
+      toast.error(err.message || "Failed to delete user account");
     },
   });
   const markNotificationRead = trpc.notifications.markRead.useMutation({
@@ -4859,7 +4869,8 @@ export function AdminDashboard() {
                       <th className="pb-3">User</th>
                       <th className="pb-3">Role</th>
                       <th className="pb-3">Sign-in method</th>
-                      <th className="pb-3 text-right">Last active</th>
+                      <th className="pb-3">Last active</th>
+                      <th className="pb-3 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#eef1ed]">
@@ -4887,10 +4898,29 @@ export function AdminDashboard() {
                         <td className="py-4 text-xs text-[#607269]">
                           {user.loginMethod || "—"}
                         </td>
-                        <td className="py-4 text-right text-xs text-[#718078]">
+                        <td className="py-4 text-xs text-[#718078]">
                           {user.lastSignedIn
                             ? new Date(user.lastSignedIn).toLocaleDateString()
                             : "—"}
+                        </td>
+                        <td className="py-4 text-right">
+                          {user.email === "wisdomasaare41@gmail.com" ? (
+                            <span className="text-xs font-semibold text-[#8a9890]">Protected</span>
+                          ) : (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                if (window.confirm(`Are you sure you want to delete account "${user.email || user.name}"?`)) {
+                                  deleteUser.mutate({ id: user.id });
+                                }
+                              }}
+                              disabled={deleteUser.isPending}
+                              className="h-8 rounded-lg border-red-200 text-xs font-bold text-red-600 hover:bg-red-50 hover:text-red-700"
+                            >
+                              Delete account
+                            </Button>
+                          )}
                         </td>
                       </tr>
                     ))}

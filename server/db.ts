@@ -383,6 +383,23 @@ export async function listAllUsers() {
     .orderBy(desc(users.createdAt));
 }
 
+export async function deleteUser(userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const target = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+  if (!target[0]) {
+    throw new Error("User not found");
+  }
+  if (target[0].email === "wisdomasaare41@gmail.com") {
+    throw new Error("Cannot delete primary superadmin account");
+  }
+  await db.delete(onboardingProfiles).where(eq(onboardingProfiles.userId, userId));
+  await db.delete(userPreferences).where(eq(userPreferences.userId, userId));
+  await db.delete(notifications).where(eq(notifications.userId, userId));
+  const res = await db.delete(users).where(eq(users.id, userId));
+  return res[0].affectedRows > 0;
+}
+
 export async function listAllRooms() {
   const db = await getDb();
   if (!db) return [];

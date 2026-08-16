@@ -560,6 +560,15 @@ export function Home() {
   const [sortBy, setSortBy] = useState<"recommended" | "priceLow" | "rating">(
     "recommended"
   );
+  const [showBackToTop, setShowBackToTop] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowBackToTop(window.scrollY > 400);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
   const input = useMemo(
     () => ({ ...query, minPrice, maxPrice, minRating }),
     [query, minPrice, maxPrice, minRating]
@@ -583,7 +592,16 @@ export function Home() {
   const selectHotel = (id: number) => navigate(`/hotel/${id}`);
   return (
     <Shell>
-      <main>
+      <main className="relative">
+        {showBackToTop && (
+          <button
+            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+            aria-label="Back to top"
+            className="fixed bottom-6 right-6 z-50 flex h-11 w-11 items-center justify-center rounded-full bg-[#183a31] text-white shadow-lg transition duration-300 hover:bg-[#245448] focus:outline-none focus:ring-2 focus:ring-[#f3d98d]"
+          >
+            <ArrowRight size={18} className="-rotate-90" />
+          </button>
+        )}
         <section className="relative min-h-[720px] overflow-hidden bg-[#183a31] text-white md:min-h-[760px]">
           <div className="pointer-events-none absolute inset-0 z-[1] flex items-start justify-center">
             <div

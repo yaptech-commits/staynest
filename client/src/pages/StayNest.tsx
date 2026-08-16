@@ -552,6 +552,7 @@ export function Home() {
     currency: "GHS" as "GHS" | "USD",
   });
   const [destinationFilter, setDestinationFilter] = useState("");
+  const [destinationVisibleLimit, setDestinationVisibleLimit] = useState(4);
   const [minPrice, setMinPrice] = useState<number | undefined>(undefined);
   const [maxPrice, setMaxPrice] = useState<number | undefined>(undefined);
   const [minRating, setMinRating] = useState<number | undefined>(undefined);
@@ -1040,25 +1041,37 @@ export function Home() {
               }
 
               return (
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                  {filteredHotels.slice(0, 4).map((hotel: any) => (
-                    <Link
-                      key={hotel.id}
-                      href={`/hotel/${hotel.id}`}
-                      className="group relative h-[180px] overflow-hidden rounded-2xl"
-                    >
-                      <img
-                        src={Array.isArray(hotel.images) && hotel.images[0] ? hotel.images[0] : image.city}
-                        alt={hotel.name}
-                        className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#071c17]/75 to-transparent" />
-                      <div className="absolute bottom-4 left-4 text-white">
-                        <p className="font-serif text-2xl">{hotel.name}</p>
-                        <p className="text-xs text-white/75">{hotel.location}</p>
-                      </div>
-                    </Link>
-                  ))}
+                <div>
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    {filteredHotels.slice(0, destinationVisibleLimit).map((hotel: any) => (
+                      <Link
+                        key={hotel.id}
+                        href={`/hotel/${hotel.id}`}
+                        className="group relative h-[180px] overflow-hidden rounded-2xl"
+                      >
+                        <img
+                          src={Array.isArray(hotel.images) && hotel.images[0] ? hotel.images[0] : image.city}
+                          alt={hotel.name}
+                          className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#071c17]/75 to-transparent" />
+                        <div className="absolute bottom-4 left-4 text-white">
+                          <p className="font-serif text-2xl">{hotel.name}</p>
+                          <p className="text-xs text-white/75">{hotel.location}</p>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                  {destinationVisibleLimit < filteredHotels.length && (
+                    <div className="mt-8 text-center">
+                      <Button
+                        onClick={() => setDestinationVisibleLimit(prev => prev + 4)}
+                        className="rounded-xl bg-[#183a31] px-6 py-2.5 text-xs font-bold text-white hover:bg-[#245448]"
+                      >
+                        Load More Properties ({filteredHotels.length - destinationVisibleLimit} remaining)
+                      </Button>
+                    </div>
+                  )}
                 </div>
               );
             })()}

@@ -70,3 +70,4 @@
 - [x] Conduct deep general audit across frontend runtime, backend tRPC procedures, database schema, role-based authorization, and deployment bundlers.
 - [x] Fix all discovered runtime warnings, unhandled query error states, or edge-case failures across StayNest.
 - [x] Run full test suite, TypeScript check, and production build, ensuring 100% success before final GitHub synchronization.
+- [x] Add a 'Load More' button at the bottom of destination search results to incrementally handle large numbers of properties.

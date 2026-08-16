@@ -64,3 +64,4 @@
 - [x] Add advanced search filters (price, rating, property type, amenities, location) and property comparison.
 - [x] Add trust badges, review moderation, report property workflows, and operational monitoring.
 - [x] Remove hardcoded demo destination cards from StayNest public home page and replace with real database-driven listings or clean empty state.
+- [x] Implement a responsive search bar above destination cards to filter properties by name or location.

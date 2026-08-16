@@ -27,6 +27,7 @@ import { toast } from "sonner";
 import { verificationPromptEmail } from "@shared/onboarding";
 import {
   ArrowLeft,
+  Search,
   ArrowRight,
   BedDouble,
   CalendarDays,
@@ -550,6 +551,7 @@ export function Home() {
     guestsCount: 2,
     currency: "GHS" as "GHS" | "USD",
   });
+  const [destinationFilter, setDestinationFilter] = useState("");
   const [minPrice, setMinPrice] = useState<number | undefined>(undefined);
   const [maxPrice, setMaxPrice] = useState<number | undefined>(undefined);
   const [minRating, setMinRating] = useState<number | undefined>(undefined);
@@ -957,21 +959,44 @@ export function Home() {
           </div>
         </section>
         <section className="mx-auto max-w-[1240px] px-5 py-16 lg:px-8">
-          <div className="mb-7">
-            <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-[#b18143]">
-              Explore Ghana
-            </p>
-            <h2 className="font-serif text-[36px] leading-none tracking-[-0.035em] text-[#183a31]">
-              Where will you arrive?
-            </h2>
-            <p className="mt-3 text-sm text-[#718078]">
-              Start with a destination, then let the right stay find you.
-            </p>
+          <div className="mb-7 flex flex-col justify-between gap-4 md:flex-row md:items-end">
+            <div>
+              <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.2em] text-[#b18143]">
+                Explore Ghana
+              </p>
+              <h2 className="font-serif text-[36px] leading-none tracking-[-0.035em] text-[#183a31]">
+                Where will you arrive?
+              </h2>
+              <p className="mt-3 text-sm text-[#718078]">
+                Start with a destination, then let the right stay find you.
+              </p>
+            </div>
+            <div className="w-full max-w-sm">
+              <div className="relative">
+                <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#718078]" />
+                <input
+                  type="text"
+                  placeholder="Filter by hotel name or location..."
+                  value={destinationFilter}
+                  onChange={e => setDestinationFilter(e.target.value)}
+                  className="w-full rounded-xl border border-[#cfd9cf] bg-white py-2.5 pl-10 pr-4 text-xs font-semibold text-[#183a31] shadow-sm outline-none placeholder:text-[#9ca8a1] focus:border-[#2b6755]"
+                />
+              </div>
+            </div>
           </div>
           <div>
             {hotels.length > 0 ? (
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                {hotels.slice(0, 4).map((hotel: any) => (
+                {hotels
+                  .filter((hotel: any) => {
+                    if (!destinationFilter.trim()) return true;
+                    const q = destinationFilter.toLowerCase();
+                    return (
+                      (hotel.name && hotel.name.toLowerCase().includes(q)) ||
+                      (hotel.location && hotel.location.toLowerCase().includes(q))
+                    );
+                  })
+                  .slice(0, 4).map((hotel: any) => (
                   <Link
                     key={hotel.id}
                     href={`/hotel/${hotel.id}`}

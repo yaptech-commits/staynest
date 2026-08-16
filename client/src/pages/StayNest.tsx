@@ -985,44 +985,67 @@ export function Home() {
             </div>
           </div>
           <div>
-            {hotels.length > 0 ? (
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                {hotels
-                  .filter((hotel: any) => {
-                    if (!destinationFilter.trim()) return true;
-                    const q = destinationFilter.toLowerCase();
-                    return (
-                      (hotel.name && hotel.name.toLowerCase().includes(q)) ||
-                      (hotel.location && hotel.location.toLowerCase().includes(q))
-                    );
-                  })
-                  .slice(0, 4).map((hotel: any) => (
-                  <Link
-                    key={hotel.id}
-                    href={`/hotel/${hotel.id}`}
-                    className="group relative h-[180px] overflow-hidden rounded-2xl"
-                  >
-                    <img
-                      src={Array.isArray(hotel.images) && hotel.images[0] ? hotel.images[0] : image.city}
-                      alt={hotel.name}
-                      className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#071c17]/75 to-transparent" />
-                    <div className="absolute bottom-4 left-4 text-white">
-                      <p className="font-serif text-2xl">{hotel.name}</p>
-                      <p className="text-xs text-white/75">{hotel.location}</p>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            ) : (
-              <div className="rounded-[22px] border border-dashed border-[#dfe4dc] bg-white p-10 text-center">
-                <p className="font-serif text-xl text-[#183a31]">No destinations listed yet</p>
-                <p className="mt-2 text-sm text-[#718078]">
-                  Verified properties published by hotel partners will appear here in real time.
-                </p>
-              </div>
-            )}
+            {(() => {
+              const filteredHotels = hotels.filter((hotel: any) => {
+                if (!destinationFilter.trim()) return true;
+                const q = destinationFilter.toLowerCase();
+                return (
+                  (hotel.name && hotel.name.toLowerCase().includes(q)) ||
+                  (hotel.location && hotel.location.toLowerCase().includes(q))
+                );
+              });
+
+              if (hotels.length === 0) {
+                return (
+                  <div className="rounded-[22px] border border-dashed border-[#dfe4dc] bg-white p-10 text-center">
+                    <p className="font-serif text-xl text-[#183a31]">No destinations listed yet</p>
+                    <p className="mt-2 text-sm text-[#718078]">
+                      Verified properties published by hotel partners will appear here in real time.
+                    </p>
+                  </div>
+                );
+              }
+
+              if (filteredHotels.length === 0) {
+                return (
+                  <div className="rounded-[22px] border border-dashed border-[#dfe4dc] bg-white p-10 text-center">
+                    <p className="font-serif text-xl text-[#183a31]">No results found</p>
+                    <p className="mt-2 text-sm text-[#718078]">
+                      No properties matched &ldquo;{destinationFilter}&rdquo;. Try another name or location.
+                    </p>
+                    <Button
+                      onClick={() => setDestinationFilter("")}
+                      className="mt-4 rounded-lg bg-[#183a31] px-4 text-xs font-bold text-white hover:bg-[#245448]"
+                    >
+                      Clear search
+                    </Button>
+                  </div>
+                );
+              }
+
+              return (
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  {filteredHotels.slice(0, 4).map((hotel: any) => (
+                    <Link
+                      key={hotel.id}
+                      href={`/hotel/${hotel.id}`}
+                      className="group relative h-[180px] overflow-hidden rounded-2xl"
+                    >
+                      <img
+                        src={Array.isArray(hotel.images) && hotel.images[0] ? hotel.images[0] : image.city}
+                        alt={hotel.name}
+                        className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#071c17]/75 to-transparent" />
+                      <div className="absolute bottom-4 left-4 text-white">
+                        <p className="font-serif text-2xl">{hotel.name}</p>
+                        <p className="text-xs text-white/75">{hotel.location}</p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              );
+            })()}
           </div>
         </section>
         <section className="border-y border-[#dfe4dc] bg-[#f3f5f0]">

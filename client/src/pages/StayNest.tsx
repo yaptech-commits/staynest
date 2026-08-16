@@ -986,6 +986,22 @@ export function Home() {
           </div>
           <div>
             {(() => {
+              if (isLoading) {
+                return (
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    {[1, 2, 3, 4].map(n => (
+                      <div
+                        key={n}
+                        className="relative h-[180px] animate-pulse overflow-hidden rounded-2xl bg-[#e2e8e2] p-4 flex flex-col justify-end"
+                      >
+                        <div className="h-5 w-3/4 rounded bg-[#d0dbd0]" />
+                        <div className="mt-2 h-3 w-1/2 rounded bg-[#d0dbd0]" />
+                      </div>
+                    ))}
+                  </div>
+                );
+              }
+
               const filteredHotels = hotels.filter((hotel: any) => {
                 if (!destinationFilter.trim()) return true;
                 const q = destinationFilter.toLowerCase();

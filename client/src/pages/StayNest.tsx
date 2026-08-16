@@ -553,6 +553,7 @@ export function Home() {
   });
   const [destinationFilter, setDestinationFilter] = useState("");
   const [destinationVisibleLimit, setDestinationVisibleLimit] = useState(4);
+  const [quickViewHotel, setQuickViewHotel] = useState<any | null>(null);
   const [minPrice, setMinPrice] = useState<number | undefined>(undefined);
   const [maxPrice, setMaxPrice] = useState<number | undefined>(undefined);
   const [minRating, setMinRating] = useState<number | undefined>(undefined);
@@ -1062,10 +1063,10 @@ export function Home() {
                 <div>
                   <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                     {filteredHotels.slice(0, destinationVisibleLimit).map((hotel: any) => (
-                      <Link
+                      <div
                         key={hotel.id}
-                        href={`/hotel/${hotel.id}`}
-                        className="group relative h-[180px] overflow-hidden rounded-2xl"
+                        className="group relative h-[180px] overflow-hidden rounded-2xl cursor-pointer"
+                        onClick={() => setQuickViewHotel(hotel)}
                       >
                         <img
                           src={Array.isArray(hotel.images) && hotel.images[0] ? hotel.images[0] : image.city}
@@ -1073,13 +1074,74 @@ export function Home() {
                           className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-[#071c17]/75 to-transparent" />
-                        <div className="absolute bottom-4 left-4 text-white">
-                          <p className="font-serif text-2xl">{hotel.name}</p>
-                          <p className="text-xs text-white/75">{hotel.location}</p>
+                        <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between text-white">
+                          <div>
+                            <p className="font-serif text-2xl truncate">{hotel.name}</p>
+                            <p className="text-xs text-white/75 truncate">{hotel.location}</p>
+                          </div>
+                          <span className="rounded-md bg-white/20 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider backdrop-blur-sm transition group-hover:bg-[#f3d98d] group-hover:text-[#183a31]">
+                            Quick View
+                          </span>
                         </div>
-                      </Link>
+                      </div>
                     ))}
                   </div>
+
+                  {quickViewHotel && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+                      <div className="relative w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl md:p-8">
+                        <button
+                          onClick={() => setQuickViewHotel(null)}
+                          className="absolute right-5 top-5 rounded-full bg-[#f3f5f0] p-2 text-[#183a31] hover:bg-[#e2e8e2]"
+                        >
+                          ✕
+                        </button>
+                        <div className="mb-4 h-56 overflow-hidden rounded-2xl">
+                          <img
+                            src={
+                              Array.isArray(quickViewHotel.images) && quickViewHotel.images[0]
+                                ? quickViewHotel.images[0]
+                                : image.city
+                            }
+                            alt={quickViewHotel.name}
+                            className="h-full w-full object-cover"
+                          />
+                        </div>
+                        <h3 className="font-serif text-2xl text-[#183a31]">{quickViewHotel.name}</h3>
+                        <p className="text-sm font-medium text-[#b18143]">{quickViewHotel.location}</p>
+                        <p className="mt-3 text-sm text-[#718078] leading-relaxed">
+                          {quickViewHotel.description || "Experience exceptional hospitality, curated rooms, and world-class amenities at this premier StayNest destination."}
+                        </p>
+                        <div className="mt-6 flex items-center justify-between border-t border-[#dfe4dc] pt-4">
+                          <div>
+                            <p className="text-xs text-[#718078]">Rating</p>
+                            <p className="font-serif text-lg font-bold text-[#183a31]">
+                              ★ {quickViewHotel.rating ? quickViewHotel.rating.toFixed(1) : "4.8"}
+                            </p>
+                          </div>
+                          <div className="flex gap-3">
+                            <Button
+                              onClick={() => setQuickViewHotel(null)}
+                              variant="outline"
+                              className="rounded-xl border-[#dfe4dc] text-xs font-bold text-[#183a31]"
+                            >
+                              Close
+                            </Button>
+                            <Button
+                              onClick={() => {
+                                const hid = quickViewHotel.id;
+                                setQuickViewHotel(null);
+                                navigate(`/hotel/${hid}`);
+                              }}
+                              className="rounded-xl bg-[#183a31] px-5 text-xs font-bold text-white hover:bg-[#245448]"
+                            >
+                              View Full Details & Book
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   {destinationVisibleLimit < filteredHotels.length && (
                     <div className="mt-8 text-center">
                       <Button

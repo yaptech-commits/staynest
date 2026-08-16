@@ -72,3 +72,4 @@
 - [x] Run full test suite, TypeScript check, and production build, ensuring 100% success before final GitHub synchronization.
 - [x] Add a 'Load More' button at the bottom of destination search results to incrementally handle large numbers of properties.
 - [x] Add a floating 'Back to Top' button that appears when the user scrolls down through the loaded properties.
+- [x] Implement a quick view modal that opens when a user clicks on a property card to show more details without leaving the page.

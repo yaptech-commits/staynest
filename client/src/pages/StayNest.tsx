@@ -1112,32 +1112,36 @@ export function Home() {
                         <p className="mt-3 text-sm text-[#718078] leading-relaxed">
                           {quickViewHotel.description || "Experience exceptional hospitality, curated rooms, and world-class amenities at this premier StayNest destination."}
                         </p>
-                        <div className="mt-6 flex items-center justify-between border-t border-[#dfe4dc] pt-4">
-                          <div>
-                            <p className="text-xs text-[#718078]">Rating</p>
-                            <p className="font-serif text-lg font-bold text-[#183a31]">
-                              ★ {quickViewHotel.rating ? quickViewHotel.rating.toFixed(1) : "4.8"}
-                            </p>
-                          </div>
-                          <div className="flex gap-3">
-                            <Button
-                              onClick={() => setQuickViewHotel(null)}
-                              variant="outline"
-                              className="rounded-xl border-[#dfe4dc] text-xs font-bold text-[#183a31]"
-                            >
-                              Close
-                            </Button>
+                        <div className="mt-6 flex flex-col gap-4 border-t border-[#dfe4dc] pt-4">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-xs text-[#718078]">Rating</p>
+                              <p className="font-serif text-lg font-bold text-[#183a31]">
+                                ★ {quickViewHotel.rating ? quickViewHotel.rating.toFixed(1) : "4.8"}
+                              </p>
+                            </div>
                             <Button
                               onClick={() => {
                                 const hid = quickViewHotel.id;
                                 setQuickViewHotel(null);
                                 navigate(`/hotel/${hid}`);
                               }}
-                              className="rounded-xl bg-[#183a31] px-5 text-xs font-bold text-white hover:bg-[#245448]"
+                              variant="outline"
+                              className="rounded-xl border-[#183a31] text-xs font-bold text-[#183a31] hover:bg-[#f3f5f0]"
                             >
-                              View Full Details & Book
+                              View Full Details
                             </Button>
                           </div>
+                          <Button
+                            onClick={() => {
+                              const hid = quickViewHotel.id;
+                              setQuickViewHotel(null);
+                              navigate(`/hotel/${hid}`);
+                            }}
+                            className="w-full rounded-2xl bg-[#b18143] py-3 text-sm font-bold text-white shadow-lg transition hover:bg-[#9a6e38]"
+                          >
+                            Book Now
+                          </Button>
                         </div>
                       </div>
                     </div>

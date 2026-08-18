@@ -73,3 +73,4 @@
 - [x] Add a 'Load More' button at the bottom of destination search results to incrementally handle large numbers of properties.
 - [x] Add a floating 'Back to Top' button that appears when the user scrolls down through the loaded properties.
 - [x] Implement a quick view modal that opens when a user clicks on a property card to show more details without leaving the page.
+- [x] Add a smooth fade-in and scale-up animation when the quick view modal opens to improve the visual experience.

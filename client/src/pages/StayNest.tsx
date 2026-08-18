@@ -1088,8 +1088,8 @@ export function Home() {
                   </div>
 
                   {quickViewHotel && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-                      <div className="relative w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl md:p-8">
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm transition-opacity duration-300 animate-in fade-in">
+                      <div className="relative w-full max-w-lg scale-95 rounded-3xl bg-white p-6 shadow-2xl transition-all duration-300 animate-in zoom-in-95 md:p-8">
                         <button
                           onClick={() => setQuickViewHotel(null)}
                           className="absolute right-5 top-5 rounded-full bg-[#f3f5f0] p-2 text-[#183a31] hover:bg-[#e2e8e2]"

@@ -75,3 +75,4 @@
 - [x] Implement a quick view modal that opens when a user clicks on a property card to show more details without leaving the page.
 - [x] Add a smooth fade-in and scale-up animation when the quick view modal opens to improve the visual experience.
 - [x] Include a prominent 'Book Now' button inside the quick view modal that redirects to the full property booking page.
+- [x] Implement an image carousel inside the quick view modal so users can swipe through multiple photos of the property.

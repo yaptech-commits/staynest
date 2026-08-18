@@ -554,6 +554,7 @@ export function Home() {
   const [destinationFilter, setDestinationFilter] = useState("");
   const [destinationVisibleLimit, setDestinationVisibleLimit] = useState(4);
   const [quickViewHotel, setQuickViewHotel] = useState<any | null>(null);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [minPrice, setMinPrice] = useState<number | undefined>(undefined);
   const [maxPrice, setMaxPrice] = useState<number | undefined>(undefined);
   const [minRating, setMinRating] = useState<number | undefined>(undefined);
@@ -1096,17 +1097,56 @@ export function Home() {
                         >
                           ✕
                         </button>
-                        <div className="mb-4 h-56 overflow-hidden rounded-2xl">
-                          <img
-                            src={
-                              Array.isArray(quickViewHotel.images) && quickViewHotel.images[0]
-                                ? quickViewHotel.images[0]
-                                : image.city
-                            }
-                            alt={quickViewHotel.name}
-                            className="h-full w-full object-cover"
-                          />
-                        </div>
+                        {(() => {
+                          const imagesList =
+                            Array.isArray(quickViewHotel.images) && quickViewHotel.images.length > 0
+                              ? quickViewHotel.images
+                              : [image.city];
+                          const currentIdx = Math.min(activeImageIndex, imagesList.length - 1);
+                          return (
+                            <div className="relative mb-4 h-56 overflow-hidden rounded-2xl bg-black">
+                              <img
+                                src={imagesList[currentIdx]}
+                                alt={`${quickViewHotel.name} photo ${currentIdx + 1}`}
+                                className="h-full w-full object-cover transition-all duration-300"
+                              />
+                              {imagesList.length > 1 && (
+                                <>
+                                  <button
+                                    onClick={() =>
+                                      setActiveImageIndex(prev => (prev === 0 ? imagesList.length - 1 : prev - 1))
+                                    }
+                                    aria-label="Previous photo"
+                                    className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-black/50 p-2 text-white transition hover:bg-black/75"
+                                  >
+                                    ‹
+                                  </button>
+                                  <button
+                                    onClick={() =>
+                                      setActiveImageIndex(prev => (prev === imagesList.length - 1 ? 0 : prev + 1))
+                                    }
+                                    aria-label="Next photo"
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-black/50 p-2 text-white transition hover:bg-black/75"
+                                  >
+                                    ›
+                                  </button>
+                                  <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-1.5 rounded-full bg-black/40 px-3 py-1 backdrop-blur-sm">
+                                    {imagesList.map((_: string, i: number) => (
+                                      <button
+                                        key={i}
+                                        onClick={() => setActiveImageIndex(i)}
+                                        aria-label={`Go to photo ${i + 1}`}
+                                        className={`h-1.5 rounded-full transition-all ${
+                                          i === currentIdx ? "w-5 bg-white" : "w-1.5 bg-white/50"
+                                        }`}
+                                      />
+                                    ))}
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                          );
+                        })()}
                         <h3 className="font-serif text-2xl text-[#183a31]">{quickViewHotel.name}</h3>
                         <p className="text-sm font-medium text-[#b18143]">{quickViewHotel.location}</p>
                         <p className="mt-3 text-sm text-[#718078] leading-relaxed">

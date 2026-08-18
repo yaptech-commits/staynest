@@ -992,16 +992,41 @@ export function Home() {
                 Start with a destination, then let the right stay find you.
               </p>
             </div>
-            <div className="w-full max-w-sm">
-              <div className="relative">
+            <div className="flex w-full flex-col gap-3 sm:max-w-md sm:flex-row sm:items-center">
+              <div className="relative flex-1">
                 <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#718078]" />
                 <input
                   type="text"
-                  placeholder="Filter by hotel name or location..."
+                  placeholder="Filter by name or location..."
                   value={destinationFilter}
                   onChange={e => setDestinationFilter(e.target.value)}
                   className="w-full rounded-xl border border-[#cfd9cf] bg-white py-2.5 pl-10 pr-4 text-xs font-semibold text-[#183a31] shadow-sm outline-none placeholder:text-[#9ca8a1] focus:border-[#2b6755]"
                 />
+              </div>
+              <div className="flex items-center gap-2">
+                <select
+                  value={maxPrice ?? ""}
+                  onChange={e => setMaxPrice(e.target.value ? Number(e.target.value) : undefined)}
+                  aria-label="Filter properties by maximum budget"
+                  className="rounded-xl border border-[#cfd9cf] bg-white px-3 py-2.5 text-xs font-semibold text-[#183a31] shadow-sm outline-none focus:border-[#2b6755]"
+                >
+                  <option value="">Any Budget</option>
+                  <option value="500">Max ₵500 / $500</option>
+                  <option value="1000">Max ₵1,000 / $1,000</option>
+                  <option value="2500">Max ₵2,500 / $2,500</option>
+                  <option value="5000">Max ₵5,000 / $5,000</option>
+                </select>
+                {(destinationFilter || maxPrice !== undefined) && (
+                  <button
+                    onClick={() => {
+                      setDestinationFilter("");
+                      setMaxPrice(undefined);
+                    }}
+                    className="rounded-xl border border-[#cfd9cf] bg-white px-3 py-2.5 text-xs font-bold text-[#b18143] hover:bg-[#f3f5f0]"
+                  >
+                    Reset
+                  </button>
+                )}
               </div>
             </div>
           </div>
